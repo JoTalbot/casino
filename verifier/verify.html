@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка раунда — Crown of Fortune</title>
+<!--
+  АВТОНОМНЫЙ ВЕРИФИКАТОР РАУНДА
+  ============================
+
+  Этот файл собирается скриптом scripts/build_verifier.py из шаблона
+  verifier/verify.template.html. Не редактируйте verify.html напрямую —
+  правки затрёт следующая сборка.
+
+  Принципы, которым файл обязан соответствовать:
+
+  1. НОЛЬ внешних ресурсов. Ни CDN, ни шрифтов, ни картинок, ни fetch.
+     Игрок должен иметь возможность сохранить файл, отключить интернет
+     и проверить раунд. Если бы верификатор ходил на наш сервер, он не
+     доказывал бы ничего: мы могли бы подсунуть любой ответ.
+
+  2. НОЛЬ зависимостей от браузерного крипто. SHA-256 и HMAC написаны
+     здесь вручную. Причина практическая: crypto.subtle недоступен на
+     file:// в ряде браузеров, а именно так этот файл и будут открывать.
+
+  3. Конфигурация игры вшита в файл целиком, вместе с лентами барабанов.
+     Её хэш показан в шапке и обязан совпадать с тем, что записан в
+     истории раунда. Иначе раунд игрался на другой математике, и
+     совпадение стопов ничего не доказывает.
+
+  Собрано: 2026-08-17
+  Хэш конфигурации: 5f9b9c35c7b483eb718d5bf59d48514aa3103b9fb53c20133ff1f9947ac1d70e
+-->
+<style>
+  :root {
+    --bg: #12131a;
+    --panel: #1b1d27;
+    --panel-2: #232634;
+    --line: #313548;
+    --text: #e7e9f0;
+    --muted: #9aa0b5;
+    --accent: #d4a24c;
+    --ok: #4caf7d;
+    --bad: #e05b5b;
+    --wild: #7b5ed6;
+    --scatter: #c0483f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+    padding: 24px 16px 64px;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 28px 0 12px; padding-bottom: 6px;
+       border-bottom: 1px solid var(--line); }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .panel { background: var(--panel); border: 1px solid var(--line);
+           border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+  label { display: block; font-size: 13px; color: var(--muted);
+          margin: 0 0 5px; }
+  input {
+    width: 100%; padding: 9px 11px; background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 6px; color: var(--text);
+    font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  .field { margin-bottom: 13px; }
+  .row { display: flex; gap: 13px; flex-wrap: wrap; }
+  .row > .field { flex: 1; min-width: 150px; }
+  button {
+    background: var(--accent); color: #1a1205; border: 0; border-radius: 6px;
+    padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  button:hover { filter: brightness(1.08); }
+  button.ghost { background: transparent; color: var(--muted);
+                 border: 1px solid var(--line); font-weight: 400; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 5px; }
+  .verdict { border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;
+             font-weight: 600; }
+  .verdict.ok  { background: rgba(76,175,125,.14); border: 1px solid var(--ok);
+                 color: #a5e3c4; }
+  .verdict.bad { background: rgba(224,91,91,.14); border: 1px solid var(--bad);
+                 color: #f3b0b0; }
+  .checks { list-style: none; padding: 0; margin: 0; }
+  .checks li { padding: 7px 0; border-bottom: 1px solid var(--line);
+               display: flex; gap: 10px; align-items: flex-start;
+               font-size: 14px; }
+  .checks li:last-child { border-bottom: 0; }
+  .mark { flex: 0 0 auto; font-weight: 700; width: 18px; }
+  .mark.ok { color: var(--ok); }
+  .mark.bad { color: var(--bad); }
+  .grid { display: inline-grid; grid-template-columns: repeat(5, 76px);
+          gap: 4px; margin: 8px 0; }
+  .cell {
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 5px; padding: 9px 4px; text-align: center;
+    font-size: 12px; letter-spacing: .3px;
+  }
+  .cell.win { border-color: var(--accent); background: rgba(212,162,76,.18);
+              color: #f2d69b; font-weight: 600; }
+  .cell.wild { border-color: var(--wild); color: #c2b0f5; }
+  .cell.scatter { border-color: var(--scatter); color: #f0a49c; }
+  .spin { border-top: 1px solid var(--line); padding-top: 14px;
+          margin-top: 14px; }
+  .spin:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+  .spin-head { display: flex; justify-content: space-between;
+               align-items: baseline; flex-wrap: wrap; gap: 8px; }
+  .badge { font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+           color: var(--muted); }
+  .win-amount { color: var(--accent); font-weight: 700; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+                monospace; font-size: 12px; }
+  .kv { display: flex; gap: 8px; font-size: 13px; padding: 3px 0;
+        flex-wrap: wrap; }
+  .kv .k { color: var(--muted); min-width: 190px; }
+  .kv .v { font-family: ui-monospace, Menlo, Consolas, monospace;
+           word-break: break-all; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px;
+          margin-top: 8px; }
+  th, td { text-align: left; padding: 6px 9px;
+           border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  .footer { color: var(--muted); font-size: 12px; margin-top: 34px;
+            border-top: 1px solid var(--line); padding-top: 16px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Проверка честности раунда</h1>
+  <div class="sub">
+    Crown of Fortune версия 1.0.0 · собрано 2026-08-17<br>
+    Файл работает без интернета. Сохраните его и откройте на своём
+    компьютере — он ничего никуда не отправляет.
+  </div>
+
+  <div class="panel">
+    <div class="kv"><span class="k">Хэш конфигурации игры</span>
+      <span class="v" id="cfg-hash"></span></div>
+    <div class="hint">
+      Это отпечаток математики: лент барабанов, таблицы выплат и правил
+      бонуса. Он обязан совпасть со значением <code>configHash</code> из
+      истории вашего раунда. Если не совпал — раунд игрался на другой
+      версии игры, и всё остальное проверять бессмысленно.
+    </div>
+  </div>
+
+  <h2>Данные раунда</h2>
+  <div class="panel">
+    <div class="field">
+      <label for="server-seed">Серверный сид (раскрывается после ротации пары)</label>
+      <input id="server-seed" spellcheck="false" autocomplete="off"
+             placeholder="64 шестнадцатеричных символа">
+    </div>
+    <div class="field">
+      <label for="server-seed-hash">Хэш серверного сида (был показан до ставки)</label>
+      <input id="server-seed-hash" spellcheck="false" autocomplete="off"
+             placeholder="необязательно, но именно он и доказывает честность">
+    </div>
+    <div class="field">
+      <label for="client-seed">Ваш клиентский сид</label>
+      <input id="client-seed" spellcheck="false" autocomplete="off">
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="nonce">Номер раунда (nonce)</label>
+        <input id="nonce" type="number" min="0" step="1" value="0">
+      </div>
+      <div class="field">
+        <label for="bet">Ставка на линию</label>
+        <input id="bet" type="number" min="1" step="1" value="1">
+      </div>
+      <div class="field">
+        <label for="expected-win">Выигрыш по версии казино (необязательно)</label>
+        <input id="expected-win" type="number" min="0" step="1"
+               placeholder="в кредитах">
+      </div>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button id="btn-verify">Пересчитать раунд</button>
+      <button id="btn-example" class="ghost">Подставить пример</button>
+      <button id="btn-selftest" class="ghost">Самопроверка</button>
+    </div>
+  </div>
+
+  <div id="result"></div>
+  <div id="selftest"></div>
+
+  <div class="footer">
+    <strong>Что именно проверяется.</strong><br>
+    1. Хэш раскрытого серверного сида совпадает с тем, что казино
+    опубликовало до вашей ставки. Это не даёт подобрать сид задним числом.<br>
+    2. Из пары сидов и номера раунда пересчитываются позиции остановки
+    барабанов: ключ HMAC-SHA256 — серверный сид, сообщение —
+    <code>клиентскийСид:nonce:курсор</code>. Каждое случайное число берётся
+    из четырёх байт как <code>b0/256 + b1/256² + b2/256³ + b3/256⁴</code>.<br>
+    3. По позициям остановки разворачивается сетка и заново считается
+    выплата — по вшитым в этот файл лентам и таблице выплат.<br><br>
+    <strong>Чего проверка не доказывает.</strong> Она не подтверждает, что
+    показанный вам хэш был опубликован именно до ставки — храните его сами.
+    И не подтверждает справедливость самой математики: для этого есть
+    отчёт PAR sheet и независимая сертификация.
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ==========================================================================
+   1. SHA-256 и HMAC-SHA256 — своя реализация
+   ==========================================================================
+   Написано вручную вместо crypto.subtle по одной причине: этот файл будут
+   открывать двойным кликом, то есть по протоколу file://, где crypto.subtle
+   в части браузеров просто отсутствует (не защищённый контекст).
+   Реализация прямая по FIPS 180-4, без оптимизаций — её должно быть
+   не страшно перечитать глазами.
+   ====================================================================== */
+
+const K = new Uint32Array([
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,
+  0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,
+  0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,
+  0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,
+  0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,
+  0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,
+  0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,
+  0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,
+  0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+]);
+
+function rotr(x, n) { return (x >>> n) | (x << (32 - n)); }
+
+/** SHA-256 от массива байт. Возвращает Uint8Array(32). */
+function sha256(bytes) {
+  const h = new Uint32Array([
+    0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,
+    0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19
+  ]);
+
+  // Дополнение: байт 0x80, нули, затем длина в битах 64-битным big-endian.
+  const bitLen = bytes.length * 8;
+  const padded = new Uint8Array(((bytes.length + 9 + 63) >> 6) << 6);
+  padded.set(bytes);
+  padded[bytes.length] = 0x80;
+  // Длина в битах не превышает 2^32 для наших данных, старшие 4 байта — нули.
+  const dv = new DataView(padded.buffer);
+  dv.setUint32(padded.length - 4, bitLen >>> 0, false);
+  dv.setUint32(padded.length - 8, Math.floor(bitLen / 4294967296), false);
+
+  const w = new Uint32Array(64);
+
+  for (let off = 0; off < padded.length; off += 64) {
+    for (let i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4, false);
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr(w[i-15], 7) ^ rotr(w[i-15], 18) ^ (w[i-15] >>> 3);
+      const s1 = rotr(w[i-2], 17) ^ rotr(w[i-2], 19) ^ (w[i-2] >>> 10);
+      w[i] = (w[i-16] + s0 + w[i-7] + s1) >>> 0;
+    }
+
+    let [a,b,c,d,e,f,g,hh] = h;
+
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const t1 = (hh + S1 + ch + K[i] + w[i]) >>> 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (S0 + maj) >>> 0;
+      hh = g; g = f; f = e;
+      e = (d + t1) >>> 0;
+      d = c; c = b; b = a;
+      a = (t1 + t2) >>> 0;
+    }
+
+    h[0] = (h[0] + a) >>> 0; h[1] = (h[1] + b) >>> 0;
+    h[2] = (h[2] + c) >>> 0; h[3] = (h[3] + d) >>> 0;
+    h[4] = (h[4] + e) >>> 0; h[5] = (h[5] + f) >>> 0;
+    h[6] = (h[6] + g) >>> 0; h[7] = (h[7] + hh) >>> 0;
+  }
+
+  const out = new Uint8Array(32);
+  const odv = new DataView(out.buffer);
+  for (let i = 0; i < 8; i++) odv.setUint32(i * 4, h[i], false);
+  return out;
+}
+
+/** HMAC-SHA256 по RFC 2104. Ключ и сообщение — Uint8Array. */
+function hmacSha256(keyBytes, msgBytes) {
+  const BLOCK = 64;
+  let key = keyBytes;
+  if (key.length > BLOCK) key = sha256(key);
+
+  const padKey = new Uint8Array(BLOCK);
+  padKey.set(key);
+
+  const inner = new Uint8Array(BLOCK + msgBytes.length);
+  const outer = new Uint8Array(BLOCK + 32);
+  for (let i = 0; i < BLOCK; i++) {
+    inner[i] = padKey[i] ^ 0x36;
+    outer[i] = padKey[i] ^ 0x5c;
+  }
+  inner.set(msgBytes, BLOCK);
+  outer.set(sha256(inner), BLOCK);
+  return sha256(outer);
+}
+
+const enc = new TextEncoder();
+function utf8(s) { return enc.encode(s); }
+function toHex(bytes) {
+  let s = "";
+  for (let i = 0; i < bytes.length; i++) s += bytes[i].toString(16).padStart(2, "0");
+  return s;
+}
+
+/* ==========================================================================
+   2. Поток случайных чисел раунда
+   ==========================================================================
+   Точная копия логики src/engine/rng.ts и slotmath/round.py.
+   Ключ HMAC — серверный сид как UTF-8 СТРОКА, а не как разобранные из hex
+   байты. Это принципиально: разбор hex дал бы другой ключ и другие числа.
+   ====================================================================== */
+
+const HMAC_BYTES = 32;
+const BYTES_PER_FLOAT = 4;
+
+function hashServerSeed(serverSeed) {
+  return toHex(sha256(utf8(serverSeed)));
+}
+
+function hmacBlock(serverSeed, clientSeed, nonce, cursor) {
+  return hmacSha256(utf8(serverSeed), utf8(clientSeed + ":" + nonce + ":" + cursor));
+}
+
+class RoundRandom {
+  constructor(serverSeed, clientSeed, nonce) {
+    if (clientSeed.indexOf(":") !== -1) {
+      throw new Error('Клиентский сид не может содержать символ ":"');
+    }
+    this.serverSeed = serverSeed;
+    this.clientSeed = clientSeed;
+    this.nonce = nonce;
+    this.blockIndex = 0;
+    this.block = hmacBlock(serverSeed, clientSeed, nonce, 0);
+    this.offset = 0;
+    this.consumed = 0;
+  }
+  nextFloat() {
+    if (this.offset + BYTES_PER_FLOAT > HMAC_BYTES) {
+      this.blockIndex += 1;
+      this.block = hmacBlock(this.serverSeed, this.clientSeed, this.nonce,
+                             this.blockIndex);
+      this.offset = 0;
+    }
+    const b = this.block, o = this.offset;
+    this.offset += BYTES_PER_FLOAT;
+    this.consumed += 1;
+    return b[o] / 256 + b[o+1] / 65536 + b[o+2] / 16777216 + b[o+3] / 4294967296;
+  }
+  nextInt(bound) {
+    return Math.min(Math.floor(this.nextFloat() * bound), bound - 1);
+  }
+}
+
+/* ==========================================================================
+   3. Конфигурация игры и правила выплат
+   ==========================================================================
+   Конфигурация вшита при сборке. Порядок оценки повторяет slotmath/round.py.
+   ====================================================================== */
+
+const CFG = {"name":"Crown of Fortune","version":"1.0.0","symbols":["TEN","J","Q","K","A","SWORD","CHALICE","RING","CROWN","WILD","SCATTER"],"paytable":{"CROWN":{"3":150,"4":626,"5":3006},"RING":{"3":75,"4":301,"5":1252},"CHALICE":{"3":55,"4":225,"5":751},"SWORD":{"3":40,"4":150,"5":451},"A":{"3":25,"4":88,"5":301},"K":{"3":20,"4":70,"5":225},"Q":{"3":15,"4":55,"5":175},"J":{"4":40,"5":138},"TEN":{"4":35,"5":113}},"baseReels":[["SCATTER","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","A","SWORD","CHALICE","RING","TEN","J","Q","K","A","SWORD","CHALICE","TEN","J","Q","K","A","SWORD","TEN","J","Q","K","A","TEN","J","Q","K","A","TEN","J","Q","K","TEN","J"],["SCATTER","WILD","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","A","SWORD","CHALICE","RING","TEN","J","Q","K","A","SWORD","CHALICE","WILD","TEN","J","Q","K","A","SWORD","TEN","J","Q","K","A","TEN","J","Q","K","A","TEN","J","Q"],["SCATTER","WILD","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","A","SWORD","CHALICE","RING","TEN","J","Q","K","A","SWORD","CHALICE","WILD","TEN","J","Q","K","A","SWORD","TEN","J","Q","K","A","TEN","J","Q","K","A","TEN","J","Q"],["SCATTER","WILD","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","A","SWORD","CHALICE","RING","TEN","J","Q","K","A","SWORD","CHALICE","WILD","TEN","J","Q","K","A","SWORD","TEN","J","Q","K","A","TEN","J","Q","K","A","TEN","J","Q"],["SCATTER","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","A","SWORD","CHALICE","RING","TEN","J","Q","K","A","SWORD","CHALICE","TEN","J","Q","K","A","SWORD","TEN","J","Q","K","A","TEN","J","Q","K","A","TEN","J","Q","K","TEN","J"]],"freeReels":[["SCATTER","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","A","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","A","SWORD","CHALICE","RING","TEN","J","Q","K","A","SWORD","TEN","J","Q","K","A","TEN","J","Q","K","A","TEN","J"],["SCATTER","WILD","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","WILD","A","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","WILD","A","SWORD","CHALICE","RING","TEN","J","Q","K","A","WILD","SWORD","TEN","J","Q","K","A","TEN","J","Q"],["SCATTER","WILD","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","WILD","A","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","WILD","A","SWORD","CHALICE","RING","TEN","J","Q","K","A","WILD","SWORD","TEN","J","Q","K","A","TEN","J","Q"],["SCATTER","WILD","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","WILD","A","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","WILD","A","SWORD","CHALICE","RING","TEN","J","Q","K","A","WILD","SWORD","TEN","J","Q","K","A","TEN","J","Q"],["SCATTER","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","A","SWORD","CHALICE","RING","CROWN","TEN","J","Q","K","A","SWORD","CHALICE","RING","TEN","J","Q","K","A","SWORD","TEN","J","Q","K","A","TEN","J","Q","K","A","TEN","J"]],"wild":"WILD","scatter":"SCATTER","scatterTrigger":3,"freeSpinsAward":{"3":10,"4":15,"5":25},"scatterPays":{"3":2,"4":10,"5":50},"freeSpinMultiplier":2,"retriggerEnabled":true,"wildReels":[1,2,3],"lines":20,"targetRtp":0.96,"maxWinCap":5000,"meta":{"grid":"5x3","volatility":"medium","description":"Классический слот 5x3 на 20 фиксированных линий"}};
+const CONFIG_HASH = "5f9b9c35c7b483eb718d5bf59d48514aa3103b9fb53c20133ff1f9947ac1d70e";
+const PAYLINES = [[1,1,1,1,1],[0,0,0,0,0],[2,2,2,2,2],[0,1,2,1,0],[2,1,0,1,2],[0,0,1,2,2],[2,2,1,0,0],[1,2,2,2,1],[1,0,0,0,1],[1,0,1,2,1],[1,2,1,0,1],[0,1,1,1,0],[2,1,1,1,2],[0,1,0,1,0],[2,1,2,1,2],[1,1,0,1,1],[1,1,2,1,1],[0,2,0,2,0],[2,0,2,0,2],[0,2,2,2,0]];
+const FIXTURES = {"serverSeed":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","serverSeedHash":"ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb","clientSeed":"player-fixture-seed","betPerLine":1,"configHash":"5f9b9c35c7b483eb718d5bf59d48514aa3103b9fb53c20133ff1f9947ac1d70e","cases":[{"nonce":0,"kind":"no_win","totalWin":0,"drawCount":5,"stops":[[32,34,4,36,16]]},{"nonce":1,"kind":"line_win_mid","totalWin":175,"drawCount":5,"stops":[[9,20,10,27,31]]},{"nonce":2,"kind":"no_win","totalWin":0,"drawCount":5,"stops":[[31,6,30,20,8]]},{"nonce":3,"kind":"line_win_small","totalWin":15,"drawCount":5,"stops":[[28,20,6,13,18]]},{"nonce":4,"kind":"no_win","totalWin":0,"drawCount":5,"stops":[[24,35,20,1,36]]},{"nonce":5,"kind":"no_win","totalWin":0,"drawCount":5,"stops":[[25,16,9,0,35]]},{"nonce":6,"kind":"no_win","totalWin":0,"drawCount":5,"stops":[[11,5,1,26,5]]},{"nonce":10,"kind":"free_spins_3","totalWin":540,"drawCount":55,"stops":[[12,40,39,12,0],[13,0,7,2,30],[5,4,29,36,35],[30,39,17,5,29],[34,19,27,34,1],[25,32,22,35,31],[2,7,18,14,39],[17,12,25,11,33],[8,7,30,10,21],[23,3,33,15,4],[37,9,29,31,12]]},{"nonce":23,"kind":"line_win_small","totalWin":20,"drawCount":5,"stops":[[39,15,25,31,15]]},{"nonce":26,"kind":"line_win_mid","totalWin":225,"drawCount":5,"stops":[[3,40,19,5,13]]},{"nonce":30,"kind":"line_win_small","totalWin":20,"drawCount":5,"stops":[[34,20,7,11,35]]},{"nonce":38,"kind":"free_spins_3","totalWin":110,"drawCount":55,"stops":[[1,27,0,39,0],[0,2,16,0,22],[5,4,0,26,29],[2,39,37,28,17],[22,29,29,2,20],[33,31,37,28,37],[37,2,33,7,32],[39,37,28,3,34],[7,6,14,19,26],[23,2,7,6,8],[31,15,11,13,28]]},{"nonce":40,"kind":"line_win_small","totalWin":15,"drawCount":5,"stops":[[20,7,38,22,9]]},{"nonce":43,"kind":"line_win_small","totalWin":20,"drawCount":5,"stops":[[29,29,7,35,22]]},{"nonce":44,"kind":"line_win_mid","totalWin":55,"drawCount":5,"stops":[[33,40,22,14,10]]},{"nonce":48,"kind":"line_win_mid","totalWin":45,"drawCount":5,"stops":[[8,20,35,27,7]]},{"nonce":52,"kind":"line_win_small","totalWin":20,"drawCount":5,"stops":[[34,7,9,25,8]]},{"nonce":201,"kind":"big_win","totalWin":540,"drawCount":5,"stops":[[18,20,20,18,7]]},{"nonce":538,"kind":"big_win","totalWin":445,"drawCount":5,"stops":[[2,20,20,17,1]]},{"nonce":776,"kind":"big_win","totalWin":600,"drawCount":5,"stops":[[17,11,19,19,27]]},{"nonce":987,"kind":"free_spins_3","totalWin":560,"drawCount":55,"stops":[[0,33,0,23,41],[5,27,7,28,34],[28,6,32,6,32],[18,17,4,38,5],[21,14,1,28,25],[24,17,35,35,15],[0,22,16,7,5],[1,14,11,25,35],[8,1,38,10,17],[39,19,9,14,25],[35,6,16,0,25]]},{"nonce":1588,"kind":"free_spins_4","totalWin":560,"drawCount":80,"stops":[[41,0,20,40,41],[23,9,21,16,34],[31,13,29,36,27],[14,22,17,9,4],[9,25,28,39,38],[3,2,2,25,18],[26,26,19,36,3],[25,11,28,35,11],[36,13,24,17,14],[23,26,4,17,29],[2,26,1,15,27],[30,23,9,3,22],[18,39,25,31,21],[27,13,27,32,12],[21,17,37,29,19],[3,8,7,0,19]]},{"nonce":2261,"kind":"free_spins_3","totalWin":90,"drawCount":55,"stops":[[16,40,28,39,41],[32,30,11,8,11],[14,14,36,18,14],[18,24,35,30,36],[4,26,11,0,16],[12,31,30,17,24],[4,0,33,10,2],[39,16,25,20,23],[38,5,19,34,28],[5,22,25,17,23],[4,16,34,3,15]]},{"nonce":4721,"kind":"free_spins_4","totalWin":430,"drawCount":80,"stops":[[0,0,16,40,40],[25,35,24,19,8],[30,38,28,32,0],[28,21,4,28,32],[29,35,15,35,4],[36,8,31,39,26],[2,13,33,27,12],[32,18,1,4,23],[4,37,29,3,14],[4,26,1,29,19],[3,3,24,11,5],[4,9,38,20,33],[15,3,35,35,26],[31,9,16,14,13],[7,29,23,25,25],[5,27,7,33,10]]},{"nonce":23360,"kind":"retrigger","totalWin":3954,"drawCount":105,"stops":[[41,12,40,40,10],[16,2,11,32,31],[8,10,20,15,36],[35,29,12,25,31],[11,38,0,39,34],[39,25,10,18,14],[25,19,28,37,3],[16,27,2,9,5],[34,9,27,3,9],[31,24,34,32,28],[18,8,0,31,9],[17,38,22,10,2],[34,23,6,25,5],[1,0,2,22,19],[11,23,11,28,21],[0,19,4,5,1],[7,30,37,22,22],[16,19,25,1,20],[13,15,35,0,8],[29,26,14,8,5],[20,13,21,17,31]]},{"nonce":72141,"kind":"retrigger","totalWin":620,"drawCount":105,"stops":[[10,0,0,37,41],[16,19,30,3,39],[7,8,25,11,30],[24,4,36,22,9],[28,20,7,13,20],[30,4,20,33,13],[0,10,3,38,38],[30,11,23,34,37],[22,21,34,29,1],[29,9,20,30,4],[33,19,16,28,8],[6,21,27,39,18],[23,17,4,25,30],[25,3,21,10,26],[5,16,1,34,14],[15,16,24,7,6],[23,35,19,22,23],[11,7,17,38,7],[36,18,3,39,29],[37,4,31,3,9],[13,20,38,18,34]]}]};
+
+const NUM_REELS = 5;
+const NUM_ROWS = 3;
+
+function windowFromStops(reels, stops) {
+  const win = [];
+  for (let r = 0; r < NUM_REELS; r++) {
+    const strip = reels[r], len = strip.length, col = [];
+    for (let row = 0; row < NUM_ROWS; row++) col.push(strip[(stops[r] + row) % len]);
+    win.push(col);
+  }
+  return win;
+}
+
+/**
+ * Выплата по всем линиям в единицах ставки на линию.
+ * Слева направо от первого барабана, wild заменяет любой оплачиваемый
+ * символ, по каждой линии берётся МАКСИМУМ по всем символам — забыть
+ * про максимум значит незаметно увести RTP на десятки пунктов.
+ */
+function evaluateLines(grid) {
+  let total = 0;
+  const details = [];
+
+  for (let lineNo = 0; lineNo < PAYLINES.length; lineNo++) {
+    const line = PAYLINES[lineNo];
+    const symbols = [];
+    for (let r = 0; r < NUM_REELS; r++) symbols.push(grid[r][line[r]]);
+
+    let bestPay = 0, bestSymbol = null, bestRun = 0;
+
+    for (const symbol in CFG.paytable) {
+      let run = 0;
+      for (let r = 0; r < NUM_REELS; r++) {
+        if (symbols[r] === symbol || symbols[r] === CFG.wild) run++;
+        else break;
+      }
+      const pay = run >= 3 ? (CFG.paytable[symbol][String(run)] || 0) : 0;
+      if (pay > bestPay) { bestPay = pay; bestSymbol = symbol; bestRun = run; }
+    }
+
+    if (bestPay > 0) {
+      const positions = [];
+      for (let r = 0; r < bestRun; r++) positions.push([r, line[r]]);
+      total += bestPay;
+      details.push({ line: lineNo + 1, symbol: bestSymbol, count: bestRun,
+                     positions: positions, pay: bestPay });
+    }
+  }
+  return { total: total, details: details };
+}
+
+function countScatters(grid) {
+  let n = 0;
+  for (let r = 0; r < NUM_REELS; r++)
+    for (let row = 0; row < NUM_ROWS; row++)
+      if (grid[r][row] === CFG.scatter) n++;
+  return n;
+}
+
+const MAX_FREE_SPINS = 200;
+
+/** Проигрывание раунда целиком. Зеркало slotmath/round.py::play_round. */
+function playRound(serverSeed, clientSeed, nonce, betPerLine) {
+  const rng = new RoundRandom(serverSeed, clientSeed, nonce);
+  const totalBet = betPerLine * CFG.lines;
+  const spins = [];
+
+  const baseLengths = CFG.baseReels.map(r => r.length);
+  const stops = baseLengths.map(n => rng.nextInt(n));
+  const grid = windowFromStops(CFG.baseReels, stops);
+
+  const lineEval = evaluateLines(grid);
+  const scatterCount = countScatters(grid);
+  const scatterMult = CFG.scatterPays[String(scatterCount)] || 0;
+  const scatterPay = scatterMult * totalBet;
+
+  const details = lineEval.details.slice();
+  if (scatterPay > 0) {
+    details.push({ symbol: CFG.scatter, count: scatterCount,
+                   pay: scatterMult * CFG.lines, scatter: true });
+  }
+
+  let triggered = 0, remaining = 0;
+  if (scatterCount >= CFG.scatterTrigger) {
+    triggered = CFG.freeSpinsAward[String(scatterCount)] || 0;
+    remaining = triggered;
+  }
+
+  const baseWin = lineEval.total * betPerLine + scatterPay;
+  spins.push({ index: 0, free: false, reelStops: stops, grid: grid,
+               win: baseWin, multiplier: 1, scatterCount: scatterCount,
+               triggeredFreeSpins: triggered, winDetails: details });
+  let totalWin = baseWin;
+
+  const freeLengths = CFG.freeReels.map(r => r.length);
+  let spinIndex = 1, played = 0;
+
+  while (remaining > 0 && played < MAX_FREE_SPINS) {
+    remaining -= 1;
+    played += 1;
+
+    const fStops = freeLengths.map(n => rng.nextInt(n));
+    const fGrid = windowFromStops(CFG.freeReels, fStops);
+    const fEval = evaluateLines(fGrid);
+    const fScatterCount = countScatters(fGrid);
+    const fScatterMult = CFG.scatterPays[String(fScatterCount)] || 0;
+    const fScatterPay = fScatterMult * totalBet;
+
+    const fDetails = fEval.details.slice();
+    if (fScatterPay > 0) {
+      fDetails.push({ symbol: CFG.scatter, count: fScatterCount,
+                      pay: fScatterMult * CFG.lines, scatter: true });
+    }
+
+    let fTriggered = 0;
+    if (CFG.retriggerEnabled && fScatterCount >= CFG.scatterTrigger) {
+      fTriggered = CFG.freeSpinsAward[String(fScatterCount)] || 0;
+      remaining += fTriggered;
+    }
+
+    // Множитель фриспинов действует на линии, но НЕ на прямую выплату
+    // за scatter — иначе фактический RTP разойдётся с заявленным.
+    const fWin = fEval.total * CFG.freeSpinMultiplier * betPerLine + fScatterPay;
+
+    spins.push({ index: spinIndex, free: true, reelStops: fStops, grid: fGrid,
+                 win: fWin, multiplier: CFG.freeSpinMultiplier,
+                 scatterCount: fScatterCount, triggeredFreeSpins: fTriggered,
+                 winDetails: fDetails });
+    totalWin += fWin;
+    spinIndex += 1;
+  }
+
+  const cap = CFG.maxWinCap * totalBet;
+  const capped = totalWin > cap;
+  if (capped) totalWin = cap;
+
+  return { serverSeedHash: hashServerSeed(serverSeed), clientSeed: clientSeed,
+           nonce: nonce, betPerLine: betPerLine, lines: CFG.lines,
+           totalBet: totalBet, totalWin: totalWin, capped: capped,
+           drawCount: rng.consumed, spins: spins };
+}
+
+/* ==========================================================================
+   4. Интерфейс
+   ====================================================================== */
+
+const $ = id => document.getElementById(id);
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+$("cfg-hash").textContent = CONFIG_HASH;
+
+function renderGrid(spin) {
+  const winning = new Set();
+  for (const d of spin.winDetails) {
+    if (!d.positions) continue;
+    for (const p of d.positions) winning.add(p[0] + ":" + p[1]);
+  }
+
+  let html = '<div class="grid">';
+  for (let row = 0; row < NUM_ROWS; row++) {
+    for (let r = 0; r < NUM_REELS; r++) {
+      const sym = spin.grid[r][row];
+      const cls = ["cell"];
+      if (winning.has(r + ":" + row)) cls.push("win");
+      if (sym === CFG.wild) cls.push("wild");
+      if (sym === CFG.scatter) cls.push("scatter");
+      html += '<div class="' + cls.join(" ") + '">' + esc(sym) + "</div>";
+    }
+  }
+  return html + "</div>";
+}
+
+function renderSpin(spin) {
+  const title = spin.free
+    ? "Фриспин " + spin.index + " (множитель x" + spin.multiplier + ")"
+    : "Базовый спин";
+
+  let html = '<div class="spin"><div class="spin-head">';
+  html += "<div><strong>" + title + "</strong> ";
+  html += '<span class="badge">стопы ' + spin.reelStops.join(", ") + "</span></div>";
+  html += '<div class="win-amount">' + spin.win + " кредитов</div></div>";
+  html += renderGrid(spin);
+
+  if (spin.winDetails.length) {
+    html += "<table><tr><th>Линия</th><th>Символ</th><th>Совпадений</th>"
+          + "<th>Выплата, ставок на линию</th></tr>";
+    for (const d of spin.winDetails) {
+      html += "<tr><td>" + (d.scatter ? "scatter" : d.line) + "</td><td>"
+            + esc(d.symbol) + "</td><td>" + d.count + "</td><td>" + d.pay
+            + "</td></tr>";
+    }
+    html += "</table>";
+  }
+
+  if (spin.triggeredFreeSpins > 0) {
+    html += '<div class="hint">Скаттеров в окне: ' + spin.scatterCount
+          + ". Начислено фриспинов: " + spin.triggeredFreeSpins + ".</div>";
+  }
+  return html + "</div>";
+}
+
+function verify() {
+  const serverSeed = $("server-seed").value.trim();
+  const serverSeedHash = $("server-seed-hash").value.trim().toLowerCase();
+  const clientSeed = $("client-seed").value;
+  const nonce = parseInt($("nonce").value, 10);
+  const bet = parseInt($("bet").value, 10);
+  const expectedWinRaw = $("expected-win").value.trim();
+
+  const out = $("result");
+  out.innerHTML = "";
+
+  const problems = [];
+  if (!/^[0-9a-fA-F]+$/.test(serverSeed) || serverSeed.length % 2 !== 0) {
+    problems.push("Серверный сид должен быть шестнадцатеричной строкой чётной длины.");
+  }
+  if (!clientSeed) problems.push("Не указан клиентский сид.");
+  if (clientSeed.indexOf(":") !== -1) {
+    problems.push('Клиентский сид не может содержать символ ":".');
+  }
+  if (!Number.isInteger(nonce) || nonce < 0) problems.push("Nonce должен быть целым числом от нуля.");
+  if (!Number.isInteger(bet) || bet < 1) problems.push("Ставка на линию должна быть целым числом от единицы.");
+
+  if (problems.length) {
+    out.innerHTML = '<div class="verdict bad">Проверьте введённые данные</div>'
+      + '<div class="panel">' + problems.map(p => "<div>· " + esc(p) + "</div>").join("") + "</div>";
+    return;
+  }
+
+  let record;
+  try {
+    record = playRound(serverSeed.toLowerCase(), clientSeed, nonce, bet);
+  } catch (err) {
+    out.innerHTML = '<div class="verdict bad">Ошибка пересчёта: '
+      + esc(err.message) + "</div>";
+    return;
+  }
+
+  const checks = [];
+  if (serverSeedHash) {
+    const match = record.serverSeedHash === serverSeedHash;
+    checks.push({
+      ok: match,
+      text: match
+        ? "Раскрытый серверный сид соответствует опубликованному хэшу."
+        : "Хэш НЕ совпал. Опубликованный: " + esc(serverSeedHash)
+          + ". Посчитанный: " + record.serverSeedHash + "."
+    });
+  } else {
+    checks.push({
+      ok: null,
+      text: "Хэш серверного сида не указан — главная часть доказательства "
+          + "пропущена. Посчитанный хэш: " + record.serverSeedHash
+    });
+  }
+
+  if (expectedWinRaw !== "") {
+    const expected = parseInt(expectedWinRaw, 10);
+    const match = expected === record.totalWin;
+    checks.push({
+      ok: match,
+      text: match
+        ? "Выигрыш совпал с версией казино: " + record.totalWin + " кредитов."
+        : "Выигрыш НЕ совпал. Казино показало " + expected
+          + ", пересчёт даёт " + record.totalWin + "."
+    });
+  }
+
+  const hardFail = checks.some(c => c.ok === false);
+  const verdict = hardFail
+    ? '<div class="verdict bad">Проверка не пройдена</div>'
+    : '<div class="verdict ok">Раунд воспроизведён</div>';
+
+  let html = verdict + '<div class="panel"><ul class="checks">';
+  for (const c of checks) {
+    const mark = c.ok === true ? '<span class="mark ok">✓</span>'
+               : c.ok === false ? '<span class="mark bad">✗</span>'
+               : '<span class="mark">·</span>';
+    html += "<li>" + mark + "<span>" + c.text + "</span></li>";
+  }
+  html += "</ul></div>";
+
+  html += '<div class="panel">';
+  html += '<div class="kv"><span class="k">Всего спинов в раунде</span><span class="v">'
+        + record.spins.length + "</span></div>";
+  html += '<div class="kv"><span class="k">Случайных чисел израсходовано</span><span class="v">'
+        + record.drawCount + "</span></div>";
+  html += '<div class="kv"><span class="k">Общая ставка</span><span class="v">'
+        + record.totalBet + " кредитов</span></div>";
+  html += '<div class="kv"><span class="k">Итоговый выигрыш</span><span class="v">'
+        + record.totalWin + " кредитов (" + (record.totalWin / record.totalBet).toFixed(2)
+        + "x)</span></div>";
+  if (record.capped) {
+    html += '<div class="kv"><span class="k">Потолок выигрыша</span><span class="v">сработал ('
+          + CFG.maxWinCap + "x)</span></div>";
+  }
+  html += "</div>";
+
+  html += '<h2>Спины</h2><div class="panel">';
+  for (const spin of record.spins) html += renderSpin(spin);
+  html += "</div>";
+
+  out.innerHTML = html;
+}
+
+/**
+ * Самопроверка: раунды, посчитанные независимой реализацией на Python,
+ * вшиты в файл. Если этот верификатор считает так же, значит он собран
+ * корректно и им можно пользоваться.
+ */
+function selfTest() {
+  const out = $("selftest");
+  const t0 = performance.now();
+  const failures = [];
+
+  for (const c of FIXTURES.cases) {
+    const rec = playRound(FIXTURES.serverSeed, FIXTURES.clientSeed, c.nonce,
+                          FIXTURES.betPerLine);
+    if (rec.totalWin !== c.totalWin) {
+      failures.push("nonce " + c.nonce + ": выигрыш " + rec.totalWin
+                    + " вместо " + c.totalWin);
+      continue;
+    }
+    if (rec.drawCount !== c.drawCount) {
+      failures.push("nonce " + c.nonce + ": израсходовано чисел " + rec.drawCount
+                    + " вместо " + c.drawCount);
+      continue;
+    }
+    if (rec.spins.length !== c.stops.length) {
+      failures.push("nonce " + c.nonce + ": спинов " + rec.spins.length
+                    + " вместо " + c.stops.length);
+      continue;
+    }
+    for (let i = 0; i < c.stops.length; i++) {
+      if (rec.spins[i].reelStops.join(",") !== c.stops[i].join(",")) {
+        failures.push("nonce " + c.nonce + ", спин " + i + ": стопы "
+                      + rec.spins[i].reelStops.join(",") + " вместо "
+                      + c.stops[i].join(","));
+        break;
+      }
+    }
+  }
+
+  const hashOk = hashServerSeed(FIXTURES.serverSeed) === FIXTURES.serverSeedHash;
+  if (!hashOk) failures.push("SHA-256 работает неверно: контрольный хэш не совпал");
+
+  const ms = (performance.now() - t0).toFixed(0);
+
+  if (failures.length) {
+    out.innerHTML = '<div class="verdict bad">Самопроверка провалена: '
+      + failures.length + " расхождений</div><div class=\"panel\"><code>"
+      + failures.slice(0, 12).map(esc).join("<br>") + "</code></div>";
+  } else {
+    out.innerHTML = '<div class="verdict ok">Самопроверка пройдена: '
+      + FIXTURES.cases.length + " эталонных раундов воспроизведены точно ("
+      + ms + " мс)</div><div class=\"panel\"><div class=\"hint\">"
+      + "Эталонные значения посчитаны независимой реализацией на Python "
+      + "(slotmath/round.py) и вшиты в этот файл при сборке. Совпадение "
+      + "означает, что встроенные SHA-256, HMAC и правила выплат работают "
+      + "правильно.</div></div>";
+  }
+}
+
+$("btn-verify").addEventListener("click", verify);
+$("btn-selftest").addEventListener("click", selfTest);
+$("btn-example").addEventListener("click", () => {
+  const example = FIXTURES.cases.find(c => c.kind === "free_spins_3")
+               || FIXTURES.cases[0];
+  $("server-seed").value = FIXTURES.serverSeed;
+  $("server-seed-hash").value = FIXTURES.serverSeedHash;
+  $("client-seed").value = FIXTURES.clientSeed;
+  $("nonce").value = example.nonce;
+  $("bet").value = FIXTURES.betPerLine;
+  $("expected-win").value = example.totalWin;
+  verify();
+});
+</script>
+</body>
+</html>
