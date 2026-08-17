@@ -242,6 +242,67 @@
   провижинингом инфраструктуры в AWS/GCP. Отвергнут из-за привязки
   к платформе, см. ADR-005. — 2026-08-17
 
+
+---
+
+## Соц-казино: судебная практика и стор-политики (T-016)
+
+- https://sbcamericas.com/2025/02/10/high-5-games-damages-casino-verdict/ —
+  первый в истории вердикт присяжных против соц-казино: Вашингтон, февраль
+  2025, High 5 Games обязали выплатить $24.9 млн (~$18 млн ущерба + ~$7 млн).
+  Защита «монеты начисляются бесплатно, платить не обязательно» отклонена;
+  на процессе фигурировала работа с «китами» и выдача промо-монет игроку,
+  сообщившему о зависимости. — 2026-08-17
+- https://www.atg.wa.gov/news/news-releases/ag-s-office-sues-illegal-gambling-apps-have-taken-more-225-million —
+  официальный релиз генпрокурора Вашингтона, 03.02.2026: иск против Playtika
+  и Aristocrat, 16 приложений, требование вернуть $225+ млн с сентября 2020.
+  Отдельно заявлено отсутствие проверки возраста. — 2026-08-17
+- https://sbcamericas.com/2026/02/06/washington-sues-aristocrat-playtika/ —
+  разбор иска: 150 000 жителей штата в месяц, 8 млн покупок на $151 млн
+  (Playtika) и 2.25 млн на $74 млн (Aristocrat). — 2026-08-17
+- https://www.yogonet.com/international/news/2026/07/24/125544-washington-seeks-225m-from-operators-in-lawsuit-targeting-social-casino-apps —
+  защита Playtika строится на функции «continuous play» (продолжение игры
+  без покупки). Показывает, куда смотрит суд: давление заплатить при
+  исчерпании фишек и есть «привилегия играть». — 2026-08-17
+- https://www.zwillgen.com/litigation/virtual-chips-washington-gambling-law/ —
+  разбор Kater v. Churchill Downs (9-й окружной суд, 2018): виртуальные фишки
+  = «thing of value», поскольку дают «привилегию играть»; возможность вывода
+  средств для квалификации НЕ требуется. Вторичный рынок суд как основание
+  отверг. — 2026-08-17
+- https://www.jdsupra.com/legalnews/social-gaming-site-excludes-washington-65927/ —
+  реакция отрасли после Kater: PokerStars и другие закрыли доступ жителям
+  Вашингтона добровольно, до решений регулятора. — 2026-08-17
+- https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions/ —
+  актуальная шкала возрастных рейтингов Apple: Gambling и Frequent simulated
+  gambling → 18+; Корея 19+ с Rating Classification Number; Австралия R 18+
+  даже при нечастом симулированном гемблинге. — 2026-08-17
+- https://forums.macrumors.com/threads/numerous-apps-caught-up-in-apples-new-app-store-review-policy-to-ban-gambling-related-apps.2131697/ —
+  Apple не принимает гемблинг-приложения (включая симулированные) от
+  аккаунтов физлиц: «only verified accounts from incorporated business
+  entities». Практическое следствие: с личного аккаунта не опубликовать. — 2026-08-17
+- https://richtfirm.com/the-proliferation-of-social-gaming-casinos-legal-compliance-considerations/ —
+  сводка комплаенса соц-казино: требования App Store, Google Play, Google Ads
+  и Meta; Google требует явно указывать в описании отсутствие реальных
+  выигрышей. — 2026-08-17
+- https://belarus.revera.legal/en/info-centr/news-and-analytical-materials/1293-trebovaniya-k-gemblingovym-prilozheniyam/ —
+  разбор политик обеих площадок: нативность iOS-приложения, только юрлицо,
+  запрет рекламы реальных казино в соц-казино, обязательные механизмы
+  ответственной игры (самоисключение, лимиты). — 2026-08-17
+
+## Украина: регулирование (T-016)
+
+- https://chumak.partners/kruminalna-praktuka/advokat-st-203-2-azartni-ihry/ —
+  ст. 203-2 УК Украины: организация азартных игр без лицензии — штраф
+  170 000–680 000 грн с конфискацией, при повторности 680 000–850 000 грн
+  и запрет деятельности до 3 лет. — 2026-08-17
+- https://zakon.rada.gov.ua/go/4116-20 — закон № 4116-20 о борьбе с
+  лудоманией, в силе с 01.04.2025: расчёты только через банковские счета,
+  блокировка нелегальных сайтов и приложений, ДСОМ с фиксацией каждой
+  ставки в реальном времени, «контролируемая игра» как форма надзора. — 2026-08-17
+- https://thedigital.gov.ua/news/progress/tsyfrovyy-kontrol-borotba-z-nelehalnymy-kazyno-ta-ludomaniyeiu-rik-reformy-hralnoyi-industriyi-u-tsyfrakh-ta-faktakh —
+  итоги года реформы: регулятор PlayCity в структуре Минцифры, первая
+  очередь ДСОМ в тестовой эксплуатации. — 2026-08-17
+
 ---
 
 ## Как добавлять источники
