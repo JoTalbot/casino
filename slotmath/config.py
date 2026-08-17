@@ -81,7 +81,16 @@ class GameConfig:
         Пишется в аудит-лог каждого раунда: позволяет доказать,
         на какой именно математике был сыгран раунд.
         """
-        payload = json.dumps(self.to_dict(), sort_keys=True, ensure_ascii=False)
+        # Разделители заданы явно, хотя и совпадают с умолчанием json.dumps.
+        # Порт на TypeScript (src/engine/config.ts) обязан выдавать ту же
+        # строку байт в байт, а «умолчание» — не спецификация: одна попытка
+        # сделать канонический JSON компактным уже разошлась с этим хэшем.
+        payload = json.dumps(
+            self.to_dict(),
+            sort_keys=True,
+            ensure_ascii=False,
+            separators=(", ", ": "),
+        )
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     # ---------- сериализация ----------
