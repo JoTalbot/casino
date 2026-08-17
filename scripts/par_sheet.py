@@ -14,10 +14,12 @@ PAR sheet — основной документ, который сертифик
   6. Механика фриспинов и ретриггера
   7. Результаты Monte Carlo-верификации
   8. Профиль волатильности и распределение выигрышей
+  9. Сходимость RTP, доверительные интервалы, банкролл
 
 Использование:
     python3 scripts/par_sheet.py
     python3 scripts/par_sheet.py --sim simulations/report-10m.json
+    python3 scripts/par_sheet.py --conf simulations/confidence.json
     python3 scripts/par_sheet.py --out docs/PAR-SHEET.md --csv
 
 Документ пишется на русском (ADR-003), идентификаторы — на английском.
@@ -46,6 +48,7 @@ from slotmath.paylines import PAYLINES, NUM_REELS, NUM_ROWS  # noqa: E402
 
 DEFAULT_OUT = REPO_ROOT / "docs" / "PAR-SHEET.md"
 DEFAULT_SIM = REPO_ROOT / "simulations" / "report-10m.json"
+DEFAULT_CONF = REPO_ROOT / "simulations" / "confidence.json"
 
 
 # --------------------------------------------------------------------------
@@ -555,8 +558,193 @@ def section_volatility(cfg: GameConfig, res, sim: Optional[dict]) -> str:
 """
 
 
+def section_convergence(conf: Optional[dict]) -> str:
+    """§9: разброс наблюдаемого RTP по горизонтам (T-019/T-020)."""
+    if not conf:
+        return """## 9. Сходимость RTP и разброс по горизонтам
+
+> Отчёт не найден. Запустите:
+>
+> ```bash
+> python3 scripts/confidence.py --json simulations/confidence.json
+> ```
+"""
+
+    sigma = conf["sigma"]
+    edge = conf["edge"]
+    spread = conf["spread"]
+    conv = conf["convergence"]
+    house = conf["houseBankroll"]
+    house_mc = {
+        row["bankroll"]: row for row in conf.get("houseRuinMc", [])
+    }
+    sessions = conf["playerSessions"]
+
+    spread_rows = [
+        [
+            num(s["spins"]),
+            pct(s["empiricalP025"], 2),
+            pct(s["empiricalP50"], 2),
+            pct(s["empiricalP975"], 2),
+            f"{s['empiricalHalfWidthPp']:.3f}",
+            f"{s['tailRatio']:.2f}",
+            pct(s["outsideBand"], 1),
+        ]
+        for s in spread
+    ]
+
+    conv_rows = [
+        [
+            f"±{row['tolerancePp']:.2f} п.п.",
+            num(row["spins90"]),
+            num(row["spins95"]),
+            num(row["spins99"]),
+        ]
+        for row in conv
+    ]
+
+    bankroll_rows = []
+    for row in house:
+        mc = house_mc.get(row["bankrollBets"])
+        bankroll_rows.append([
+            pct(row["ruinProbability"], 2),
+            num(round(row["bankrollBets"])),
+            pct(mc["ruinProbability"], 2) if mc else "—",
+            num(mc["horizon"]) if mc else "—",
+        ])
+
+    session_rows = [
+        [
+            num(round(s["bankroll"])),
+            num(s["horizon"]),
+            pct(s["bustProbability"], 1),
+            num(round(s["medianSpinsSurvived"])),
+            pct(s["aheadProbability"], 1),
+        ]
+        for s in sessions
+    ]
+
+    # Ориентиры для текста: горизонт, на котором коридор приёмки
+    # проходит хотя бы в половине случаев, и порог 95%.
+    half_ok = next((s for s in spread if s["outsideBand"] <= 0.5), None)
+    tight = next((s for s in spread if s["outsideBand"] <= 0.05), None)
+    tol_1pp = next((r for r in conv if abs(r["tolerancePp"] - 1.0) < 1e-9), None)
+
+    return f"""## 9. Сходимость RTP и разброс по горизонтам
+
+Теоретический RTP — это математическое ожидание. Наблюдаемый RTP
+на конечной дистанции от него отличается, и на коротких горизонтах
+отличается очень сильно: стандартное отклонение выигрыша за раунд
+составляет **{sigma:.4f} ставки**, то есть в {sigma / (1 - edge):.1f} раза
+больше самой средней выплаты. Этот раздел показывает, какому объёму
+игры соответствует какая точность.
+
+Метод: блочный бутстрап (блок 1 000 раундов) по выборке
+{num(conf["sampleRounds"])} независимых раундов, {num(20000)} реплик
+на горизонт. Нормальное приближение считается рядом для контроля.
+
+### 9.1. Раундов до сходимости
+
+Сколько раундов нужно, чтобы доверительный интервал наблюдаемого
+RTP уложился в заданную точность:
+
+{table(
+    ["Точность", "90% доверия", "95% доверия", "99% доверия"],
+    conv_rows,
+    ["left", "right", "right", "right"],
+)}
+
+Практический вывод: чтобы подтвердить RTP с точностью
+**±1 п.п. при 95% доверия**, нужно {num(tol_1pp["spins95"]) if tol_1pp else "—"}
+раундов. Отсюда же требование индустрии к объёму симуляции: 10 млн
+спинов дают точность порядка ±0.25 п.п., чего достаточно для приёмки.
+
+### 9.2. Разброс наблюдаемого RTP
+
+{table(
+    ["Раундов", "2.5%", "медиана", "97.5%", "±п.п.", "асим.", "вне 95.5-96.5%"],
+    spread_rows,
+    ["right", "right", "right", "right", "right", "right", "right"],
+)}
+
+Колонка «асим.» — отношение длины верхнего хвоста к нижнему
+`(p97.5 - медиана) / (медиана - p2.5)`. На коротких горизонтах она
+заметно больше единицы: редкие крупные выплаты тянут наблюдаемый RTP
+вверх, а вниз он ограничен нулём выплат. С ростом дистанции
+распределение симметризуется и сходится к нормальному.
+
+Колонка «вне 95.5-96.5%» — доля честных прогонов, которые вышли бы
+за коридор приёмки. На {num(spread[0]["spins"])} раундах это
+{pct(spread[0]["outsideBand"], 1)}: **на коротких дистанциях выход за
+коридор ничего не доказывает**. Коридор становится осмысленным
+примерно от {num(half_ok["spins"]) if half_ok else "—"} раундов
+(половина прогонов внутри) и надёжным
+от {num(tight["spins"]) if tight else "—"} раундов (95% внутри).
+
+Это же объясняет жалобы игроков вида «RTP занижен»: сессия в тысячу
+спинов с наблюдаемым возвратом {pct(spread[0]["empiricalP025"], 0)}
+лежит внутри нормального разброса честной игры.
+
+### 9.3. Банкролл оператора
+
+Преимущество оператора — **{pct(edge, 4)}** от оборота, но приходит
+оно медленнее, чем накапливается риск. Минимальный запас считается
+по диффузионному приближению задачи о разорении
+`B = sigma^2 * ln(1/eps) / (2 * edge)`, значения в ставках:
+
+{table(
+    ["Риск разорения", "Банкролл (ставок)", "Проверка Monte Carlo", "Горизонт MC"],
+    bankroll_rows,
+    ["right", "right", "right", "right"],
+)}
+
+Формула считает бесконечный горизонт и потому консервативна; колонка
+Monte Carlo проверяет её на конечной дистанции по реальной выборке
+раундов, с отслеживанием минимума пути, а не конечной точки.
+
+Практический вывод: при ставке 1 денежная единица оператору нужно
+около **{num(round(house[1]["bankrollBets"]))} ставок** резерва, чтобы
+риск разорения не превышал 1%. Резерв масштабируется линейно размеру
+ставки и не зависит от числа игроков — но только если игроки
+независимы, а лимит максимальной ставки соблюдается.
+
+### 9.4. Сессия игрока
+
+Оценка для модуля ответственной игры (T-015): сколько живёт депозит
+при ставке 1 за раунд.
+
+{table(
+    ["Банкролл", "Лимит раундов", "Проигрался", "Медиана раундов", "Ушёл в плюсе"],
+    session_rows,
+    ["right", "right", "right", "right", "right"],
+)}
+
+Числа стоит показывать игроку в честной формулировке: депозит в
+{num(round(sessions[0]["bankroll"]))} ставок заканчивается
+в {pct(sessions[0]["bustProbability"], 0)} сессий, а медианное время
+игры — около {num(round(sessions[0]["medianSpinsSurvived"]))} раундов.
+
+Строки таблицы **не сравнимы напрямую**: в каждой растёт и банкролл,
+и лимит раундов, поэтому доля выигрышных сессий по столбцу
+немонотонна. Больший депозит снижает риск проиграть всё
+({pct(sessions[0]["bustProbability"], 0)} против
+{pct(sessions[-1]["bustProbability"], 0)}), но одновременно удлиняет
+игру, а с числом сыгранных раундов вероятность уйти в плюсе падает.
+Общий предел один: доля сессий, законченных в плюсе, ни в одном
+сценарии не превышает {pct(max(s["aheadProbability"] for s in sessions), 0)},
+и при неограниченной игре стремится к нулю — это и есть
+математическое содержание фразы «дом всегда выигрывает».
+
+### 9.5. Воспроизведение
+
+```bash
+python3 scripts/confidence.py --json simulations/confidence.json
+```
+"""
+
+
 def section_integrity(cfg: GameConfig) -> str:
-    return f"""## 9. Целостность и воспроизводимость
+    return f"""## 10. Целостность и воспроизводимость
 
 ### Хэш конфигурации
 
@@ -659,6 +847,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Генератор PAR sheet")
     ap.add_argument("--config", type=Path, default=None, help="путь к game.json")
     ap.add_argument("--sim", type=Path, default=DEFAULT_SIM, help="отчёт симуляции (JSON)")
+    ap.add_argument("--conf", type=Path, default=DEFAULT_CONF, help="отчёт сходимости (JSON)")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT, help="куда писать Markdown")
     ap.add_argument("--csv", action="store_true", help="дополнительно выгрузить CSV-приложения")
     args = ap.parse_args()
@@ -671,6 +860,10 @@ def main() -> int:
     if args.sim and args.sim.exists():
         sim = json.loads(args.sim.read_text(encoding="utf-8"))
 
+    conf: Optional[dict] = None
+    if args.conf and args.conf.exists():
+        conf = json.loads(args.conf.read_text(encoding="utf-8"))
+
     parts = [
         section_header(cfg, sim),
         section_summary(cfg, res),
@@ -681,6 +874,7 @@ def main() -> int:
         section_freespins(cfg, res),
         section_simulation(sim, cfg, res),
         section_volatility(cfg, res, sim),
+        section_convergence(conf),
         section_integrity(cfg),
     ]
 
@@ -698,6 +892,11 @@ def main() -> int:
         )
     else:
         print("  ВНИМАНИЕ: отчёт симуляции не найден, §7 пустой")
+
+    if conf:
+        print(f"  подключён отчёт сходимости: sigma {conf['sigma']:.4f}")
+    else:
+        print("  ВНИМАНИЕ: отчёт сходимости не найден, §9 пустой")
 
     if args.csv:
         for p in write_csv(cfg, res, args.out.parent / "par"):

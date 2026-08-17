@@ -303,6 +303,48 @@ class Simulator:
             percentiles=percentiles,
         )
 
+    def sample_rounds(
+        self,
+        rounds: int,
+        batch_size: int = 250_000,
+        progress: Optional[callable] = None,
+    ) -> np.ndarray:
+        """
+        Возвращает выигрыши за раунд в ставках, по одному числу на раунд.
+
+        В отличие от `run()`, который агрегирует всё на лету, здесь
+        сохраняется сырая выборка: она нужна для бутстрапа доверительных
+        интервалов и симуляции банкролла (`slotmath.confidence`).
+        Раунд включает базовый спин, все его фриспины и потолок.
+
+        Память: float64 по 8 байт на раунд, то есть 10 млн раундов = 80 МБ.
+        """
+        cfg = self.cfg
+        bet = self.total_bet
+        cap = cfg.max_win_cap * bet
+
+        out = np.empty(rounds, dtype=np.float64)
+        done = 0
+        while done < rounds:
+            n = min(batch_size, rounds - done)
+
+            line_pay, scatter_pay, scatter_counts = self._spin_batch(n, free_mode=False)
+            round_win = line_pay + scatter_pay
+
+            trigger_mask = scatter_counts >= cfg.scatter_trigger
+            if int(trigger_mask.sum()):
+                free_win, _, _ = self._play_free_spins(scatter_counts[trigger_mask])
+                round_win[trigger_mask] += free_win
+
+            np.minimum(round_win, cap, out=round_win)
+            out[done:done + n] = round_win / bet
+
+            done += n
+            if progress:
+                progress(done, rounds)
+
+        return out
+
     def _play_free_spins(self, trigger_scatters: np.ndarray):
         """
         Разыгрывает бонусные раунды.

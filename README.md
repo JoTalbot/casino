@@ -115,9 +115,25 @@ npm run dev:client         # терминал 2: клиент на :5173
 ```bash
 npm test                   # движок: 72 теста
 npm run client:test        # клиент: 21 тест, в т.ч. 136 спинов на барабанах
+python3 tests/test_round.py     # эталонный раунд: 35 тестов
+python3 tests/test_confidence.py # статистика сходимости: 37 тестов
 python3 scripts/crosscheck.py   # сверка математики Python ↔ TypeScript
 python3 scripts/test_verifier.py
 ```
+
+### Пересчёт математики
+
+```bash
+python3 scripts/build_game.py                    # собрать config/game.json
+python3 scripts/simulate.py --spins 10000000 --runs 3 \
+        --json simulations/report-10m.json       # Monte Carlo + приёмка
+python3 scripts/confidence.py \
+        --json simulations/confidence.json       # интервалы RTP и банкролл
+python3 scripts/par_sheet.py --csv               # пересобрать PAR sheet
+```
+
+`scripts/confidence.py` обязателен при любой смене математики: границы
+мониторинга RTP зависят от sigma (ADR-007).
 
 ---
 
@@ -138,6 +154,12 @@ python3 scripts/test_verifier.py
 - Free spins: `RTP = (B0 + p1 × n1 × B1) / bet`, с ретриггером `n1 = award / (1 − p_retrigger)`
 - Целевой RTP прототипа: 96% ± 0.5%, симуляция от 10 млн спинов.
 - Принято: RTP 95.98% аналитически, 95.93% на 30 млн спинов, hit frequency 25.9%.
+- Наблюдаемый RTP сходится медленно: sigma = 4.13 ставки за раунд, поэтому
+  для точности ±1 п.п. при 95% доверия нужно ~654 тыс. раундов. На 1 000
+  раундов честный разброс RTP составляет 75–126%. Коридор приёмки
+  95.5–96.5% применим только к выборкам от 5 млн раундов (ADR-007).
+- Банкролл оператора: ~987 ставок под риск разорения 1% (проверено Monte
+  Carlo). Подробности — PAR sheet §9.
 
 **Юридическое**
 - Онлайн-казино без лицензии — уголовное преступление в большинстве юрисдикций.
