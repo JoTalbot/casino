@@ -1,0 +1,8279 @@
+{
+  "generatedBy": "scripts/gen_fixtures.py",
+  "game": "Crown of Fortune",
+  "gameVersion": "1.0.0",
+  "configHash": "5f9b9c35c7b483eb718d5bf59d48514aa3103b9fb53c20133ff1f9947ac1d70e",
+  "serverSeed": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+  "clientSeed": "player-fixture-seed",
+  "betPerLine": 1,
+  "scannedNonces": 72142,
+  "note": "Эталонные раунды. Любая реализация математики обязана воспроизвести reelStops, grid и win в точности. Серверный сид здесь публичный — это тестовые данные.",
+  "cases": [
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 0,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 0,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            32,
+            34,
+            4,
+            36,
+            16
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "no_win"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 1,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 175,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            9,
+            20,
+            10,
+            27,
+            31
+          ],
+          "grid": [
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 175,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 1,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "line": 14,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 15,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 55
+            },
+            {
+              "line": 19,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 55
+            }
+          ]
+        }
+      ],
+      "kind": "line_win_mid"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 2,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 0,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            31,
+            6,
+            30,
+            20,
+            8
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "no_win"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 3,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 15,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            28,
+            20,
+            6,
+            13,
+            18
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "RING",
+              "TEN",
+              "J"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "TEN"
+            ]
+          ],
+          "win": 15,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 4,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        }
+      ],
+      "kind": "line_win_small"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 4,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 0,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            24,
+            35,
+            20,
+            1,
+            36
+          ],
+          "grid": [
+            [
+              "A",
+              "SWORD",
+              "TEN"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "no_win"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 5,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 0,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            25,
+            16,
+            9,
+            0,
+            35
+          ],
+          "grid": [
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 1,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "no_win"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 6,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 0,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            11,
+            5,
+            1,
+            26,
+            5
+          ],
+          "grid": [
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "A",
+              "SWORD",
+              "TEN"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "no_win"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 10,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 540,
+      "capped": false,
+      "drawCount": 55,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            12,
+            40,
+            39,
+            12,
+            0
+          ],
+          "grid": [
+            [
+              "RING",
+              "TEN",
+              "J"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ],
+            [
+              "SCATTER",
+              "SWORD",
+              "CHALICE"
+            ]
+          ],
+          "win": 40,
+          "multiplier": 1,
+          "scatterCount": 3,
+          "triggeredFreeSpins": 10,
+          "winDetails": [
+            {
+              "symbol": "SCATTER",
+              "count": 3,
+              "pay": 40,
+              "scatter": true
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "free": true,
+          "reelStops": [
+            13,
+            0,
+            7,
+            2,
+            30
+          ],
+          "grid": [
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 2,
+          "free": true,
+          "reelStops": [
+            5,
+            4,
+            29,
+            36,
+            35
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 3,
+          "free": true,
+          "reelStops": [
+            30,
+            39,
+            17,
+            5,
+            29
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 70,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 6,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 15
+            },
+            {
+              "line": 8,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 20
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "free": true,
+          "reelStops": [
+            34,
+            19,
+            27,
+            34,
+            1
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 170,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 13,
+              "symbol": "K",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ],
+                [
+                  3,
+                  1
+                ]
+              ],
+              "pay": 70
+            },
+            {
+              "line": 16,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "free": true,
+          "reelStops": [
+            25,
+            32,
+            22,
+            35,
+            31
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 6,
+          "free": true,
+          "reelStops": [
+            2,
+            7,
+            18,
+            14,
+            39
+          ],
+          "grid": [
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 7,
+          "free": true,
+          "reelStops": [
+            17,
+            12,
+            25,
+            11,
+            33
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 8,
+          "free": true,
+          "reelStops": [
+            8,
+            7,
+            30,
+            10,
+            21
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "TEN"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "RING",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 40,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 18,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 20
+            }
+          ]
+        },
+        {
+          "index": 9,
+          "free": true,
+          "reelStops": [
+            23,
+            3,
+            33,
+            15,
+            4
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 10,
+          "free": true,
+          "reelStops": [
+            37,
+            9,
+            29,
+            31,
+            12
+          ],
+          "grid": [
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ]
+          ],
+          "win": 220,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 1,
+              "symbol": "TEN",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ],
+                [
+                  3,
+                  1
+                ]
+              ],
+              "pay": 35
+            },
+            {
+              "line": 12,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 14,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 18,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 25
+            }
+          ]
+        }
+      ],
+      "kind": "free_spins_3"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 23,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 20,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            39,
+            15,
+            25,
+            31,
+            15
+          ],
+          "grid": [
+            [
+              "K",
+              "TEN",
+              "J"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 20,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 18,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 20
+            }
+          ]
+        }
+      ],
+      "kind": "line_win_small"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 26,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 225,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            3,
+            40,
+            19,
+            5,
+            13
+          ],
+          "grid": [
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "WILD"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 225,
+          "multiplier": 1,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 8,
+              "symbol": "CROWN",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 150
+            },
+            {
+              "line": 20,
+              "symbol": "RING",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 75
+            }
+          ]
+        }
+      ],
+      "kind": "line_win_mid"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 30,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 20,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            34,
+            20,
+            7,
+            11,
+            35
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 20,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 4,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 20
+            }
+          ]
+        }
+      ],
+      "kind": "line_win_small"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 38,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 110,
+      "capped": false,
+      "drawCount": 55,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            1,
+            27,
+            0,
+            39,
+            0
+          ],
+          "grid": [
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "SCATTER",
+              "SWORD",
+              "CHALICE"
+            ]
+          ],
+          "win": 80,
+          "multiplier": 1,
+          "scatterCount": 3,
+          "triggeredFreeSpins": 10,
+          "winDetails": [
+            {
+              "line": 6,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "symbol": "SCATTER",
+              "count": 3,
+              "pay": 40,
+              "scatter": true
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "free": true,
+          "reelStops": [
+            0,
+            2,
+            16,
+            0,
+            22
+          ],
+          "grid": [
+            [
+              "SCATTER",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 2,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 2,
+          "free": true,
+          "reelStops": [
+            5,
+            4,
+            0,
+            26,
+            29
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 3,
+          "free": true,
+          "reelStops": [
+            2,
+            39,
+            37,
+            28,
+            17
+          ],
+          "grid": [
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 4,
+          "free": true,
+          "reelStops": [
+            22,
+            29,
+            29,
+            2,
+            20
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ]
+          ],
+          "win": 30,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 13,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "free": true,
+          "reelStops": [
+            33,
+            31,
+            37,
+            28,
+            37
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 6,
+          "free": true,
+          "reelStops": [
+            37,
+            2,
+            33,
+            7,
+            32
+          ],
+          "grid": [
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 7,
+          "free": true,
+          "reelStops": [
+            39,
+            37,
+            28,
+            3,
+            34
+          ],
+          "grid": [
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 8,
+          "free": true,
+          "reelStops": [
+            7,
+            6,
+            14,
+            19,
+            26
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "A",
+              "SWORD",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 9,
+          "free": true,
+          "reelStops": [
+            23,
+            2,
+            7,
+            6,
+            8
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 10,
+          "free": true,
+          "reelStops": [
+            31,
+            15,
+            11,
+            13,
+            28
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "free_spins_3"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 40,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 15,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            20,
+            7,
+            38,
+            22,
+            9
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ]
+          ],
+          "win": 15,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 15,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        }
+      ],
+      "kind": "line_win_small"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 43,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 20,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            29,
+            29,
+            7,
+            35,
+            22
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 20,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 20,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 20
+            }
+          ]
+        }
+      ],
+      "kind": "line_win_small"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 44,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 55,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            33,
+            40,
+            22,
+            14,
+            10
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 55,
+          "multiplier": 1,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 20,
+              "symbol": "Q",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ],
+                [
+                  3,
+                  2
+                ]
+              ],
+              "pay": 55
+            }
+          ]
+        }
+      ],
+      "kind": "line_win_mid"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 48,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 45,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            8,
+            20,
+            35,
+            27,
+            7
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 45,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 12,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 20
+            },
+            {
+              "line": 17,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 25
+            }
+          ]
+        }
+      ],
+      "kind": "line_win_mid"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 52,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 20,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            34,
+            7,
+            9,
+            25,
+            8
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 20,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 18,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 20
+            }
+          ]
+        }
+      ],
+      "kind": "line_win_small"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 201,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 540,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            18,
+            20,
+            20,
+            18,
+            7
+          ],
+          "grid": [
+            [
+              "SWORD",
+              "CHALICE",
+              "TEN"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 540,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 1,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 55
+            },
+            {
+              "line": 9,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 55
+            },
+            {
+              "line": 10,
+              "symbol": "CHALICE",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  1
+                ],
+                [
+                  3,
+                  2
+                ]
+              ],
+              "pay": 225
+            },
+            {
+              "line": 12,
+              "symbol": "SWORD",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ],
+                [
+                  3,
+                  1
+                ]
+              ],
+              "pay": 150
+            },
+            {
+              "line": 16,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 55
+            }
+          ]
+        }
+      ],
+      "kind": "big_win"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 538,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 445,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            2,
+            20,
+            20,
+            17,
+            1
+          ],
+          "grid": [
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 445,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 1,
+              "symbol": "RING",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 75
+            },
+            {
+              "line": 2,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 55
+            },
+            {
+              "line": 6,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 55
+            },
+            {
+              "line": 12,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 55
+            },
+            {
+              "line": 13,
+              "symbol": "CROWN",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 150
+            },
+            {
+              "line": 14,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 55
+            }
+          ]
+        }
+      ],
+      "kind": "big_win"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 776,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 600,
+      "capped": false,
+      "drawCount": 5,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            17,
+            11,
+            19,
+            19,
+            27
+          ],
+          "grid": [
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "WILD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "WILD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 600,
+          "multiplier": 1,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 9,
+              "symbol": "SWORD",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  3,
+                  0
+                ]
+              ],
+              "pay": 150
+            },
+            {
+              "line": 13,
+              "symbol": "CHALICE",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ],
+                [
+                  3,
+                  1
+                ]
+              ],
+              "pay": 225
+            },
+            {
+              "line": 15,
+              "symbol": "CHALICE",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ],
+                [
+                  3,
+                  1
+                ]
+              ],
+              "pay": 225
+            }
+          ]
+        }
+      ],
+      "kind": "big_win"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 987,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 560,
+      "capped": false,
+      "drawCount": 55,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            0,
+            33,
+            0,
+            23,
+            41
+          ],
+          "grid": [
+            [
+              "SCATTER",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ]
+          ],
+          "win": 40,
+          "multiplier": 1,
+          "scatterCount": 3,
+          "triggeredFreeSpins": 10,
+          "winDetails": [
+            {
+              "symbol": "SCATTER",
+              "count": 3,
+              "pay": 40,
+              "scatter": true
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "free": true,
+          "reelStops": [
+            5,
+            27,
+            7,
+            28,
+            34
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 2,
+          "free": true,
+          "reelStops": [
+            28,
+            6,
+            32,
+            6,
+            32
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 260,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 1,
+              "symbol": "J",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ],
+                [
+                  3,
+                  1
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "line": 2,
+              "symbol": "TEN",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  3,
+                  0
+                ]
+              ],
+              "pay": 35
+            },
+            {
+              "line": 3,
+              "symbol": "Q",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ],
+                [
+                  3,
+                  2
+                ]
+              ],
+              "pay": 55
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "free": true,
+          "reelStops": [
+            18,
+            17,
+            4,
+            38,
+            5
+          ],
+          "grid": [
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 4,
+          "free": true,
+          "reelStops": [
+            21,
+            14,
+            1,
+            28,
+            25
+          ],
+          "grid": [
+            [
+              "RING",
+              "TEN",
+              "J"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 150,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 2,
+              "symbol": "RING",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 75
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "free": true,
+          "reelStops": [
+            24,
+            17,
+            35,
+            35,
+            15
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 6,
+          "free": true,
+          "reelStops": [
+            0,
+            22,
+            16,
+            7,
+            5
+          ],
+          "grid": [
+            [
+              "SCATTER",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 7,
+          "free": true,
+          "reelStops": [
+            1,
+            14,
+            11,
+            25,
+            35
+          ],
+          "grid": [
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 8,
+          "free": true,
+          "reelStops": [
+            8,
+            1,
+            38,
+            10,
+            17
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 9,
+          "free": true,
+          "reelStops": [
+            39,
+            19,
+            9,
+            14,
+            25
+          ],
+          "grid": [
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 80,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 13,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 40
+            }
+          ]
+        },
+        {
+          "index": 10,
+          "free": true,
+          "reelStops": [
+            35,
+            6,
+            16,
+            0,
+            25
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 30,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 20,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        }
+      ],
+      "kind": "free_spins_3"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 1588,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 560,
+      "capped": false,
+      "drawCount": 80,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            41,
+            0,
+            20,
+            40,
+            41
+          ],
+          "grid": [
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "CHALICE",
+              "WILD",
+              "TEN"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ]
+          ],
+          "win": 280,
+          "multiplier": 1,
+          "scatterCount": 4,
+          "triggeredFreeSpins": 15,
+          "winDetails": [
+            {
+              "line": 7,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "line": 13,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "symbol": "SCATTER",
+              "count": 4,
+              "pay": 200,
+              "scatter": true
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "free": true,
+          "reelStops": [
+            23,
+            9,
+            21,
+            16,
+            34
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 2,
+          "free": true,
+          "reelStops": [
+            31,
+            13,
+            29,
+            36,
+            27
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 3,
+          "free": true,
+          "reelStops": [
+            14,
+            22,
+            17,
+            9,
+            4
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 4,
+          "free": true,
+          "reelStops": [
+            9,
+            25,
+            28,
+            39,
+            38
+          ],
+          "grid": [
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "SCATTER"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 2,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 5,
+          "free": true,
+          "reelStops": [
+            3,
+            2,
+            2,
+            25,
+            18
+          ],
+          "grid": [
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ]
+          ],
+          "win": 150,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 20,
+              "symbol": "RING",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 75
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "free": true,
+          "reelStops": [
+            26,
+            26,
+            19,
+            36,
+            3
+          ],
+          "grid": [
+            [
+              "A",
+              "SWORD",
+              "TEN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 7,
+          "free": true,
+          "reelStops": [
+            25,
+            11,
+            28,
+            35,
+            11
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ]
+          ],
+          "win": 130,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 10,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 15,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 40
+            }
+          ]
+        },
+        {
+          "index": 8,
+          "free": true,
+          "reelStops": [
+            36,
+            13,
+            24,
+            17,
+            14
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "RING",
+              "TEN",
+              "J"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 9,
+          "free": true,
+          "reelStops": [
+            23,
+            26,
+            4,
+            17,
+            29
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 10,
+          "free": true,
+          "reelStops": [
+            2,
+            26,
+            1,
+            15,
+            27
+          ],
+          "grid": [
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 11,
+          "free": true,
+          "reelStops": [
+            30,
+            23,
+            9,
+            3,
+            22
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 12,
+          "free": true,
+          "reelStops": [
+            18,
+            39,
+            25,
+            31,
+            21
+          ],
+          "grid": [
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "RING",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 13,
+          "free": true,
+          "reelStops": [
+            27,
+            13,
+            27,
+            32,
+            12
+          ],
+          "grid": [
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 14,
+          "free": true,
+          "reelStops": [
+            21,
+            17,
+            37,
+            29,
+            19
+          ],
+          "grid": [
+            [
+              "RING",
+              "TEN",
+              "J"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 15,
+          "free": true,
+          "reelStops": [
+            3,
+            8,
+            7,
+            0,
+            19
+          ],
+          "grid": [
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "free_spins_4"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 2261,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 90,
+      "capped": false,
+      "drawCount": 55,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            16,
+            40,
+            28,
+            39,
+            41
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ]
+          ],
+          "win": 40,
+          "multiplier": 1,
+          "scatterCount": 3,
+          "triggeredFreeSpins": 10,
+          "winDetails": [
+            {
+              "symbol": "SCATTER",
+              "count": 3,
+              "pay": 40,
+              "scatter": true
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "free": true,
+          "reelStops": [
+            32,
+            30,
+            11,
+            8,
+            11
+          ],
+          "grid": [
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "TEN"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ]
+          ],
+          "win": 50,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 2,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 25
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "free": true,
+          "reelStops": [
+            14,
+            14,
+            36,
+            18,
+            14
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 3,
+          "free": true,
+          "reelStops": [
+            18,
+            24,
+            35,
+            30,
+            36
+          ],
+          "grid": [
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "RING",
+              "TEN",
+              "J"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "TEN"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 4,
+          "free": true,
+          "reelStops": [
+            4,
+            26,
+            11,
+            0,
+            16
+          ],
+          "grid": [
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 5,
+          "free": true,
+          "reelStops": [
+            12,
+            31,
+            30,
+            17,
+            24
+          ],
+          "grid": [
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "TEN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 6,
+          "free": true,
+          "reelStops": [
+            4,
+            0,
+            33,
+            10,
+            2
+          ],
+          "grid": [
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 7,
+          "free": true,
+          "reelStops": [
+            39,
+            16,
+            25,
+            20,
+            23
+          ],
+          "grid": [
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 8,
+          "free": true,
+          "reelStops": [
+            38,
+            5,
+            19,
+            34,
+            28
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "SCATTER"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 9,
+          "free": true,
+          "reelStops": [
+            5,
+            22,
+            25,
+            17,
+            23
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 10,
+          "free": true,
+          "reelStops": [
+            4,
+            16,
+            34,
+            3,
+            15
+          ],
+          "grid": [
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "free_spins_3"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 4721,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 430,
+      "capped": false,
+      "drawCount": 80,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            0,
+            0,
+            16,
+            40,
+            40
+          ],
+          "grid": [
+            [
+              "SCATTER",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "SCATTER"
+            ]
+          ],
+          "win": 200,
+          "multiplier": 1,
+          "scatterCount": 4,
+          "triggeredFreeSpins": 15,
+          "winDetails": [
+            {
+              "symbol": "SCATTER",
+              "count": 4,
+              "pay": 200,
+              "scatter": true
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "free": true,
+          "reelStops": [
+            25,
+            35,
+            24,
+            19,
+            8
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "RING",
+              "TEN",
+              "J"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 2,
+          "free": true,
+          "reelStops": [
+            30,
+            38,
+            28,
+            32,
+            0
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SCATTER",
+              "SWORD",
+              "CHALICE"
+            ]
+          ],
+          "win": 30,
+          "multiplier": 2,
+          "scatterCount": 2,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 4,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "free": true,
+          "reelStops": [
+            28,
+            21,
+            4,
+            28,
+            32
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 4,
+          "free": true,
+          "reelStops": [
+            29,
+            35,
+            15,
+            35,
+            4
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 5,
+          "free": true,
+          "reelStops": [
+            36,
+            8,
+            31,
+            39,
+            26
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "A",
+              "SWORD",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 6,
+          "free": true,
+          "reelStops": [
+            2,
+            13,
+            33,
+            27,
+            12
+          ],
+          "grid": [
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 7,
+          "free": true,
+          "reelStops": [
+            32,
+            18,
+            1,
+            4,
+            23
+          ],
+          "grid": [
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 50,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 18,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 25
+            }
+          ]
+        },
+        {
+          "index": 8,
+          "free": true,
+          "reelStops": [
+            4,
+            37,
+            29,
+            3,
+            14
+          ],
+          "grid": [
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 9,
+          "free": true,
+          "reelStops": [
+            4,
+            26,
+            1,
+            29,
+            19
+          ],
+          "grid": [
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 10,
+          "free": true,
+          "reelStops": [
+            3,
+            3,
+            24,
+            11,
+            5
+          ],
+          "grid": [
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "RING",
+              "TEN",
+              "J"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 150,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 14,
+              "symbol": "RING",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 75
+            }
+          ]
+        },
+        {
+          "index": 11,
+          "free": true,
+          "reelStops": [
+            4,
+            9,
+            38,
+            20,
+            33
+          ],
+          "grid": [
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 12,
+          "free": true,
+          "reelStops": [
+            15,
+            3,
+            35,
+            35,
+            26
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "A",
+              "SWORD",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 13,
+          "free": true,
+          "reelStops": [
+            31,
+            9,
+            16,
+            14,
+            13
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 14,
+          "free": true,
+          "reelStops": [
+            7,
+            29,
+            23,
+            25,
+            25
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 15,
+          "free": true,
+          "reelStops": [
+            5,
+            27,
+            7,
+            33,
+            10
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "free_spins_4"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 23360,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 3954,
+      "capped": false,
+      "drawCount": 105,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            41,
+            12,
+            40,
+            40,
+            10
+          ],
+          "grid": [
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 40,
+          "multiplier": 1,
+          "scatterCount": 3,
+          "triggeredFreeSpins": 10,
+          "winDetails": [
+            {
+              "symbol": "SCATTER",
+              "count": 3,
+              "pay": 40,
+              "scatter": true
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "free": true,
+          "reelStops": [
+            16,
+            2,
+            11,
+            32,
+            31
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 2,
+          "free": true,
+          "reelStops": [
+            8,
+            10,
+            20,
+            15,
+            36
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ]
+          ],
+          "win": 400,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 1,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 2,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 20
+            },
+            {
+              "line": 3,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "line": 9,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 10,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 16,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 19,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 40
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "free": true,
+          "reelStops": [
+            35,
+            29,
+            12,
+            25,
+            31
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 4,
+          "free": true,
+          "reelStops": [
+            11,
+            38,
+            0,
+            39,
+            34
+          ],
+          "grid": [
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 40,
+          "multiplier": 2,
+          "scatterCount": 3,
+          "triggeredFreeSpins": 10,
+          "winDetails": [
+            {
+              "symbol": "SCATTER",
+              "count": 3,
+              "pay": 40,
+              "scatter": true
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "free": true,
+          "reelStops": [
+            39,
+            25,
+            10,
+            18,
+            14
+          ],
+          "grid": [
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 6,
+          "free": true,
+          "reelStops": [
+            25,
+            19,
+            28,
+            37,
+            3
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ]
+          ],
+          "win": 400,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 1,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 2,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 20
+            },
+            {
+              "line": 4,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 20
+            },
+            {
+              "line": 8,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 11,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 14,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 20
+            },
+            {
+              "line": 15,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "line": 17,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 25
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "free": true,
+          "reelStops": [
+            16,
+            27,
+            2,
+            9,
+            5
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 8,
+          "free": true,
+          "reelStops": [
+            34,
+            9,
+            27,
+            3,
+            9
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ]
+          ],
+          "win": 70,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 13,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 20
+            },
+            {
+              "line": 16,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        },
+        {
+          "index": 9,
+          "free": true,
+          "reelStops": [
+            31,
+            24,
+            34,
+            32,
+            28
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "RING",
+              "TEN",
+              "J"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 10,
+          "free": true,
+          "reelStops": [
+            18,
+            8,
+            0,
+            31,
+            9
+          ],
+          "grid": [
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ]
+          ],
+          "win": 1092,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 7,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 55
+            },
+            {
+              "line": 8,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "line": 11,
+              "symbol": "SWORD",
+              "count": 5,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  1
+                ],
+                [
+                  3,
+                  0
+                ],
+                [
+                  4,
+                  1
+                ]
+              ],
+              "pay": 451
+            }
+          ]
+        },
+        {
+          "index": 11,
+          "free": true,
+          "reelStops": [
+            17,
+            38,
+            22,
+            10,
+            2
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 12,
+          "free": true,
+          "reelStops": [
+            34,
+            23,
+            6,
+            25,
+            5
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 13,
+          "free": true,
+          "reelStops": [
+            1,
+            0,
+            2,
+            22,
+            19
+          ],
+          "grid": [
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 1812,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 1,
+              "symbol": "CHALICE",
+              "count": 5,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ],
+                [
+                  3,
+                  1
+                ],
+                [
+                  4,
+                  1
+                ]
+              ],
+              "pay": 751
+            },
+            {
+              "line": 14,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "line": 15,
+              "symbol": "RING",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 75
+            },
+            {
+              "line": 18,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 40
+            }
+          ]
+        },
+        {
+          "index": 14,
+          "free": true,
+          "reelStops": [
+            11,
+            23,
+            11,
+            28,
+            21
+          ],
+          "grid": [
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "RING",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 15,
+          "free": true,
+          "reelStops": [
+            0,
+            19,
+            4,
+            5,
+            1
+          ],
+          "grid": [
+            [
+              "SCATTER",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 16,
+          "free": true,
+          "reelStops": [
+            7,
+            30,
+            37,
+            22,
+            22
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "TEN"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 17,
+          "free": true,
+          "reelStops": [
+            16,
+            19,
+            25,
+            1,
+            20
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ]
+          ],
+          "win": 30,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 4,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        },
+        {
+          "index": 18,
+          "free": true,
+          "reelStops": [
+            13,
+            15,
+            35,
+            0,
+            8
+          ],
+          "grid": [
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 70,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 17,
+              "symbol": "TEN",
+              "count": 4,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ],
+                [
+                  3,
+                  1
+                ]
+              ],
+              "pay": 35
+            }
+          ]
+        },
+        {
+          "index": 19,
+          "free": true,
+          "reelStops": [
+            29,
+            26,
+            14,
+            8,
+            5
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 20,
+          "free": true,
+          "reelStops": [
+            20,
+            13,
+            21,
+            17,
+            31
+          ],
+          "grid": [
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "retrigger"
+    },
+    {
+      "serverSeedHash": "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+      "clientSeed": "player-fixture-seed",
+      "nonce": 72141,
+      "betPerLine": 1,
+      "lines": 20,
+      "totalBet": 20,
+      "totalWin": 620,
+      "capped": false,
+      "drawCount": 105,
+      "spins": [
+        {
+          "index": 0,
+          "free": false,
+          "reelStops": [
+            10,
+            0,
+            0,
+            37,
+            41
+          ],
+          "grid": [
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "SCATTER",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ]
+          ],
+          "win": 290,
+          "multiplier": 1,
+          "scatterCount": 3,
+          "triggeredFreeSpins": 10,
+          "winDetails": [
+            {
+              "line": 1,
+              "symbol": "CHALICE",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 55
+            },
+            {
+              "line": 4,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "line": 12,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "line": 13,
+              "symbol": "RING",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "pay": 75
+            },
+            {
+              "line": 20,
+              "symbol": "SWORD",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 40
+            },
+            {
+              "symbol": "SCATTER",
+              "count": 3,
+              "pay": 40,
+              "scatter": true
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "free": true,
+          "reelStops": [
+            16,
+            19,
+            30,
+            3,
+            39
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "TEN"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "J",
+              "SCATTER",
+              "SWORD"
+            ]
+          ],
+          "win": 160,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 5,
+              "symbol": "A",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 25
+            },
+            {
+              "line": 9,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 20
+            },
+            {
+              "line": 14,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 15
+            },
+            {
+              "line": 16,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 20
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "free": true,
+          "reelStops": [
+            7,
+            8,
+            25,
+            11,
+            30
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 30,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 20,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "free": true,
+          "reelStops": [
+            24,
+            4,
+            36,
+            22,
+            9
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 4,
+          "free": true,
+          "reelStops": [
+            28,
+            20,
+            7,
+            13,
+            20
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 5,
+          "free": true,
+          "reelStops": [
+            30,
+            4,
+            20,
+            33,
+            13
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 6,
+          "free": true,
+          "reelStops": [
+            0,
+            10,
+            3,
+            38,
+            38
+          ],
+          "grid": [
+            [
+              "SCATTER",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "TEN",
+              "J",
+              "SCATTER"
+            ]
+          ],
+          "win": 40,
+          "multiplier": 2,
+          "scatterCount": 3,
+          "triggeredFreeSpins": 10,
+          "winDetails": [
+            {
+              "symbol": "SCATTER",
+              "count": 3,
+              "pay": 40,
+              "scatter": true
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "free": true,
+          "reelStops": [
+            30,
+            11,
+            23,
+            34,
+            37
+          ],
+          "grid": [
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "TEN"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "A",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 8,
+          "free": true,
+          "reelStops": [
+            22,
+            21,
+            34,
+            29,
+            1
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "A",
+              "WILD",
+              "SWORD"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 9,
+          "free": true,
+          "reelStops": [
+            29,
+            9,
+            20,
+            30,
+            4
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "TEN"
+            ],
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ]
+          ],
+          "win": 70,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 5,
+              "symbol": "K",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 20
+            },
+            {
+              "line": 16,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        },
+        {
+          "index": 10,
+          "free": true,
+          "reelStops": [
+            33,
+            19,
+            16,
+            28,
+            8
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "K",
+              "A",
+              "WILD"
+            ],
+            [
+              "K",
+              "A",
+              "SWORD"
+            ]
+          ],
+          "win": 30,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": [
+            {
+              "line": 15,
+              "symbol": "Q",
+              "count": 3,
+              "positions": [
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ],
+              "pay": 15
+            }
+          ]
+        },
+        {
+          "index": 11,
+          "free": true,
+          "reelStops": [
+            6,
+            21,
+            27,
+            39,
+            18
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 12,
+          "free": true,
+          "reelStops": [
+            23,
+            17,
+            4,
+            25,
+            30
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 13,
+          "free": true,
+          "reelStops": [
+            25,
+            3,
+            21,
+            10,
+            26
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "SWORD"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "A",
+              "SWORD",
+              "TEN"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 14,
+          "free": true,
+          "reelStops": [
+            5,
+            16,
+            1,
+            34,
+            14
+          ],
+          "grid": [
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "WILD",
+              "SWORD",
+              "CHALICE"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 15,
+          "free": true,
+          "reelStops": [
+            15,
+            16,
+            24,
+            7,
+            6
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "TEN",
+              "J",
+              "Q"
+            ],
+            [
+              "RING",
+              "TEN",
+              "J"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 16,
+          "free": true,
+          "reelStops": [
+            23,
+            35,
+            19,
+            22,
+            23
+          ],
+          "grid": [
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "K",
+              "WILD",
+              "A"
+            ],
+            [
+              "SWORD",
+              "CHALICE",
+              "RING"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 17,
+          "free": true,
+          "reelStops": [
+            11,
+            7,
+            17,
+            38,
+            7
+          ],
+          "grid": [
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "Q",
+              "K",
+              "A"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 18,
+          "free": true,
+          "reelStops": [
+            36,
+            18,
+            3,
+            39,
+            29
+          ],
+          "grid": [
+            [
+              "K",
+              "A",
+              "TEN"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "Q",
+              "SCATTER",
+              "WILD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 19,
+          "free": true,
+          "reelStops": [
+            37,
+            4,
+            31,
+            3,
+            9
+          ],
+          "grid": [
+            [
+              "A",
+              "TEN",
+              "J"
+            ],
+            [
+              "RING",
+              "CROWN",
+              "TEN"
+            ],
+            [
+              "SWORD",
+              "TEN",
+              "J"
+            ],
+            [
+              "CHALICE",
+              "RING",
+              "CROWN"
+            ],
+            [
+              "A",
+              "SWORD",
+              "CHALICE"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 0,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        },
+        {
+          "index": 20,
+          "free": true,
+          "reelStops": [
+            13,
+            20,
+            38,
+            18,
+            34
+          ],
+          "grid": [
+            [
+              "CROWN",
+              "TEN",
+              "J"
+            ],
+            [
+              "WILD",
+              "A",
+              "SWORD"
+            ],
+            [
+              "J",
+              "Q",
+              "SCATTER"
+            ],
+            [
+              "Q",
+              "K",
+              "WILD"
+            ],
+            [
+              "J",
+              "Q",
+              "K"
+            ]
+          ],
+          "win": 0,
+          "multiplier": 2,
+          "scatterCount": 1,
+          "triggeredFreeSpins": 0,
+          "winDetails": []
+        }
+      ],
+      "kind": "retrigger"
+    }
+  ]
+}
