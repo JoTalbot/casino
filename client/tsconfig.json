@@ -4,7 +4,11 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["vite/client"],
+    // "node" нужен тестам: они читают tests/fixtures/rounds.json через
+    // node:fs. Локально типы подхватывались из корневого node_modules,
+    // но CI ставит клиент изолированно (npm --prefix client ci) — там
+    // их не было, и сборка падала на TS2307.
+    "types": ["vite/client", "node"],
 
     "strict": true,
     "noImplicitOverride": true,
