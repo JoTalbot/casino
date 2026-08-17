@@ -1,0 +1,23 @@
+{
+  "name": "casino",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Личное интернет-казино со слотами: движок, provably fair RNG, математика",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=20.10"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test build/engine/*.test.js",
+    "math:build": "python3 scripts/build_game.py",
+    "math:simulate": "python3 scripts/simulate.py --json simulations/report-10m.json",
+    "math:par": "python3 scripts/par_sheet.py --csv"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  }
+}
