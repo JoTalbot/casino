@@ -202,8 +202,18 @@ def main() -> int:
                 "hitFrequency": total_hits / total_spins,
                 "triggerFrequency": total_triggers / total_spins,
                 "maxWinX": overall_max,
-                "allChecksPassed": all_ok,
+                "freeSpinsPlayed": sum(r.free_spins_played for r in results),
+                "triggers": total_triggers,
+                "retriggers": sum(r.retriggers for r in results),
+                "stdWinX": results[0].std_win_x,
+                "volatilityIndex": results[0].volatility_index,
+                "winDistribution": results[0].win_distribution,
+                "percentiles": results[0].percentiles,
+                "allChecksPassed": bool(all_ok),
             },
+            "checks": [
+                {"name": name, "passed": bool(ok), "value": value} for name, ok, value in checks
+            ],
         }
         out = Path(args.json)
         out.parent.mkdir(parents=True, exist_ok=True)
