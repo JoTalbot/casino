@@ -215,6 +215,33 @@
   casino-api777, 1stake, Crazybets — SEO-витрины продавцов агрегаторских API,
   реального кода нет. — 2026-08-17
 
+## Выбор стека (T-010, T-011, смена #2, 2026-08-17)
+
+- https://generalistprogrammer.com/tutorials/best-html5-game-frameworks-2025 —
+  обзор 2026: Phaser 4 стабилен и рекомендуется как дефолт для 2D-игр,
+  PixiJS v8 — WebGPU-first, но «рендерер, а не фреймворк». Мы пошли против
+  общей рекомендации осознанно: слоту не нужны физика, тайлмапы и камеры,
+  см. ADR-006. — 2026-08-17
+- https://www.abratabia.com/pixijs/ — PixiJS v8 ~450 КБ минифицированно против
+  ~1.2 МБ у Phaser, tree-shaking через ES-модули, WebGPU как равноправный
+  бэкенд, откат на WebGL 2 и экспериментальный Canvas. Решающий аргумент
+  по размеру бандла. — 2026-08-17
+- https://app.cinevva.com/guides/webgpu-vs-webgl-games — Phaser 4 это
+  переписанный WebGL2-рендерер, WebGPU в нём пока НЕТ; PixiJS поддерживает
+  WebGPU. — 2026-08-17
+- https://ortemtech.com/blog/top-nodejs-frameworks-2026/ — бенчмарки 2026:
+  Fastify ~65k req/s (p99 2–5 мс), NestJS+Fastify ~55k, NestJS+Express ~18k,
+  Express ~15k, Hono на Workers ~200k. Важная оговорка автора: на реальной
+  нагрузке с БД разрыв смазывается, и решают индексы, кэш и пулинг, а не
+  фреймворк. — 2026-08-17
+- https://medium.com/@pravir.raghu/introduction-78775e1c5e47 — NestJS на
+  Fastify-адаптере даёт ~3x к NestJS на Express; сама команда Nest
+  рекомендует Fastify-адаптер при требованиях к производительности. — 2026-08-17
+- https://encore.dev/resources/best-typescript-backend-frameworks-2026 —
+  сравнение TS-фреймворков; Encore.ts ~121k req/s, но с автоматическим
+  провижинингом инфраструктуры в AWS/GCP. Отвергнут из-за привязки
+  к платформе, см. ADR-005. — 2026-08-17
+
 ---
 
 ## Как добавлять источники
