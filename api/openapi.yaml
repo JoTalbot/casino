@@ -1,0 +1,894 @@
+openapi: 3.1.0
+
+info:
+  title: Casino RGS API
+  version: "1.0.0"
+  description: |
+    API игрового сервера (Remote Game Server) для слотов.
+
+    Главный принцип: клиент ничего не решает. Вся случайность, вся математика
+    и все деньги — на сервере. Клиент отправляет «крутить» и рисует полученный
+    результат.
+
+    Развёрнутое описание и обоснование решений: `docs/API.md`.
+    Схема БД: `docs/DB-SCHEMA.md`. Реализация RNG: `src/engine/rng.ts`.
+
+    Все денежные величины — целые числа в минимальных единицах валюты
+    (для фишек CHIP exponent = 0). Дробных денежных значений в API нет.
+  license:
+    name: Проприетарно
+  contact:
+    name: JoTalbot
+
+servers:
+  - url: https://api.example.com/api/v1
+    description: Продакшн (адрес будет определён позже)
+  - url: http://localhost:8080/api/v1
+    description: Локальная разработка
+
+tags:
+  - name: games
+    description: Каталог игр и параметры математики
+  - name: fairness
+    description: Provably fair — пары сидов и верификация
+  - name: rounds
+    description: Спины и история раундов
+  - name: wallet
+    description: Кошелёк и проводки
+  - name: responsible
+    description: Ответственная игра
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  /games:
+    get:
+      tags: [games]
+      summary: Список доступных игр
+      operationId: listGames
+      responses:
+        "200":
+          description: Каталог игр
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [games]
+                properties:
+                  games:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GameSummary"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+
+  /games/{gameCode}:
+    get:
+      tags: [games]
+      summary: Полное описание игры — символы, выплаты, бонус, заявленный RTP
+      operationId: getGame
+      parameters:
+        - $ref: "#/components/parameters/GameCode"
+      responses:
+        "200":
+          description: Описание игры
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameDetails"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /seeds/current:
+    get:
+      tags: [fairness]
+      summary: Текущая пара сидов
+      description: |
+        Серверный сид НЕ возвращается — только его SHA-256 хэш (коммитмент).
+        Поле nextServerSeedHash — коммитмент уже сгенерированной следующей пары:
+        сервер не может подобрать удобный сид в момент ротации.
+      operationId: getCurrentSeedPair
+      responses:
+        "200":
+          description: Активная пара сидов
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentSeedPair"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+
+  /seeds/client:
+    post:
+      tags: [fairness]
+      summary: Задать клиентский сид
+      operationId: setClientSeed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clientSeed]
+              properties:
+                clientSeed:
+                  $ref: "#/components/schemas/ClientSeed"
+      responses:
+        "200":
+          description: Сид обновлён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentSeedPair"
+        "400":
+          $ref: "#/components/responses/ValidationFailed"
+
+  /seeds/rotate:
+    post:
+      tags: [fairness]
+      summary: Ротация пары сидов с раскрытием серверного сида
+      description: |
+        Атомарно: текущая пара помечается revealed и её серверный сид
+        становится публичным, создаётся новая активная пара.
+        После этого игрок может проверить все раунды прошлой пары.
+      operationId: rotateSeedPair
+      responses:
+        "200":
+          description: Пара ротирована
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [revealed, current]
+                properties:
+                  revealed:
+                    $ref: "#/components/schemas/RevealedSeedPair"
+                  current:
+                    $ref: "#/components/schemas/CurrentSeedPair"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+
+  /seeds/history:
+    get:
+      tags: [fairness]
+      summary: История пар сидов с раскрытыми серверными сидами
+      description: История не удаляется никогда — без неё старые раунды непроверяемы.
+      operationId: listSeedPairs
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Страница истории
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [seedPairs]
+                properties:
+                  seedPairs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RevealedSeedPair"
+                  nextCursor:
+                    type: [string, "null"]
+
+  /rounds:
+    post:
+      tags: [rounds]
+      summary: Спин — сыграть раунд
+      description: |
+        Один запрос = весь раунд: базовый спин и вся серия фриспинов
+        возвращаются сразу в массиве spins. Раунд атомарен и не может
+        зависнуть посреди бонуса.
+
+        Заголовок Idempotency-Key обязателен. Повтор с тем же ключом и теми же
+        параметрами возвращает сохранённый результат без повторного списания.
+      operationId: playRound
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [gameCode, betPerLine, lines]
+              properties:
+                gameCode:
+                  type: string
+                  examples: ["crown-of-fortune"]
+                betPerLine:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  description: Ставка на линию в минимальных единицах, из betLevels игры.
+                lines:
+                  type: integer
+                  minimum: 1
+                  examples: [20]
+      responses:
+        "201":
+          description: Раунд рассчитан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Round"
+        "400":
+          $ref: "#/components/responses/ValidationFailed"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: |
+            Конфликт: INSUFFICIENT_FUNDS, LIMIT_EXCEEDED, ROUND_IN_PROGRESS,
+            IDEMPOTENCY_CONFLICT или GAME_DISABLED.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+    get:
+      tags: [rounds]
+      summary: История раундов игрока
+      operationId: listRounds
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+        - name: gameCode
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Страница истории
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rounds]
+                properties:
+                  rounds:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RoundSummary"
+                  nextCursor:
+                    type: [string, "null"]
+
+  /rounds/{roundId}:
+    get:
+      tags: [rounds]
+      summary: Полная карточка раунда
+      description: |
+        Возвращает те же данные, что и ответ на спин, плюс serverSeed,
+        если пара сидов уже раскрыта. Отсюда игрок берёт данные для проверки.
+      operationId: getRound
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Раунд
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Round"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /verify:
+    post:
+      tags: [fairness]
+      summary: Пересчитать раунд по раскрытым сидам
+      description: |
+        Не требует аутентификации и ничего не читает из базы — только
+        пересчитывает результат по входным данным. Проверить раунд должен
+        уметь кто угодно.
+
+        Не заменяет независимую проверку: автономный офлайн-верификатор —
+        задача T-021.
+      operationId: verifyRound
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [serverSeed, clientSeed, nonce, gameCode]
+              properties:
+                serverSeed:
+                  $ref: "#/components/schemas/Sha256Hex"
+                clientSeed:
+                  $ref: "#/components/schemas/ClientSeed"
+                nonce:
+                  type: integer
+                  format: int64
+                  minimum: 0
+                gameCode:
+                  type: string
+                configHash:
+                  $ref: "#/components/schemas/Sha256Hex"
+      responses:
+        "200":
+          description: Результат пересчёта
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerificationResult"
+        "400":
+          $ref: "#/components/responses/ValidationFailed"
+
+  /wallet:
+    get:
+      tags: [wallet]
+      summary: Баланс кошелька
+      operationId: getWallet
+      responses:
+        "200":
+          description: Баланс
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Balance"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+
+  /wallet/transactions:
+    get:
+      tags: [wallet]
+      summary: История проводок
+      operationId: listTransactions
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Страница проводок
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [transactions]
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Transaction"
+                  nextCursor:
+                    type: [string, "null"]
+
+  /limits:
+    get:
+      tags: [responsible]
+      summary: Действующие лимиты игрока
+      operationId: listLimits
+      responses:
+        "200":
+          description: Лимиты
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [limits]
+                properties:
+                  limits:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Limit"
+    post:
+      tags: [responsible]
+      summary: Установить или изменить лимит
+      description: |
+        Ужесточение действует немедленно. Ослабление — только после периода
+        охлаждения 24 часа; более ранняя попытка возвращает 403 с датой,
+        когда изменение станет возможным.
+      operationId: setLimit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, value]
+              properties:
+                kind:
+                  $ref: "#/components/schemas/LimitKind"
+                value:
+                  type: integer
+                  format: int64
+                  minimum: 1
+      responses:
+        "200":
+          description: Лимит установлен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Limit"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /self-exclusion:
+    post:
+      tags: [responsible]
+      summary: Самоисключение
+      description: Необратимо до истечения срока. Пропуск durationDays — бессрочно.
+      operationId: selfExclude
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                durationDays:
+                  type: [integer, "null"]
+                  minimum: 1
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Самоисключение активировано
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [startedAt]
+                properties:
+                  startedAt:
+                    type: string
+                    format: date-time
+                  endsAt:
+                    type: [string, "null"]
+                    format: date-time
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    GameCode:
+      name: gameCode
+      in: path
+      required: true
+      schema:
+        type: string
+      examples:
+        crown:
+          value: crown-of-fortune
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Непрозрачный курсор из nextCursor предыдущей страницы.
+      schema:
+        type: string
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: |
+        UUID, сгенерированный клиентом. При ретрае повторяется без изменений.
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    Unauthenticated:
+      description: Нет или истёк токен
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Действие запрещено
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Не найдено
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ValidationFailed:
+      description: Некорректные параметры
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    RateLimited:
+      description: Слишком часто
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - UNAUTHENTICATED
+                - FORBIDDEN
+                - NOT_FOUND
+                - VALIDATION_FAILED
+                - INSUFFICIENT_FUNDS
+                - LIMIT_EXCEEDED
+                - ROUND_IN_PROGRESS
+                - IDEMPOTENCY_CONFLICT
+                - GAME_DISABLED
+                - RATE_LIMITED
+                - INTERNAL
+            message:
+              type: string
+              description: Человекочитаемое сообщение на русском.
+            details:
+              type: object
+              additionalProperties: true
+
+    Sha256Hex:
+      type: string
+      pattern: "^[0-9a-f]{64}$"
+      description: SHA-256 в нижнем регистре, 64 hex-символа.
+
+    ClientSeed:
+      type: string
+      minLength: 1
+      maxLength: 256
+      pattern: "^[^:]+$"
+      description: |
+        Двоеточие запрещено: сообщение HMAC имеет вид "clientSeed:nonce:cursor",
+        и двоеточие в сиде позволило бы подобрать коллизию сообщений.
+
+    Balance:
+      type: object
+      required: [currency, exponent, balance]
+      properties:
+        currency:
+          type: string
+          examples: ["CHIP"]
+        exponent:
+          type: integer
+          description: Знаков после запятой. Для фишек 0.
+        balance:
+          type: integer
+          format: int64
+          minimum: 0
+
+    GameSummary:
+      type: object
+      required: [code, title, reels, rows, lines, enabled]
+      properties:
+        code: { type: string }
+        title: { type: string }
+        reels: { type: integer }
+        rows: { type: integer }
+        lines: { type: integer }
+        enabled: { type: boolean }
+        thumbnailUrl: { type: string }
+
+    GameDetails:
+      allOf:
+        - $ref: "#/components/schemas/GameSummary"
+        - type: object
+          required: [configHash, version, symbols, paytable, declaredRtp, betLevels, currency]
+          properties:
+            configHash:
+              $ref: "#/components/schemas/Sha256Hex"
+            version: { type: string }
+            symbols:
+              type: array
+              items: { type: string }
+            paytable:
+              type: object
+              description: symbol -> { количество символов -> множитель ставки на линию }
+              additionalProperties:
+                type: object
+                additionalProperties:
+                  type: integer
+            scatterPays:
+              type: object
+              additionalProperties:
+                type: integer
+            freeSpins:
+              type: object
+              properties:
+                trigger: { type: integer }
+                award:
+                  type: object
+                  additionalProperties: { type: integer }
+                multiplier: { type: integer }
+                retriggerEnabled: { type: boolean }
+            wildReels:
+              type: array
+              description: Индексы барабанов с 0.
+              items: { type: integer }
+            maxWinCap: { type: integer }
+            declaredRtp:
+              type: number
+              description: Заявленный RTP, раскрывается публично.
+              examples: [0.959778]
+            volatilityIndex: { type: number }
+            hitFrequency: { type: number }
+            betLevels:
+              type: array
+              items:
+                type: integer
+                format: int64
+            currency: { type: string }
+
+    CurrentSeedPair:
+      type: object
+      required: [seedPairId, serverSeedHash, clientSeed, nextNonce, createdAt]
+      properties:
+        seedPairId:
+          type: string
+          format: uuid
+        serverSeedHash:
+          $ref: "#/components/schemas/Sha256Hex"
+        clientSeed:
+          $ref: "#/components/schemas/ClientSeed"
+        nextNonce:
+          type: integer
+          format: int64
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+        nextServerSeedHash:
+          $ref: "#/components/schemas/Sha256Hex"
+
+    RevealedSeedPair:
+      type: object
+      required: [seedPairId, serverSeed, serverSeedHash, clientSeed, noncesUsed, revealedAt]
+      properties:
+        seedPairId:
+          type: string
+          format: uuid
+        serverSeed:
+          $ref: "#/components/schemas/Sha256Hex"
+        serverSeedHash:
+          $ref: "#/components/schemas/Sha256Hex"
+        clientSeed:
+          $ref: "#/components/schemas/ClientSeed"
+        noncesUsed:
+          type: integer
+          format: int64
+        revealedAt:
+          type: string
+          format: date-time
+
+    Fairness:
+      type: object
+      required: [seedPairId, serverSeedHash, clientSeed, nonce, drawCount]
+      properties:
+        seedPairId:
+          type: string
+          format: uuid
+        serverSeedHash:
+          $ref: "#/components/schemas/Sha256Hex"
+        serverSeed:
+          description: Присутствует только если пара сидов уже раскрыта.
+          $ref: "#/components/schemas/Sha256Hex"
+        clientSeed:
+          $ref: "#/components/schemas/ClientSeed"
+        nonce:
+          type: integer
+          format: int64
+        drawCount:
+          type: integer
+          description: Сколько случайных чисел израсходовал раунд.
+
+    WinDetail:
+      type: object
+      required: [symbol, count, pay]
+      properties:
+        line:
+          type: integer
+          description: Номер линии; отсутствует для scatter-выплаты.
+        symbol: { type: string }
+        count: { type: integer }
+        positions:
+          type: array
+          description: Координаты [reel, row] для подсветки.
+          items:
+            type: array
+            items: { type: integer }
+            minItems: 2
+            maxItems: 2
+        pay:
+          type: integer
+          format: int64
+
+    Spin:
+      type: object
+      required: [index, free, reelStops, grid, win, multiplier]
+      properties:
+        index: { type: integer }
+        free: { type: boolean }
+        reelStops:
+          type: array
+          items: { type: integer }
+        grid:
+          type: array
+          description: grid[reel][row] — порядок совпадает с reelStops.
+          items:
+            type: array
+            items: { type: string }
+        win:
+          type: integer
+          format: int64
+        multiplier: { type: integer }
+        scatterCount: { type: integer }
+        triggeredFreeSpins: { type: integer }
+        winDetails:
+          type: array
+          items:
+            $ref: "#/components/schemas/WinDetail"
+
+    Round:
+      type: object
+      required: [roundId, gameCode, configHash, status, bet, fairness, spins, totalWin, balance]
+      properties:
+        roundId:
+          type: string
+          format: uuid
+        gameCode: { type: string }
+        configHash:
+          $ref: "#/components/schemas/Sha256Hex"
+        status:
+          type: string
+          enum: [open, settled, rolled_back]
+        bet:
+          type: object
+          required: [perLine, lines, total]
+          properties:
+            perLine:
+              type: integer
+              format: int64
+            lines: { type: integer }
+            total:
+              type: integer
+              format: int64
+        fairness:
+          $ref: "#/components/schemas/Fairness"
+        spins:
+          type: array
+          items:
+            $ref: "#/components/schemas/Spin"
+        totalWin:
+          type: integer
+          format: int64
+        balance:
+          $ref: "#/components/schemas/Balance"
+        settledAt:
+          type: string
+          format: date-time
+
+    RoundSummary:
+      type: object
+      required: [roundId, gameCode, totalBet, totalWin, nonce, serverSeedHash, startedAt]
+      properties:
+        roundId:
+          type: string
+          format: uuid
+        gameCode: { type: string }
+        totalBet:
+          type: integer
+          format: int64
+        totalWin:
+          type: integer
+          format: int64
+        spinsCount: { type: integer }
+        nonce:
+          type: integer
+          format: int64
+        serverSeedHash:
+          $ref: "#/components/schemas/Sha256Hex"
+        serverSeedRevealed: { type: boolean }
+        startedAt:
+          type: string
+          format: date-time
+
+    VerificationResult:
+      type: object
+      required: [valid, serverSeedHash]
+      properties:
+        valid: { type: boolean }
+        serverSeedHash:
+          $ref: "#/components/schemas/Sha256Hex"
+        reelStops:
+          type: array
+          items: { type: integer }
+        grid:
+          type: array
+          items:
+            type: array
+            items: { type: string }
+        totalWin:
+          type: integer
+          format: int64
+        drawCount: { type: integer }
+        mismatch:
+          type: string
+          description: Если valid = false — что именно не сошлось.
+
+    Transaction:
+      type: object
+      required: [id, amount, balanceAfter, type, createdAt]
+      properties:
+        id: { type: integer, format: int64 }
+        amount:
+          type: integer
+          format: int64
+          description: Отрицательное — списание, положительное — зачисление.
+        balanceAfter:
+          type: integer
+          format: int64
+        type:
+          type: string
+          enum: [bet, win, refund, grant, purchase, adjustment]
+        roundId:
+          type: [string, "null"]
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    LimitKind:
+      type: string
+      enum: [loss_daily, loss_weekly, wager_daily, session_minutes, spins_daily]
+
+    Limit:
+      type: object
+      required: [kind, value, effectiveFrom]
+      properties:
+        kind:
+          $ref: "#/components/schemas/LimitKind"
+        value:
+          type: integer
+          format: int64
+        effectiveFrom:
+          type: string
+          format: date-time
+        coolingUntil:
+          type: [string, "null"]
+          format: date-time
+          description: До этого момента ослабление лимита невозможно.
