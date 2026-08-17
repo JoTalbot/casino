@@ -233,7 +233,8 @@ psql -d casino -f db/schema.sql
 
 - **T-013** — API игрового сервера: `spin`, `verify`, `history`. Проектируется
   поверх этой схемы.
-- **T-015** — модуль ответственной игры: наполняет логикой `player_limits`,
-  `self_exclusions`, `sessions`.
+- **T-015** — закрыта: логика в `src/engine/responsible.ts`, описание в
+  `docs/RESPONSIBLE-GAMING.md`. Таблицы `player_limits`, `self_exclusions`,
+  `sessions` используются как есть, изменений схемы не потребовалось.
 - **T-022** — закрыта этой схемой в части задела: `master_rtp` и несколько
   наборов лент через `game_configs`.
