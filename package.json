@@ -12,6 +12,11 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --test build/engine/*.test.js",
+    "dev:server": "npm run build && node build/server/devServer.js",
+    "dev:client": "npm --prefix client run dev",
+    "client:install": "npm --prefix client install",
+    "client:test": "npm --prefix client test",
+    "client:build": "npm --prefix client run build",
     "math:build": "python3 scripts/build_game.py",
     "math:simulate": "python3 scripts/simulate.py --json simulations/report-10m.json",
     "math:par": "python3 scripts/par_sheet.py --csv"

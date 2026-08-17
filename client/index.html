@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Crown of Fortune — прототип клиента</title>
+    <style>
+      :root {
+        --bg: #070910;
+        --panel: #111725;
+        --panel-2: #0d1220;
+        --line: #232c40;
+        --text: #dbe4f5;
+        --muted: #7f8da8;
+        --accent: #ffd257;
+        --win: #4dffa8;
+        --err: #ff6b6b;
+        --free: #9d8cf0;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 14px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      header {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      header h1 { font-size: 17px; margin: 0; font-weight: 600; letter-spacing: .2px; }
+      .warn {
+        margin-left: auto;
+        font-size: 12px;
+        color: var(--accent);
+        border: 1px solid #3a3320;
+        background: #1c1808;
+        padding: 3px 9px;
+        border-radius: 4px;
+      }
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 18px;
+        padding: 18px 20px 30px;
+        align-items: start;
+      }
+      @media (max-width: 1080px) { main { grid-template-columns: 1fr; } }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px;
+      }
+      .card h2 {
+        margin: 0 0 10px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .09em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      #stage { display: flex; justify-content: center; }
+      #stage canvas { border-radius: 10px; max-width: 100%; height: auto; }
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+      .stat { display: flex; flex-direction: column; gap: 2px; }
+      .stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+      .stat .v { font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; }
+      #win { color: var(--win); }
+      button, select, input[type="text"] {
+        background: var(--panel-2);
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font: inherit;
+      }
+      button { cursor: pointer; }
+      button:hover:not(:disabled) { border-color: #3d4a66; }
+      button:disabled { opacity: .45; cursor: not-allowed; }
+      #spin {
+        background: linear-gradient(180deg, #ffd257, #e0a92c);
+        color: #241c05;
+        font-weight: 700;
+        border: none;
+        padding: 11px 30px;
+        font-size: 15px;
+        letter-spacing: .03em;
+      }
+      label.check { display: flex; align-items: center; gap: 6px; color: var(--muted); cursor: pointer; }
+      .side { display: flex; flex-direction: column; gap: 14px; }
+      .kv { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px 10px; font-size: 12px; }
+      .kv dt { color: var(--muted); }
+      .kv dd { margin: 0; word-break: break-all; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+      .seed-row { display: flex; gap: 8px; margin-top: 10px; }
+      .seed-row input { flex: 1; min-width: 0; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+      #log {
+        max-height: 260px;
+        overflow-y: auto;
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 11.5px;
+        line-height: 1.65;
+      }
+      .log-line { padding: 1px 0; border-bottom: 1px solid #161d2c; }
+      .log-win { color: var(--win); }
+      .log-free { color: var(--free); }
+      .log-error { color: var(--err); }
+      .pay-row { display: flex; align-items: center; gap: 10px; padding: 3px 0; }
+      .pay-chip {
+        min-width: 74px;
+        text-align: center;
+        font-size: 10.5px;
+        font-weight: 700;
+        padding: 3px 6px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+      }
+      .pay-values { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+      #status { color: var(--muted); font-size: 12.5px; min-height: 18px; }
+      .note { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 id="game-name">Загрузка…</h1>
+      <span id="status">Инициализация</span>
+      <span class="warn">Виртуальные фишки · без реальных денег</span>
+    </header>
+
+    <main>
+      <div>
+        <div class="card">
+          <div id="stage"></div>
+          <div class="controls">
+            <div class="stat">
+              <span class="k">Баланс</span>
+              <span class="v" id="balance">—</span>
+            </div>
+            <div class="stat">
+              <span class="k">Выигрыш</span>
+              <span class="v" id="win">—</span>
+            </div>
+            <div class="stat">
+              <span class="k">Ставка на линию</span>
+              <select id="bet">
+                <option value="1">1 (всего 20)</option>
+                <option value="2">2 (всего 40)</option>
+                <option value="5" selected>5 (всего 100)</option>
+                <option value="10">10 (всего 200)</option>
+                <option value="25">25 (всего 500)</option>
+              </select>
+            </div>
+            <label class="check"><input type="checkbox" id="turbo" /> Турбо</label>
+            <button id="spin">КРУТИТЬ</button>
+          </div>
+          <p class="note">
+            Пробел — тоже спин. Раунд целиком считается на сервере: клиент получает
+            готовые сетки и только показывает их.
+          </p>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="card">
+          <h2>Provably fair</h2>
+          <dl class="kv">
+            <dt>Хэш сида</dt>
+            <dd id="server-hash">—</dd>
+            <dt>Хэш матем.</dt>
+            <dd id="config-hash">—</dd>
+            <dt>Nonce</dt>
+            <dd id="nonce">—</dd>
+          </dl>
+          <div class="seed-row">
+            <input type="text" id="client-seed" placeholder="ваш клиентский сид" />
+            <button id="apply-seed">Задать</button>
+          </div>
+          <div class="seed-row">
+            <button id="rotate">Раскрыть сид и сменить пару</button>
+          </div>
+          <p class="note">
+            Серверный сид раскрывается только при ротации. После неё раунды
+            проверяются офлайн в <code>verifier/verify.html</code>.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Таблица выплат</h2>
+          <div id="paytable"></div>
+          <p class="note">Значения — за 3 · 4 · 5 символов, в ставках на линию.</p>
+        </div>
+
+        <div class="card">
+          <h2>Журнал раундов</h2>
+          <div id="log"></div>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
