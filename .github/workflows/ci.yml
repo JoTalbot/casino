@@ -1,0 +1,140 @@
+name: CI
+
+# Задача T-018. Репозиторий ведут несколько ИИ-агентов с разных машин,
+# иногда параллельно, и у них нет общего окружения — CI здесь не столько
+# защита от плохого кода, сколько единственное место, где проверки
+# запускаются одинаково для всех.
+#
+# Три группы проверок:
+#   engine   — TypeScript: сборка, типы, тесты
+#   math     — Python: эталонная математика, верификатор, кросс-проверка
+#   protocol — дисциплина агентов: локи, счётчики ID, ссылки, журнал
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Ручной запуск: агент может проверить состояние репозитория,
+  # не дожидаясь следующего пуша.
+  workflow_dispatch:
+
+# Нет смысла гонять два прогона на одной ветке: последний отменяет прошлый.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  engine:
+    name: Движок (TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Проверка типов
+        run: npm run typecheck
+
+      - name: Тесты движка
+        run: npm test
+
+  client:
+    name: Клиент (PixiJS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Установка зависимостей клиента
+        run: npm --prefix client ci
+
+      - name: Тесты клиента
+        # Включают прогон всех 136 спинов фикстур через настоящий
+        # ReelSet в headless-режиме — без браузера.
+        run: npm --prefix client test
+
+      - name: Сборка клиента
+        run: npm --prefix client run build
+
+  math:
+    name: Математика (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Установка зависимостей
+        run: pip install -r requirements.txt
+
+      - name: Эталонный раунд
+        run: python3 tests/test_round.py
+
+      - name: Статистика сходимости
+        run: python3 tests/test_confidence.py
+
+      - name: Офлайн-верификатор игрока
+        run: python3 scripts/test_verifier.py
+
+      - name: Кросс-проверка Python и TypeScript
+        # Сверяет RNG и оценку окна между реализациями: расхождение
+        # означает, что игрок, пересчитавший раунд верификатором,
+        # получит не то, что показал сервер.
+        run: python3 scripts/crosscheck.py
+
+      - name: Хэш конфигурации не изменился
+        # configHash вшит в верификатор и в фикстуры. Незамеченное
+        # изменение сломало бы проверку всех уже сыгранных раундов.
+        run: |
+          EXPECTED=5f9b9c35c7b483eb718d5bf59d48514aa3103b9fb53c20133ff1f9947ac1d70e
+          ACTUAL=$(python3 -c "
+          import sys; sys.path.insert(0, '.')
+          from slotmath.config import load_config
+          print(load_config().config_hash())")
+          echo "ожидается: $EXPECTED"
+          echo "фактически: $ACTUAL"
+          test "$EXPECTED" = "$ACTUAL"
+
+  protocol:
+    name: Протокол агентов
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Нужна история: проверка свежести STATE.md и append-only
+          # журнала сравнивает коммиты, а не рабочее дерево.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Проверка протокола
+        run: python3 scripts/check_protocol.py
+
+      - name: Напоминание об обновлении STATE.md
+        # Отдельным шагом и без падения сборки: отставание STATE.md —
+        # повод предупредить агента, а не блокировать мерж.
+        if: always()
+        run: |
+          if ! python3 scripts/check_protocol.py --strict > /dev/null 2>&1; then
+            echo "::warning::Есть предупреждения протокола — проверьте agents/STATE.md и локи"
+          fi

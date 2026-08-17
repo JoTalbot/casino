@@ -119,7 +119,14 @@ python3 tests/test_round.py     # эталонный раунд: 35 тестов
 python3 tests/test_confidence.py # статистика сходимости: 37 тестов
 python3 scripts/crosscheck.py   # сверка математики Python ↔ TypeScript
 python3 scripts/test_verifier.py
+python3 scripts/check_protocol.py # дисциплина агентов: локи, ID, ссылки
+
+npm run ci                 # всё сразу, как в GitHub Actions
 ```
+
+CI (`.github/workflows/ci.yml`) гоняет эти же проверки на каждый push
+и pull request четырьмя параллельными задачами: движок, клиент,
+математика, протокол агентов.
 
 ### Пересчёт математики
 

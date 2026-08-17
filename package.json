@@ -19,7 +19,9 @@
     "client:build": "npm --prefix client run build",
     "math:build": "python3 scripts/build_game.py",
     "math:simulate": "python3 scripts/simulate.py --json simulations/report-10m.json",
-    "math:par": "python3 scripts/par_sheet.py --csv"
+    "math:par": "python3 scripts/par_sheet.py --csv",
+    "check:protocol": "python3 scripts/check_protocol.py",
+    "ci": "npm run typecheck && npm test && npm run client:test && python3 scripts/crosscheck.py && python3 scripts/check_protocol.py"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
