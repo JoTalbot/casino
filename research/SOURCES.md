@@ -168,6 +168,55 @@
 
 ---
 
+## OSS-разбор (T-009, смена #2, 2026-08-17)
+
+Полные выводы — в `research/06-OSS-REVIEW.md`. Здесь только ссылки и суть.
+
+- https://pkg.go.dev/github.com/slotopol/server/game/slot — документация пакета:
+  интерфейс `SlotGame` (Prepare/Spin/Scanner/Apply), `ReelsMap.FindClosest(mrtp)`,
+  функции `BankrollHouse`, `BankrollPlayer`, `CI`, `VIclass3/6`. Забрали идею
+  константного `Scanner`, master RTP и метрик банкролла. — 2026-08-17
+- https://github.com/slotopol/server — README с примером вывода сканера для
+  Gonzo's Quest: RTP 95.31%, sigma 6.17, VI 12.10 (Medium-High), CI[95%] = 66610
+  спинов, bankroll 6247.72, таблица разброса RTP по числу спинов. Породило
+  задачи T-019 и T-020. ❌ ленты реальных игр не копировать. — 2026-08-17
+- https://github.com/nekzabirov/IGaming-Game-Engine — Kotlin/Ktor, Apache 2.0,
+  боевой модуль платформы 1638.cloud. Взяли: жизненный цикл ставки
+  PLACE/SETTLE/ROLLBACK с идемпотентностью, переиспользование раунда по внешнему ID,
+  порты Wallet/PlayerLimit/Currency/Event, событийную шину. Показательно, что
+  остальные 7 движков (PAM, Wallet, Payment, Risk, Engagement, Intelligence, CMS)
+  закрыты. — 2026-08-17
+- https://pixi-reels.schmooky.dev/ и https://github.com/schmooky/pixi-reels —
+  MIT, TypeScript, PixiJS v8 + GSAP, v2.2.0. Fluent-builder, типизированные
+  события, фазы спина, headless-тесты в Node, рецепты для линий/скаттеров/
+  фриспинов/каскадов/hold&win. ✅ кандидат в основу клиента (T-014).
+  Нюанс: в примерах символы выбираются по весам на клиенте — нам нужно подавать
+  готовый результат с сервера. — 2026-08-17
+- https://github.com/xhulianomalaj/Slot-Game — Pixi + Preact + MobX + Vite,
+  Playwright + Vitest, FSM игрового цикла. Образец тестового контура клиента;
+  использует pixi-reels — признак складывающейся экосистемы (аргумент за Pixi
+  в ADR по T-011). — 2026-08-17
+- https://github.com/rakestake/provably-fair-verifier — канон схемы
+  commit-reveal: SHA256(serverSeed) до ставки, HMAC-SHA256(serverSeed,
+  "clientSeed:nonce"), раскрытие после ротации. Слотов в списке поддерживаемых
+  игр НЕТ — provably fair слот это ниша. Наш формат сообщения совместим. — 2026-08-17
+- https://www.btcgosu.com/provably-fair/ — обзор рынка 2026: у BC.Game 50+
+  provably fair игр, открытый код верификации, история сидов в профиле игрока,
+  сторонний верификатор Dyutam. Вывод: хранить историю пар сидов с
+  nonce-диапазонами обязательно (T-012). — 2026-08-17
+- https://github.com/javascript-pro/crypto-casino — Next.js + wagmi/viem +
+  Solidity, commit-reveal на смарт-контракте (KECCAK-256). MIT. Вывод:
+  on-chain VRF не годится для потока спинов (газ + задержка блока),
+  годится для редких дорогих событий. — 2026-08-17
+- ⚠️ https://github.com/Mint-Scripts-Studio/html5-gold-of-egypt-slot-engine-open-source —
+  Phaser 3, название и стилистика скопированы с коммерческого слота. Смотреть
+  можно, брать нельзя. — 2026-08-17
+- ❌ Топики `casino-source-code`, `turnkey-casino`: NexusGGR, FiversCan,
+  casino-api777, 1stake, Crazybets — SEO-витрины продавцов агрегаторских API,
+  реального кода нет. — 2026-08-17
+
+---
+
 ## Как добавлять источники
 
 1. Найди подходящий раздел (или создай новый).
