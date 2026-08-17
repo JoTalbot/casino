@@ -1,0 +1,85 @@
+# --- Секреты. Никогда не коммитить ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials.json
+.git-credentials
+.netrc
+
+# --- Node ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+.vite/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.tox/
+.nox/
+*.egg-info/
+.ipynb_checkpoints/
+
+# --- Go ---
+*.exe
+*.test
+vendor/
+
+# --- Результаты симуляций (могут быть гигантскими) ---
+# Итоговые отчёты коммитим, сырые прогоны — нет.
+simulations/raw/
+*.simlog
+spins_*.csv
+*.parquet
+
+# --- Базы данных ---
+*.sqlite
+*.sqlite3
+*.db
+pgdata/
+
+# --- IDE и ОС ---
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Логи и временное ---
+*.log
+logs/
+tmp/
+.cache/
+
+# --- Медиа-исходники (тяжёлые, хранить отдельно) ---
+*.psd
+*.ai
+*.aep
+assets/raw/
