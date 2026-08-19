@@ -1,6 +1,0 @@
-agent: arena-2026-08-19-N
-task: T-059
-scope: src/server/**, client/**, docs/**
-started: 2026-08-19T19:00:00Z
-expires: 2026-08-19T23:00:00Z
-note: продолжаю "+" — рефералка, ачивки, чат, бэкап скрипт, mobile UX

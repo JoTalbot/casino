@@ -83,3 +83,4 @@ tmp/
 *.ai
 *.aep
 assets/raw/
+logs/
