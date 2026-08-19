@@ -1,6 +1,0 @@
-agent: arena-2026-08-19-C
-task: T-026
-scope: src/server/**, db/migrations/**, .github/workflows/**, tests/server/**
-started: 2026-08-19T11:46:00Z
-expires: 2026-08-19T15:46:00Z
-note: продолжаю T-026: интеграционный PostgreSQL и транзакционный игровой API
