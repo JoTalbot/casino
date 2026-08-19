@@ -913,3 +913,28 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 4. T-033: ADR-009 — возрастной гейт и ToS/Privacy для соц-казино.
 5. Обновить STATE, HANDOFF, TASKS, JOURNAL, снять лок, push.
 
+
+### Сделано (смена I, продолжение)
+
+**T-030 — деплой:**
+- Dockerfile (API): node:20-alpine, npm ci, build, CMD migrate + main
+- client/Dockerfile: node build + nginx:alpine, nginx.conf прокси /api/ → api:3000
+- docker-compose.yml: db (postgres:16-alpine healthcheck), api, client, volume pgdata, env из .env.example
+- .env.example, .dockerignore, docs/DEPLOY.md с быстрым стартом, проверкой curl и чек-листом HTTPS/бэкапов
+
+**T-031 — админка:**
+- src/server/admin.ts: 5 маршрутов — /admin/players, /admin/rounds, /admin/stats, /admin/rtp, POST /admin/grant (SERIALIZABLE, ledger grant, audit), проверка X-Admin-Token
+- app.ts: регистрация admin роутов если ADMIN_TOKEN задан
+- client/public/admin.html: сохранение токена в localStorage admin_token, таблицы игроков/раундов, grant форма, RTP мониторинг, stats, JS fetch с X-Admin-Token
+
+**T-032, T-033 — ADR:**
+- ADR-008: вторая игра на том же движке — решение, альтернативы, последствия
+- ADR-009: возрастной гейт 18+ и ToS/Privacy — решение, альтернативы, последствия
+- Следующий ADR номер ADR-010
+
+**Протокол:**
+- TASKS.md: T-030…T-033 в done, агент I, следующий ID T-034
+- STATE.md обновлён до стадии 7
+- Все тесты зелёные, typecheck зелёный
+
+**SHIFT END** 15:35 UTC
