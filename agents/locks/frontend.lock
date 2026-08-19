@@ -1,6 +1,0 @@
-agent: arena-2026-08-19-O
-task: T-064
-scope: client/**, src/server/**
-started: 2026-08-19T20:00:00Z
-expires: 2026-08-20T00:00:00Z
-note: продолжаю + — турниры UI, рефералка UI, чат UI, ачивки UI, email SMTP
