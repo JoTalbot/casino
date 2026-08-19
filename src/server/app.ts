@@ -70,7 +70,12 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     const body = roundBody.parse(request.body);
     try {
       const settled = await settleRound(options.database, loaded, (request.user as { sub: string }).sub, idempotencyKey, body.betPerLine, body.lines);
-      if (settled.idempotent) return reply.status(200).send({ roundId: settled.roundId, idempotent: true });
+      if (settled.idempotent) return reply.status(200).send({
+        roundId: settled.roundId, gameCode: body.gameCode, configHash: loaded.hash, status: "settled", idempotent: true,
+        bet: { perLine: body.betPerLine, lines: body.lines, total: settled.record.totalBet },
+        fairness: { serverSeedHash: settled.record.serverSeedHash, clientSeed: settled.record.clientSeed, nonce: settled.record.nonce },
+        spins: settled.record.spins, totalWin: settled.record.totalWin, balance: { amount: settled.balance.toString(), currency: "CHIP" },
+      });
       return reply.status(201).send({
         roundId: settled.roundId, gameCode: body.gameCode, configHash: loaded.hash, status: "settled",
         bet: { perLine: body.betPerLine, lines: body.lines, total: settled.record.totalBet },

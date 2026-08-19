@@ -13,7 +13,7 @@ export class RoundServiceError extends Error {
 interface GameRow { game_id: string; game_config_id: string; config_hash: string; }
 interface WalletRow { id: string; balance: string; }
 interface SeedRow { id: string; server_seed: string; server_seed_hash: string; client_seed: string; next_nonce: string; }
-interface ExistingRow { id: string; bet_per_line: string; lines: number; total_win: string; status: string; }
+interface ExistingRow { id: string; bet_per_line: string; lines: number; total_win: string; status: string; nonce: string; server_seed: string; client_seed: string; }
 
 export interface SavedRound { roundId: string; record: RoundRecord; balance: bigint; idempotent: boolean; }
 
@@ -29,13 +29,15 @@ export async function settleRound(
   const totalBet = BigInt(betPerLine) * BigInt(lines);
   return database.transaction(async (client) => {
     const existing = await client.query<ExistingRow>(
-      "SELECT id, bet_per_line, lines, total_win, status FROM rounds WHERE player_id=$1 AND external_id=$2 FOR UPDATE", [playerId, externalId],
+      "SELECT r.id, r.bet_per_line, r.lines, r.total_win, r.status, r.nonce, s.server_seed, s.client_seed FROM rounds r JOIN seed_pairs s ON s.id=r.seed_pair_id WHERE r.player_id=$1 AND r.external_id=$2 FOR UPDATE", [playerId, externalId],
     );
     if (existing.rows[0]) {
       const row = existing.rows[0];
       if (row.bet_per_line !== String(betPerLine) || row.lines !== lines) throw new RoundServiceError("IDEMPOTENCY_CONFLICT", "Ключ уже использован с другими параметрами.");
-      // Полный результат повторно читает история; этот путь не создаёт второй ledger entry.
-      return { roundId: row.id, record: {} as RoundRecord, balance: 0n, idempotent: true };
+      const currentWallet = await client.query<WalletRow>("SELECT id, balance FROM wallets WHERE player_id=$1 AND currency_code='CHIP' FOR UPDATE", [playerId]);
+      if (!currentWallet.rows[0]) throw new RoundServiceError("INSUFFICIENT_FUNDS", "Кошелёк не найден.");
+      const record = playRound(cfg.config, row.server_seed, row.client_seed, Number(row.nonce), { betPerLine });
+      return { roundId: row.id, record, balance: BigInt(currentWallet.rows[0].balance), idempotent: true };
     }
     const game = await client.query<GameRow>(
       `SELECT g.id AS game_id, gc.id AS game_config_id, gc.config_hash FROM games g
