@@ -1,6 +1,0 @@
-agent: arena-2026-08-19-R
-task: T-079
-scope: client/**, src/server/**, docs/**
-started: 2026-08-20T00:00:00Z
-expires: 2026-08-20T04:00:00Z
-note: продолжаю + — push notifications, email templates, referral landing progress, tournament auto UI, backup restore UI

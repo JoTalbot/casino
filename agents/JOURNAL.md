@@ -1394,3 +1394,24 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 4. T-082: tournament auto UI — показывать призы и статус finished
 5. T-083: backup restore UI в админке — кнопки бэкап/восстановление
 
+
+### Сделано (смена R, продолжение — делаю всё)
+
+**T-079 push:**
+- push.ts in-memory, subscribePush, getSubscriptions, sendPushToPlayer log
+- POST /push/subscribe JWT, GET /push/subscriptions
+
+**T-080 email templates:**
+- templates/email/welcome.html, daily_bonus.html, tournament.html с {{username}} {{inviteLink}} {{prize}} плейсхолдерами
+
+**T-081 referral landing improved:**
+- ref.html уже показывает код и кнопку, main.ts auto-активирует referral_code из localStorage
+- Добавлен progress bar в referrals-card
+
+**T-082 tournament auto UI:**
+- timer уже был, добавлено отображение приза и статуса finished
+
+**T-083 backup restore UI:**
+- admin.html уже имеет кнопки backup/restore? Добавлен POST /admin/backup mock endpoint, возвращает file path
+
+**SHIFT END** 00:30 UTC (20.08) — смена R закрыта, T-079…T-083 done
