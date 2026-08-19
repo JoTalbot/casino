@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Админка — Crown of Fortune</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#070910;color:#dbe4f5;padding:20px;max-width:1100px;margin:0 auto}
+h1{font-size:20px}
+.card{background:#111725;border:1px solid #232c40;border-radius:10px;padding:14px;margin:12px 0}
+input,button{padding:8px 12px;border-radius:6px;border:1px solid #2a3346;background:#0d1220;color:#dbe4f5}
+button{cursor:pointer}
+button.primary{background:linear-gradient(180deg,#ffd257,#e0a92c);color:#241c05;border:none;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border-bottom:1px solid #232c40;padding:6px;text-align:left}
+.warn{background:#1c1808;border:1px solid #3a3320;color:#ffd257;padding:8px 12px;border-radius:6px}
+</style>
+</head>
+<body>
+<h1>Админка Crown of Fortune</h1>
+<div class="warn">Доступ только для администратора. Требуется X-Admin-Token. Только CHIP, без реальных денег.</div>
+
+<div class="card">
+<h2>Токен администратора</h2>
+<input id="admin-token" type="password" placeholder="ADMIN_TOKEN" style="width:300px">
+<button id="save-token">Сохранить</button>
+<span id="token-status"></span>
+</div>
+
+<div class="card">
+<h2>Статистика</h2>
+<button id="load-stats">Обновить</button>
+<pre id="stats">—</pre>
+</div>
+
+<div class="card">
+<h2>Игроки (последние 50)</h2>
+<button id="load-players">Загрузить</button>
+<table id="players-table"><thead><tr><th>ID</th><th>Username</th><th>Status</th><th>Balance</th><th>Created</th></tr></thead><tbody></tbody></table>
+</div>
+
+<div class="card">
+<h2>Раунды (последние 50)</h2>
+<button id="load-rounds">Загрузить</button>
+<table id="rounds-table"><thead><tr><th>ID</th><th>Player</th><th>Game</th><th>Bet</th><th>Win</th><th>Time</th></tr></thead><tbody></tbody></table>
+</div>
+
+<div class="card">
+<h2>Grant фишек</h2>
+<input id="grant-player" placeholder="playerId">
+<input id="grant-amount" type="number" placeholder="amount CHIP">
+<input id="grant-reason" placeholder="reason">
+<button class="primary" id="grant-btn">Начислить</button>
+<pre id="grant-res"></pre>
+</div>
+
+<div class="card">
+<h2>RTP мониторинг</h2>
+<button id="load-rtp">Проверить RTP</button>
+<pre id="rtp">—</pre>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+function getToken(){ try{return localStorage.getItem('admin_token')||''}catch{return ''} }
+function setToken(v){ try{localStorage.setItem('admin_token', v)}catch{} }
+function headers(){ const t=getToken(); const h={'content-type':'application/json'}; if(t) h['X-Admin-Token']=t; return h; }
+$('admin-token').value = getToken();
+$('save-token').onclick = () => { setToken($('admin-token').value.trim()); $('token-status').textContent='сохранён'; };
+async function fetchJson(path, init={}){ const res = await fetch(path, {...init, headers:{...headers(), ...(init.headers||{})}}); const text=await res.text(); let body; try{body=JSON.parse(text)}catch{body=text} if(!res.ok) throw new Error(body?.message||body?.code||`HTTP ${res.status}`); return body; }
+
+$('load-stats').onclick = async () => { try{ $('stats').textContent=JSON.stringify(await fetchJson('/api/v1/admin/stats'), null, 2);}catch(e){$('stats').textContent='Ошибка: '+e.message} };
+$('load-players').onclick = async () => {
+  try{
+    const data = await fetchJson('/api/v1/admin/players?limit=50');
+    const tbody = $('players-table').querySelector('tbody'); tbody.innerHTML='';
+    for(const p of data.players){ const tr=document.createElement('tr'); tr.innerHTML=`<td style="font-family:monospace;font-size:11px">${p.id.slice(0,8)}…</td><td>${p.username}</td><td>${p.status}</td><td>${p.balance??'—'}</td><td>${new Date(p.created_at).toLocaleString()}</td>`; tbody.appendChild(tr); }
+  }catch(e){ alert(e.message) }
+};
+$('load-rounds').onclick = async () => {
+  try{
+    const data = await fetchJson('/api/v1/admin/rounds?limit=50');
+    const tbody = $('rounds-table').querySelector('tbody'); tbody.innerHTML='';
+    for(const r of data.rounds){ const tr=document.createElement('tr'); tr.innerHTML=`<td style="font-family:monospace;font-size:11px">${r.id.slice(0,8)}…</td><td>${r.username}</td><td>${r.game_code}</td><td>${r.total_bet}</td><td>${r.total_win}</td><td>${new Date(r.started_at).toLocaleString()}</td>`; tbody.appendChild(tr); }
+  }catch(e){ alert(e.message) }
+};
+$('grant-btn').onclick = async () => {
+  const playerId=$('grant-player').value.trim(), amount=Number($('grant-amount').value), reason=$('grant-reason').value.trim();
+  if(!playerId||!amount){ alert('need playerId and amount'); return }
+  try{ const res=await fetchJson('/api/v1/admin/grant',{method:'POST', body:JSON.stringify({playerId, amount, reason})}); $('grant-res').textContent=JSON.stringify(res,null,2); }catch(e){ $('grant-res').textContent='Ошибка: '+e.message }
+};
+$('load-rtp').onclick = async () => { try{ $('rtp').textContent=JSON.stringify(await fetchJson('/api/v1/admin/rtp'), null, 2);}catch(e){$('rtp').textContent='Ошибка: '+e.message} };
+</script>
+</body>
+</html>

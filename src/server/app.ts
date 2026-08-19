@@ -26,6 +26,7 @@ import { getPlayerState, listLimits, setLimit as rgSetLimit, setSelfExclusion } 
 import { LIMIT_KINDS, type LimitKind } from "../engine/responsible.js";
 import { checkRtp } from "./monitoring.js";
 import { loadGames } from "./gameRegistry.js";
+import { registerAdminRoutes } from "./admin.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -680,6 +681,13 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       return reply.status(500).send({ code: "INTERNAL_ERROR" });
     }
   });
+
+  // --- Админка (T-031) — включается если задан ADMIN_TOKEN ---
+  const adminToken = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET;
+  if (adminToken && options.database) {
+    registerAdminRoutes(app, { adminToken, database: options.database });
+    app.log.info("Admin routes enabled");
+  }
 
   // --- Совместимость со старым devServer ---
 

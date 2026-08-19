@@ -1,0 +1,12 @@
+node_modules
+client/node_modules
+dist
+build
+coverage
+.git
+.gitignore
+.env
+.venv
+__pycache__
+*.log
+pgdata
