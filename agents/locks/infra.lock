@@ -1,0 +1,6 @@
+agent: arena-2026-08-19-I
+task: T-030
+scope: Dockerfile, docker-compose.yml, .env.example, scripts/, docs/
+started: 2026-08-19T15:10:00Z
+expires: 2026-08-19T19:10:00Z
+note: Docker деплой, админка, ADR для второй игры и age-gate
