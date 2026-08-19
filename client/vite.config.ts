@@ -33,6 +33,14 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 4173,
     allowedHosts: true,
+    // В preview нужен тот же относительный API-прокси, что и в dev:
+    // внешний зритель не может обратиться к localhost сервера раундов.
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:3001",
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     target: "es2022",
