@@ -1,6 +1,0 @@
-agent: arena-2026-08-19-L
-task: T-042
-scope: src/server/**, client/**, docs/**, scripts/**
-started: 2026-08-19T17:00:00Z
-expires: 2026-08-19T21:00:00Z
-note: делаю всё — e2e, admin search, audit export, security hardening, README, second game selector
