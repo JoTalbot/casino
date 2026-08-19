@@ -3,13 +3,13 @@
 Статусы: `todo` → `in-progress` → `blocked` / `review` → `done` / `cancelled`
 Приоритеты: `P0` критично · `P1` важно · `P2` желательно · `P3` потом
 
-**ID не переиспользуются.** Следующий свободный ID: **T-084**
+**ID не переиспользуются.** Следующий свободный ID: **T-089**
 
 ---
 
 ## Активные и запланированные
 
-**Весь бэклог T-001…T-083 закрыт.** Новых активных задач нет.
+**Весь бэклог T-001…T-088 закрыт.** Новых активных задач нет.
 
 ---
 
@@ -100,6 +100,11 @@
 | T-081 | Referral landing улучшенный — прогресс бар, список на лендинге | P2 | done | arena-2026-08-19-R | 2026-08-19 |
 | T-082 | Tournament auto UI — призы и статус finished в клиенте | P2 | done | arena-2026-08-19-R | 2026-08-19 |
 | T-083 | Backup restore UI в админке — кнопки бэкап/восстановление | P2 | done | arena-2026-08-19-R | 2026-08-19 |
+| T-084 | Tournament auto UI improved — статус finished, prize distributed | P2 | done | arena-2026-08-19-S | 2026-08-19 |
+| T-085 | Email templates integration — использовать шаблоны в daily bonus и tournament prize | P2 | done | arena-2026-08-19-S | 2026-08-19 |
+| T-086 | PWA install prompt — beforeinstallprompt handling | P2 | done | arena-2026-08-19-S | 2026-08-19 |
+| T-087 | Backup restore UI — кнопки бэкап/восстановление в админке | P2 | done | arena-2026-08-19-S | 2026-08-19 |
+| T-088 | ADR-016: tournament auto UI, email templates, PWA install, backup restore UI | P2 | done | arena-2026-08-19-S | 2026-08-19 |
 
 ---
 
