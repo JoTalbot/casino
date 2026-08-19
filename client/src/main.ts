@@ -130,6 +130,16 @@ async function main(): Promise<void> {
     if (!checkAgeGate()) return;
   }
 
+  // Referral code from ?ref= or localStorage referral_code (T-067 landing)
+  try {
+    const urlRef = new URLSearchParams(window.location.search).get('ref');
+    if (urlRef) {
+      try { localStorage.setItem('referral_code', urlRef); } catch {}
+      // clean url
+      try { history.replaceState({}, '', window.location.pathname); } catch {}
+    }
+  } catch {}
+
   let game: GameInfo;
   let selectedGameCode = (ui.gameSelect?.value as string) || "crown-of-fortune";
   try {
@@ -261,6 +271,23 @@ async function main(): Promise<void> {
 
   const wallet = await api.wallet();
   ui.balance.textContent = fmt(wallet.balance);
+
+  // Авто-применение реферального кода с лендинга (T-067)
+  try {
+    const refCode = (() => { try { return localStorage.getItem('referral_code'); } catch { return null; } })();
+    if (refCode) {
+      // пытаемся активировать рефералку один раз
+      try {
+        const res = await fetch("/api/v1/referrals", { method: "POST", headers: { "content-type": "application/json", Authorization: `Bearer ${localStorage.getItem('casino_jwt') || ''}` }, body: JSON.stringify({ referralCode: refCode }) });
+        if (res.ok) {
+          log(`Реферальный код ${refCode} активирован, бонус 1000 CHIP`, "win");
+          try { localStorage.removeItem('referral_code'); } catch {}
+          // обновить баланс
+          try { const w2 = await api.wallet(); ui.balance.textContent = fmt(w2.balance); } catch {}
+        }
+      } catch {}
+    }
+  } catch {}
 
   log(`Игра загружена. Коммитмент: ${seeds.serverSeedHash.slice(0, 16)}…`);
   setStatus("Готово к игре");
@@ -666,3 +693,10 @@ async function main(): Promise<void> {
 }
 
 void main();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+

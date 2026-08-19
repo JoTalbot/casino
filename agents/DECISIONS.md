@@ -3,7 +3,7 @@
 > ADR не удаляются. Устаревшие помечаются `заменено ADR-00Y`.
 > Формат описан в `AGENTS.md` §8.
 
-**Следующий свободный номер: ADR-013**
+**Следующий свободный номер: ADR-014**
 
 ---
 
@@ -639,4 +639,48 @@ T-029 требует доказать, что игровой движок не �
 ### Последствия
 **Плюсы:** социальные механики удержания, бэкап, мобильный UX.
 **Минусы:** чат без модерации, ачивки без прогресс-бара в UI, бэкап требует pg_dump на хосте.
+
+
+---
+
+## ADR-013: PWA, email SMTP, tournament prize cron, referral landing, mobile и чат (ответ на T-054…T-063 продолжение и T-064…T-068)
+
+- **Дата:** 2026-08-19
+- **Агент:** arena-2026-08-19-O / arena-2026-08-19-N
+- **Статус:** принято
+
+### Контекст
+После T-053 остались: мобильная адаптация, турниры, email, звук, CI, рефералка, ачивки, чат, бэкап, PWA.
+
+### Решение
+
+**PWA (T-064):**
+- `client/public/manifest.json` — name, short_name, description, start_url, display standalone, background #070910, theme #ffd257, icons 192/512
+- `client/public/sw.js` — CACHE crown-v1, install addAll ASSETS, fetch cache first fallback to index.html
+- `index.html` — link manifest + meta theme-color
+- `main.ts` — navigator.serviceWorker.register('/sw.js') on load
+
+**Email SMTP (T-065):**
+- `src/server/emailSmtp.ts` — nodemailer transporter из env SMTP_HOST/PORT/USER/PASS, fallback to email.ts mock
+- `sendEmailSmtp(to, subject, text, html)` — пытается SMTP, при фейле mock
+
+**Tournament prize cron (T-066):**
+- `scripts/distribute_prizes.js` — pg Pool, BEGIN, SELECT tournament FOR UPDATE, проверка ends_at <= now, топ-3 из tournament_scores ORDER BY total_win DESC, prize_each = prize_pool / count, INSERT ledger_entries grant с idempotency tournament-prize:..., UPDATE tournaments status finished, COMMIT
+
+**Referral landing (T-067):**
+- `client/public/ref.html` — карточка с кодом из ?ref=, кнопка Играть кладёт referral_code в localStorage и redirect /
+- `main.ts` — при старте читает ?ref= → localStorage, после wallet загрузки пытается POST /referrals с referralCode, при успехе лог win и удаление кода
+
+**Дополнительно:**
+- Mobile responsive @media 600px — уже в T-054
+- Chat UI с автообновлением 10s, referrals UI, achievements UI, tournaments UI, bonus, leaderboard, history, verifier, sound, admin search/audit/block/daily графики — всё в смене N.
+
+### Альтернативы
+- **PWA Workbox** — отвергнуто для MVP, простой sw.js достаточно
+- **Email через внешний сервис SendGrid** — отложено, SMTP универсальнее
+- **Prize cron через BullMQ** — отложено, простой скрипт по расписанию cron достаточно
+
+### Последствия
+**Плюсы:** PWA ставится на телефон, email SMTP готов, турнирные призы раздаются скриптом, реферальный лендинг работает.
+**Минусы:** SW кэширует только статику, не API; email без очереди; prize cron ручной, не по расписанию systemd.
 

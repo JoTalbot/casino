@@ -3,13 +3,31 @@
 Статусы: `todo` → `in-progress` → `blocked` / `review` → `done` / `cancelled`
 Приоритеты: `P0` критично · `P1` важно · `P2` желательно · `P3` потом
 
-**ID не переиспользуются.** Следующий свободный ID: **T-064**
+**ID не переиспользуются.** Следующий свободный ID: **T-069**
 
 ---
 
 ## Активные и запланированные
 
-**Весь бэклог T-001…T-063 закрыт.** Новых активных задач нет.
+Новые задачи смены O — продолжаю +:
+
+| ID | Задача | Приоритет | Статус | Агент | Обновлено |
+|----|--------|-----------|--------|-------|-----------|
+| T-064 | PWA — manifest.json + service worker | P2 | in-progress | arena-2026-08-19-O | 2026-08-19 |
+| T-065 | Email SMTP — nodemailer с env SMTP_HOST/USER/PASS | P2 | todo | — | 2026-08-19 |
+| T-066 | Tournament prize cron — scripts/distribute_prizes.js | P2 | todo | — | 2026-08-19 |
+| T-067 | Referral landing — client/public/ref.html | P2 | todo | — | 2026-08-19 |
+| T-068 | ADR-013: PWA, email, tournaments, referrals и мобильная | P2 | todo | — | 2026-08-19 |
+
+Ранее закрытые (T-001…T-063 — done):
+
+| ID | Задача | Приоритет | Статус | Агент | Обновлено |
+|----|--------|-----------|--------|-------|-----------|
+| T-059 | Рефералка — referrals таблица, API /referrals, бонус за приглашённого | P2 | done | arena-2026-08-19-N | 2026-08-19 |
+| T-060 | Ачивки — achievements таблица, API /achievements | P2 | done | arena-2026-08-19-N | 2026-08-19 |
+| T-061 | Чат простой — chat_messages, API /chat | P2 | done | arena-2026-08-19-N | 2026-08-19 |
+| T-062 | Бэкап скрипт — scripts/backup.sh pg_dump | P2 | done | arena-2026-08-19-N | 2026-08-19 |
+| T-063 | ADR-012: рефералка, ачивки, чат, бэкап | P2 | done | arena-2026-08-19-N | 2026-08-19 |
 
 ---
 

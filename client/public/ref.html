@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Приглашение — Crown of Fortune</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#070910;color:#dbe4f5;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.card{background:#111725;border:1px solid #232c40;border-radius:12px;padding:24px;max-width:420px;width:90%}
+button{padding:10px 20px;border:none;border-radius:6px;background:linear-gradient(180deg,#ffd257,#e0a92c);color:#241c05;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>Тебя пригласили в Crown of Fortune!</h2>
+<p>Виртуальные фишки без реальных денег, provably fair, 2 игры, турниры, чат.</p>
+<p>Код приглашения: <span id="code" style="font-family:monospace; background:#0d1220; padding:2px 6px; border-radius:4px"></span></p>
+<button id="play">Играть и получить бонус 1000 CHIP</button>
+<p style="font-size:11px;color:#7f8da8;margin-top:12px">18+ · Соц-казино без реальных денег</p>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+const ref = params.get('ref') || params.get('code') || '';
+document.getElementById('code').textContent = ref || 'нет';
+document.getElementById('play').onclick = () => {
+  if(ref) localStorage.setItem('referral_code', ref);
+  location.href = '/';
+};
+</script>
+</body>
+</html>
