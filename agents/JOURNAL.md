@@ -1225,3 +1225,24 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 
 
 **SHIFT END** 20:30 UTC — смена N закрыта, T-059…T-063 done, плюс все доп. фичи (мобильная, турниры UI, рефералка UI, чат UI, ачивки UI, звук)
+
+---
+
+## 2026-08-19 — arena-2026-08-19-O
+
+**SHIFT START** 21:00 UTC
+Задачи: T-064 … T-068
+Локи: `backend`
+
+### Контекст
+- Пользователь "+" седьмой раз — продолжаю после T-063.
+- Всё до 63 закрыто, протокол зелёный, next ID T-064.
+- План: PWA, email SMTP, tournament prize, referral landing, mobile touch.
+
+### План
+1. T-064: PWA — manifest.json + service worker
+2. T-065: email SMTP — nodemailer с env SMTP_HOST/USER/PASS
+3. T-066: tournament prize cron — scripts/distribute_prizes.js
+4. T-067: referral landing — client/public/ref.html
+5. T-068: ADR-013 — PWA, email, tournaments, referrals
+

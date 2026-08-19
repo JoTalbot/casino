@@ -1,0 +1,6 @@
+agent: arena-2026-08-19-O
+task: T-064
+scope: client/**, src/server/**, docs/**
+started: 2026-08-19T21:00:00Z
+expires: 2026-08-20T01:00:00Z
+note: продолжаю + — PWA, email SMTP, tournament prize cron, referral landing
