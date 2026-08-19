@@ -358,6 +358,21 @@ export const api = {
     return normalizeRound(raw);
   },
 
+  async limits(): Promise<{ limits: { kind: string; value: number; effectiveFrom: string; coolingUntil: string | null }[]; counters?: { lossToday:number; wageredToday:number; spinsToday:number; lossThisWeek:number } }> {
+    await ensureAuth();
+    return request("/api/v1/limits");
+  },
+
+  async setLimit(kind: string, value: number): Promise<unknown> {
+    await ensureAuth();
+    return request("/api/v1/limits", { method: "POST", body: JSON.stringify({ kind, value }) });
+  },
+
+  async selfExclude(durationDays: number | null): Promise<unknown> {
+    await ensureAuth();
+    return request("/api/v1/self-exclusion", { method: "POST", body: JSON.stringify({ durationDays }) });
+  },
+
   // Утилиты для отладки / ручной ротации токена
   clearToken() {
     clearStoredToken();

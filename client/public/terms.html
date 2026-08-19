@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Правила — Crown of Fortune</title>
+<style>
+body{font-family:system-ui,Segoe UI,sans-serif;background:#070910;color:#dbe4f5;max-width:800px;margin:0 auto;padding:24px;line-height:1.6}
+h1{font-size:22px}h2{font-size:16px;margin-top:24px;color:#ffd257}
+a{color:#8cc0ff}
+.card{background:#111725;border:1px solid #232c40;border-radius:10px;padding:16px;margin:12px 0}
+.warn{background:#1c1808;border:1px solid #3a3320;color:#ffd257;padding:8px 12px;border-radius:6px}
+</style>
+</head>
+<body>
+<h1>Правила игры — Crown of Fortune (соц-казино)</h1>
+<div class="warn">Виртуальные фишки · без реальных денег · 18+</div>
+<h2>1. Суть</h2>
+<p>Симулятор слота 5×3, 20 линий. Вся случайность — на сервере, provably-fair HMAC-SHA256. Клиент только показывает результат.</p>
+<h2>2. Виртуальные фишки CHIP</h2>
+<ul>
+<li>Не имеют денежной ценности, не являются собственностью игрока.</li>
+<li>Не подлежат обмену, продаже, выводу.</li>
+<li>Выдаются бесплатно (100 000 при регистрации), без покупки.</li>
+<li>Передача между игроками запрещена.</li>
+</ul>
+<h2>3. Реальных денег нет</h2>
+<p>Покупки за реальные деньги отсутствуют (вариант A, ADR-004). Если появятся — продукт становится регуляторным (Q-006) и требует лицензии и юр. заключения. Вывод невозможен.</p>
+<h2>4. Возраст 18+</h2>
+<p>Доступ с 18 лет. При входе — возрастной гейт. Игра содержит симулированный гемблинг.</p>
+<h2>5. Ответственная игра</h2>
+<p>Лимиты: loss_daily, loss_weekly, wager_daily, spins_daily, session_minutes. Ужесточение — немедленно, ослабление — через 24 часа. Самоисключение — бессрочно или на дни, сократить нельзя. Reality check каждые 60 минут в ответе на раунд.</p>
+<h2>6. Provably fair</h2>
+<p>Сервер публикует SHA-256(serverSeed) до ставок. После ротации seed раскрывается, проверяется в verifier/verify.html.</p>
+<h2>7. Запреты</h2>
+<p>Мультиаккаунты, боты, подмена клиента, обход лимитов.</p>
+<h2>8. Дисклеймер</h2>
+<p class="card"><strong>Игра не является азартной игрой на деньги. Выигрыши виртуальные и не подлежат выводу.</strong></p>
+<p><a href="/">← Назад в игру</a> · <a href="/privacy.html">Конфиденциальность</a></p>
+</body>
+</html>

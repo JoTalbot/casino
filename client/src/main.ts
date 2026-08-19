@@ -56,6 +56,18 @@ const ui = {
   nonce: document.getElementById("nonce") as HTMLElement,
   log: document.getElementById("log") as HTMLElement,
   stage: document.getElementById("stage") as HTMLElement,
+  ageGate: document.getElementById("age-gate") as HTMLElement,
+  ageYes: document.getElementById("age-yes") as HTMLButtonElement,
+  ageNo: document.getElementById("age-no") as HTMLButtonElement,
+  rgToday: document.getElementById("rg-today") as HTMLElement,
+  rgLimits: document.getElementById("rg-limits") as HTMLElement,
+  rgKind: document.getElementById("rg-kind") as HTMLSelectElement,
+  rgValue: document.getElementById("rg-value") as HTMLInputElement,
+  rgSet: document.getElementById("rg-set") as HTMLButtonElement,
+  rgRefresh: document.getElementById("rg-refresh") as HTMLButtonElement,
+  rgList: document.getElementById("rg-list") as HTMLElement,
+  seKind: document.getElementById("se-kind") as HTMLSelectElement,
+  seSet: document.getElementById("se-set") as HTMLButtonElement,
 };
 
 function fmt(value: number): string {
@@ -77,7 +89,36 @@ function setStatus(text: string): void {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function checkAgeGate(): boolean {
+  try {
+    if (localStorage.getItem("age_verified") === "18+") {
+      ui.ageGate.classList.add("hidden");
+      return true;
+    }
+  } catch {}
+  ui.ageGate.classList.remove("hidden");
+  return false;
+}
+
 async function main(): Promise<void> {
+  // Age gate 18+ (T-025)
+  if (!checkAgeGate()) {
+    ui.ageYes.addEventListener("click", () => {
+      try { localStorage.setItem("age_verified", "18+"); } catch {}
+      ui.ageGate.classList.add("hidden");
+      log("Возраст подтверждён 18+", "info");
+      // перезапускаем инициализацию
+      window.location.reload();
+    });
+    ui.ageNo.addEventListener("click", () => {
+      setStatus("Доступ только с 18 лет");
+      log("Доступ запрещён: требуется 18+", "error");
+      ui.ageGate.innerHTML = '<div id="age-box"><h2>Доступ запрещён</h2><p>Игра доступна только с 18 лет. Соц-казино содержит симулированный гемблинг.</p><p><a href=\"/terms.html\">Правила</a></p></div>';
+    });
+    // не грузим игру до подтверждения возраста
+    if (!checkAgeGate()) return;
+  }
+
   let game: GameInfo;
   try {
     game = await api.game();
@@ -328,6 +369,73 @@ async function main(): Promise<void> {
     row.appendChild(values);
     paytableHost.appendChild(row);
   }
+
+  // ---- Ответственная игра (T-024) ----
+  async function refreshRG(): Promise<void> {
+    try {
+      const data = await api.limits();
+      const c = data.counters;
+      if (c) {
+        ui.rgToday.textContent = `Спины ${c.spinsToday}, ставок ${fmt(c.wageredToday)}, проигрыш ${fmt(c.lossToday)} (неделя ${fmt(c.lossThisWeek)})`;
+      } else {
+        ui.rgToday.textContent = "—";
+      }
+      const limits = (data as { limits: { kind: string; value: number; effectiveFrom: string; coolingUntil: string | null }[] }).limits ?? [];
+      if (limits.length === 0) ui.rgLimits.textContent = "не установлены";
+      else ui.rgLimits.textContent = limits.map((l) => `${l.kind}: ${l.value}`).join(" · ");
+
+      ui.rgList.innerHTML = "";
+      for (const l of limits) {
+        const div = document.createElement("div");
+        div.className = "limit-item";
+        div.innerHTML = `<span>${l.kind}</span><span>${l.value} ${l.coolingUntil ? " (охлаждение до "+new Date(l.coolingUntil).toLocaleString("ru-RU")+")" : ""}</span>`;
+        ui.rgList.appendChild(div);
+      }
+    } catch (e) {
+      ui.rgLimits.textContent = `ошибка: ${(e as Error).message}`;
+    }
+  }
+
+  await refreshRG().catch(() => {});
+
+  ui.rgRefresh.addEventListener("click", () => void refreshRG());
+  ui.rgSet.addEventListener("click", () => {
+    void (async () => {
+      const kind = ui.rgKind.value;
+      const value = Number(ui.rgValue.value);
+      if (!Number.isInteger(value) || value <= 0) {
+        log("Значение лимита должно быть целым >0", "error");
+        return;
+      }
+      try {
+        const res = await api.setLimit(kind, value);
+        log(`Лимит ${kind}=${value} установлен: ${(res as { message?: string }).message ?? "ok"}`, "info");
+        await refreshRG();
+      } catch (e) {
+        log(`Лимит не установлен: ${(e as Error).message}`, "error");
+      }
+    })();
+  });
+
+  ui.seSet.addEventListener("click", () => {
+    void (async () => {
+      const raw = ui.seKind.value;
+      const days = raw === "" ? null : Number(raw);
+      if (raw !== "" && (!Number.isInteger(days) || (days as number) <= 0)) {
+        log("Длительность самоисключения — целое >0 или бессрочно", "error");
+        return;
+      }
+      if (!confirm(`Подтвердить самоисключение ${days === null ? "бессрочно" : days+" дней"}? Снять досрочно нельзя.`)) return;
+      try {
+        const res = await api.selfExclude(days);
+        log(`Самоисключение установлено: ${JSON.stringify(res)}`, "free");
+        setStatus("Самоисключение активно");
+        ui.spin.disabled = true;
+      } catch (e) {
+        log(`Самоисключение не установлено: ${(e as Error).message}`, "error");
+      }
+    })();
+  });
 }
 
 void main();
