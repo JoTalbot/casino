@@ -7,6 +7,8 @@
  */
 import fastify, { type FastifyInstance } from "fastify";
 import jwt from "@fastify/jwt";
+import helmet from "@fastify/helmet";
+import cors from "@fastify/cors";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { loadConfig } from "../engine/config.js";
@@ -57,6 +59,8 @@ export interface AppOptions {
 
 export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   const app = fastify({ logger: true });
+  await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(cors, { origin: true, credentials: true });
   await app.register(jwt, { secret: options.jwtSecret });
   const gamesRegistry = loadGames();
   const primary = gamesRegistry.get("crown-of-fortune") ?? { code: "crown-of-fortune", loaded: loadConfig() };
@@ -65,6 +69,9 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   function getGameEntry(code: string) {
     return gamesRegistry.get(code) ?? (code === "crown-of-fortune" ? primary : undefined);
   }
+
+  // Rate limiter для auth/demo (T-045) — 5 req/s per IP
+  const authLimiter = new Map<string, number[]>();
 
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof z.ZodError) {
@@ -90,6 +97,17 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
 
   // --- Демо-вход: создаёт гостя, кошелёк CHIP 100k, seed pair, возвращает JWT ---
   app.post("/api/v1/auth/demo", async (request, reply) => {
+    // T-045: простой rate limit по IP для demo-входа — 5 req/s
+    const ip = (request.ip ?? request.headers["x-forwarded-for"] ?? "unknown") as string;
+    const now = Date.now();
+    const arr = authLimiter.get(ip) ?? [];
+    const recent = arr.filter((t) => t > now - 1000);
+    if (recent.length >= 5) {
+      return reply.status(429).header("Retry-After", "1").send({ code: "RATE_LIMITED", message: "Слишком часто для demo входа" });
+    }
+    recent.push(now);
+    authLimiter.set(ip, recent);
+
     if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
     try {
       const guest = await createGuestPlayer(options.database, loaded);

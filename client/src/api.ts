@@ -307,10 +307,16 @@ function normalizeRotate(raw: unknown): RotateResult {
 
 export const api = {
   // При первом обращении пробуем получить JWT (для боевого сервера)
-  async game(): Promise<GameInfo> {
+  async game(code = "crown-of-fortune"): Promise<GameInfo> {
     await ensureAuth();
-    const raw = await request<unknown>("/api/v1/games/crown-of-fortune");
+    const raw = await request<unknown>(`/api/v1/games/${code}`);
     return normalizeGame(raw);
+  },
+
+  async listGames(): Promise<GameInfo[]> {
+    await ensureAuth();
+    const raw = await request<{ games: unknown[] }>("/api/v1/games");
+    return (raw.games as unknown[]).map(normalizeGame);
   },
 
   async seeds(): Promise<SeedInfo> {
@@ -350,13 +356,13 @@ export const api = {
     return normalizeRotate(raw);
   },
 
-  async playRound(betPerLine: number): Promise<RoundRecord> {
+  async playRound(betPerLine: number, gameCode = "crown-of-fortune"): Promise<RoundRecord> {
     await ensureAuth();
     const idempotencyKey = (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`) as string;
     const raw = await request<unknown>("/api/v1/rounds", {
       method: "POST",
       headers: { "idempotency-key": idempotencyKey },
-      body: JSON.stringify({ gameCode: "crown-of-fortune", betPerLine, lines: 20 }),
+      body: JSON.stringify({ gameCode, betPerLine, lines: 20 }),
     });
     return normalizeRound(raw);
   },

@@ -1,4 +1,4 @@
-/** Простая админка (T-031) — только для демо, без ролей. Проверка по X-Admin-Token. */
+/** Простая админка (T-031, T-040, T-043, T-044) — только для демо, без ролей. Проверка по X-Admin-Token. */
 import type { FastifyInstance } from "fastify";
 import type { Database } from "./db.js";
 import { checkRtp } from "./monitoring.js";
@@ -16,28 +16,54 @@ export function registerAdminRoutes(app: FastifyInstance, opts: AdminOptions): v
 
   app.get("/api/v1/admin/players", async (request, reply) => {
     if (!checkAdmin(request as any)) return reply.status(403).send({ code: "FORBIDDEN", message: "Нужен X-Admin-Token" });
-    const { limit } = request.query as { limit?: string };
+    const { limit, search, status } = request.query as { limit?: string; search?: string; status?: string };
     const lim = Math.min(Math.max(limit ? parseInt(limit, 10) : 50, 1), 200);
+    let sql = `SELECT p.id, p.username, p.status, p.created_at, w.balance
+       FROM players p
+       LEFT JOIN wallets w ON w.player_id = p.id AND w.currency_code = 'CHIP'
+       WHERE 1=1`;
+    const params: unknown[] = [];
+    let idx = 1;
+    if (search) {
+      sql += ` AND p.username ILIKE $${idx}`;
+      params.push(`%${search}%`);
+      idx++;
+    }
+    if (status) {
+      sql += ` AND p.status = $${idx}::player_status`;
+      params.push(status);
+      idx++;
+    }
+    sql += ` ORDER BY p.created_at DESC LIMIT $${idx}`;
+    params.push(lim);
     const res = await opts.database.query<{
       id: string;
       username: string;
       status: string;
       created_at: string;
       balance: string | null;
-    }>(
-      `SELECT p.id, p.username, p.status, p.created_at, w.balance
-       FROM players p
-       LEFT JOIN wallets w ON w.player_id = p.id AND w.currency_code = 'CHIP'
-       ORDER BY p.created_at DESC LIMIT $1`,
-      [lim],
-    );
+    }>(sql, params);
     return { players: res.rows };
   });
 
   app.get("/api/v1/admin/rounds", async (request, reply) => {
     if (!checkAdmin(request as any)) return reply.status(403).send({ code: "FORBIDDEN" });
-    const { limit } = request.query as { limit?: string };
+    const { limit, gameCode } = request.query as { limit?: string; gameCode?: string };
     const lim = Math.min(Math.max(limit ? parseInt(limit, 10) : 50, 1), 200);
+    let sql = `SELECT r.id, r.player_id, p.username, g.code as game_code, r.total_bet, r.total_win, r.started_at
+       FROM rounds r
+       JOIN players p ON p.id = r.player_id
+       JOIN games g ON g.id = r.game_id
+       WHERE 1=1`;
+    const params: unknown[] = [];
+    let idx = 1;
+    if (gameCode) {
+      sql += ` AND g.code = $${idx}`;
+      params.push(gameCode);
+      idx++;
+    }
+    sql += ` ORDER BY r.started_at DESC LIMIT $${idx}`;
+    params.push(lim);
     const res = await opts.database.query<{
       id: string;
       player_id: string;
@@ -46,14 +72,7 @@ export function registerAdminRoutes(app: FastifyInstance, opts: AdminOptions): v
       total_bet: string;
       total_win: string;
       started_at: string;
-    }>(
-      `SELECT r.id, r.player_id, p.username, g.code as game_code, r.total_bet, r.total_win, r.started_at
-       FROM rounds r
-       JOIN players p ON p.id = r.player_id
-       JOIN games g ON g.id = r.game_id
-       ORDER BY r.started_at DESC LIMIT $1`,
-      [lim],
-    );
+    }>(sql, params);
     return { rounds: res.rows };
   });
 
@@ -148,5 +167,37 @@ export function registerAdminRoutes(app: FastifyInstance, opts: AdminOptions): v
       [body.playerId, JSON.stringify({ status: newStatus, reason: body.reason })],
     );
     return { ok: true, playerId: body.playerId, status: newStatus };
+  });
+
+  // T-044: экспорт аудита CSV/JSON
+  app.get("/api/v1/admin/audit", async (request, reply) => {
+    if (!checkAdmin(request as any)) return reply.status(403).send({ code: "FORBIDDEN" });
+    const { limit, format } = request.query as { limit?: string; format?: string };
+    const lim = Math.min(Math.max(limit ? parseInt(limit, 10) : 100, 1), 1000);
+    const res = await opts.database.query<{
+      id: string;
+      occurred_at: string;
+      actor_type: string;
+      actor_id: string;
+      event_type: string;
+      subject_type: string;
+      subject_id: string;
+      payload: unknown;
+    }>(
+      `SELECT id, occurred_at, actor_type, actor_id, event_type, subject_type, subject_id, payload
+       FROM audit_log ORDER BY occurred_at DESC LIMIT $1`,
+      [lim],
+    );
+    if (format === "csv") {
+      const header = "id,occurred_at,actor_type,actor_id,event_type,subject_type,subject_id,payload\n";
+      const rows = res.rows.map((r) => {
+        const esc = (s: string) => `"${s.replace(/"/g, '""')}"`;
+        return `${r.id},${r.occurred_at},${r.actor_type},${r.actor_id ?? ""},${r.event_type},${r.subject_type ?? ""},${r.subject_id ?? ""},${esc(JSON.stringify(r.payload))}`;
+      });
+      reply.header("content-type", "text/csv; charset=utf-8");
+      reply.header("content-disposition", "attachment; filename=audit.csv");
+      return header + rows.join("\n");
+    }
+    return { audit: res.rows };
   });
 }

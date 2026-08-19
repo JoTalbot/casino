@@ -1,11 +1,8 @@
 # casino
 
-Исследовательско-инженерный проект: **как построить собственное онлайн-казино со слотами** —
-от математики игры до архитектуры, юридической рамки и экономики.
+Исследовательско-инженерный проект: **как построить собственное онлайн-казино со слотами** — от математики игры до архитектуры, юридической рамки и экономики.
 
-> ⚠️ **Для ИИ-агентов и новых участников: сначала прочитайте [`AGENTS.md`](AGENTS.md).**
-> Это обязательный протокол работы в репозитории. Без него вы сломаете
-> координацию между агентами.
+> ⚠️ **Для ИИ-агентов и новых участников: сначала прочитайте [`AGENTS.md`](AGENTS.md).** Это обязательный протокол работы.
 
 ---
 
@@ -21,179 +18,152 @@
 
 ---
 
-## Структура репозитория
+## Структура репозитория (актуальная)
 
 ```
-AGENTS.md                 Протокол работы для всех ИИ-агентов. Читать первым.
-
-agents/
-  STATE.md                Текущее состояние проекта. Обновляется каждую смену.
-  HANDOFF.md              Передача смены: контекст, ловушки, приоритеты.
-  TASKS.md                Задачи T-XXX со статусами и приоритетами.
-  JOURNAL.md              Append-only журнал смен. Не редактировать прошлое.
-  DECISIONS.md            Архитектурные решения ADR-XXX.
-  QUESTIONS.md            Вопросы к владельцу проекта Q-XXX.
-  GLOSSARY.md             Термины индустрии.
-  locks/                  Файловые локи для параллельной работы агентов.
-
-research/
-  01-ARCHITECTURE.md      Системы казино, стек, RNG, provably fair, схема БД.
-  02-SLOT-MATH.md         RTP, PAR sheets, reel strips, волатильность, формулы.
-  03-LEGAL.md             Лицензии, юрисдикции, сертификация, AML/KYC/RG.
-  04-ECONOMICS.md         Бюджеты, юнит-экономика, модели запуска.
-  05-COMMUNITIES.md       Форумы, сообщества, open-source репозитории.
-  SOURCES.md              Реестр всех источников.
-
-config/
-  game.json               Единственный источник правды по математике игры.
-
-slotmath/                 Математика на Python: ленты, аналитика, калибровка.
+AGENTS.md                 Протокол работы для всех ИИ-агентов
+agents/                   STATE, HANDOFF, TASKS, JOURNAL, DECISIONS, GLOSSARY, locks
+research/                 01-ARCHITECTURE … 08-PAYMENTS-PSP, SOURCES
+config/                   game.json (Crown of Fortune) + second-game.json (Crown II)
+slotmath/                 Математика на Python
 src/
-  engine/                 Движок раунда на TypeScript: rng, paylines, round.
-  server/devServer.ts     Учебный сервер раундов (node:http, порт 3001).
-client/                   Прототип клиента: PixiJS v8 + pixi-reels + Vite.
-
-db/schema.sql             Схема PostgreSQL: игроки, кошелёк, раунды, сиды.
-api/openapi.yaml          Спецификация REST API.
-verifier/verify.html      Офлайн-верификатор раунда для игрока.
-
-docs/                     PAR sheet, схема БД, API, ответственная игра.
-scripts/                  Сборка игры, симуляции, фикстуры, кросс-проверка.
-simulations/              Отчёты Monte Carlo.
-tests/fixtures/           Эталонные раунды: приёмка движка и клиента.
+  engine/                 rng.ts, paylines.ts, round.ts, responsible.ts, multiGame.test.ts
+  server/                 Fastify API: app.ts, db.ts, auth.ts, seeds.ts, history.ts,
+                          responsibleService.ts, monitoring.ts, gameRegistry.ts,
+                          admin.ts, rateLimit.ts, migrate.ts, main.ts
+client/                   PixiJS v8 + pixi-reels, api.ts, main.ts, symbols.ts,
+                          public/terms.html, privacy.html, admin.html
+db/migrations/            0001_init.sql + schema_migrations
+api/openapi.yaml          Спецификация REST API
+verifier/verify.html      Офлайн-верификатор
+docs/                     PAR-SHEET, DB-SCHEMA, API, RESPONSIBLE-GAMING,
+                          TERMS, PRIVACY, DEPLOY
+scripts/                  build_game.py, simulate.py, confidence.py, e2e.js, crosscheck.py, check_protocol.py
 ```
 
 ---
 
-## Состояние проекта
+## Состояние проекта — 2026-08-19
 
-**Стадия: 3 из 8 — работающий прототип.**
+**Стадия: 7 из 9 — боевая платформа с деплоем и админкой.**
 
-Актуальный статус всегда в [`agents/STATE.md`](agents/STATE.md).
+Актуальный статус в [`agents/STATE.md`](agents/STATE.md).
 
-**Тип продукта определён (Q-001, ADR-004): вариант A — соц-казино на
-виртуальных фишках.** Реальных денег в стадии 1 нет. Математика, RNG и
-клиент переносятся в варианты B и C без переписывания — меняется только
-обвязка (кошелёк, KYC, платежи).
+**Тип продукта: вариант A — соц-казино на виртуальных фишках** (ADR-004). Реальных денег нет, Q-006 открыт.
 
-Что уже работает:
+### Что уже работает
 
 | Компонент | Состояние |
 |---|---|
-| Математика «Crown of Fortune» 5×3, 20 линий | RTP 95.98%, 30 млн спинов |
-| Provably fair RNG (HMAC-SHA256 commit-reveal) | 40 тестов |
-| Движок раунда на TypeScript | сверен с Python по 26 фикстурам |
-| Офлайн-верификатор для игрока | `verifier/verify.html`, 0 внешних запросов |
-| Прототип клиента на PixiJS | барабаны садятся на серверную сетку |
-
-Открытые вопросы — [`agents/QUESTIONS.md`](agents/QUESTIONS.md).
-
----
-
-## Запуск прототипа
-
-Нужен Node.js ≥ 20.10 и Python 3.11+.
-
-```bash
-npm install                # зависимости движка
-npm run client:install     # зависимости клиента
-
-npm run dev:server         # терминал 1: сервер раундов на :3001
-npm run dev:client         # терминал 2: клиент на :5173
-```
-
-Открыть <http://localhost:5173>. Клиент ходит в API по относительному
-пути `/api/v1/...`, Vite проксирует его на сервер раундов — поэтому
-прототип работает и при доступе с другой машины.
-
-Сервер раундов **учебный**: сиды и баланс живут в памяти процесса и
-обнуляются при перезапуске. Он существует, чтобы клиент получал
-настоящий серверный результат, а не для продакшена.
-
-### Проверки
-
-```bash
-npm test                   # движок: 113 тестов
-npm run client:test        # клиент: 21 тест, в т.ч. 136 спинов на барабанах
-python3 tests/test_round.py     # эталонный раунд: 35 тестов
-python3 tests/test_confidence.py # статистика сходимости: 37 тестов
-python3 scripts/crosscheck.py   # сверка математики Python ↔ TypeScript
-python3 scripts/test_verifier.py
-python3 scripts/check_protocol.py # дисциплина агентов: локи, ID, ссылки
-
-npm run ci                 # всё сразу, как в GitHub Actions
-```
-
-CI (`.github/workflows/ci.yml`) гоняет эти же проверки на каждый push
-и pull request четырьмя параллельными задачами: движок, клиент,
-математика, протокол агентов.
-
-### Пересчёт математики
-
-```bash
-python3 scripts/build_game.py                    # собрать config/game.json
-python3 scripts/simulate.py --spins 10000000 --runs 3 \
-        --json simulations/report-10m.json       # Monte Carlo + приёмка
-python3 scripts/confidence.py \
-        --json simulations/confidence.json       # интервалы RTP и банкролл
-python3 scripts/par_sheet.py --csv               # пересобрать PAR sheet
-```
-
-`scripts/confidence.py` обязателен при любой смене математики: границы
-мониторинга RTP зависят от sigma (ADR-007).
+| Математика 2 игры 5×3, 20 линий | RTP 95.98%, 30M спинов, PAR sheet 10 разделов |
+| Provably fair RNG HMAC-SHA256 | 40 тестов, verify + rotate |
+| Движок раунда TS | сверен с Python по 26 фикстурам (136 спинов), multiGame тест |
+| Учебный devServer | :3001, состояние в памяти |
+| Боевой бэкенд Fastify | /auth/demo JWT, /games (2 игры), /seeds/*, /rounds с Idempotency-Key и SERIALIZABLE, /wallet, /limits, /self-exclusion, /monitoring/rtp, /admin/*, rate limiting 10/s, reality check |
+| БД PostgreSQL 16 | миграции с checksum, ledger двойная запись, seed_pairs, audit_log append-only |
+| Клиент PixiJS v8 | барабаны садятся на серверную сетку, JWT + Idempotency, выбор игры, история раундов с модалкой, верификатор в модалке, RG-экран (лимиты + самоисключение), age-gate 18+ модалка, reality check модалка, footer ToS/Privacy |
+| Админка | /admin.html — игроки, раунды, stats, grant, block, RTP, daily графики Chart.js, поиск по username/status, экспорт audit CSV |
+| Деплой | Dockerfile API + client/Dockerfile nginx, docker-compose.yml (db+api+client), .env.example, docs/DEPLOY.md |
+| Мониторинг RTP | ADR-007: интервал от фактического n, алерт от 100k раундов, /monitoring/rtp и /admin/daily |
+| ToS/Privacy | docs/TERMS.md, docs/PRIVACY.md, client/public/terms.html, privacy.html, admin.html |
+| CI | engine, server+PG, client, math, protocol — зелёный |
+| Тесты | 117 TS + 35 round + 37 confidence + 21 клиент = 210 (3 PG интеграционных skip без БД) |
 
 ---
 
-## Ключевые выводы исследования
+## Запуск
+
+### Быстрый старт с Docker (рекомендуется)
+
+```bash
+cp .env.example .env
+# отредактируй POSTGRES_PASSWORD и JWT_SECRET (openssl rand -hex 32)
+
+docker compose up -d --build
+docker compose logs -f api
+# клиент http://localhost:8080
+# API http://localhost:3000/health
+```
+
+Подробности — `docs/DEPLOY.md`.
+
+### Учебный режим (без БД)
+
+```bash
+npm install
+npm run client:install
+npm run dev:server   # :3001 учебный, состояние в памяти
+npm run dev:client   # :5173 Vite прокси /api → :3001
+```
+
+### Боевой режим без Docker
+
+```bash
+npm ci
+npm run build
+DATABASE_URL=postgresql://... JWT_SECRET=... ADMIN_TOKEN=... node build/server/migrate.js
+DATABASE_URL=... JWT_SECRET=... ADMIN_TOKEN=... node build/server/main.js
+# client: npm --prefix client run build + nginx с client/nginx.conf
+```
+
+### e2e полная проверка
+
+```bash
+# API должен быть запущен
+node scripts/e2e.js http://localhost:3000 $ADMIN_TOKEN
+```
+
+Открой http://localhost:8080, пройди age-gate 18+, спин, проверь историю, лимиты, верификатор, админку /admin.html (нужен ADMIN_TOKEN в localStorage).
+
+---
+
+## Проверки
+
+```bash
+npm test                   # движок + API (117 тестов)
+npm run client:test        # клиент 21 тест, 136 спинов на барабанах
+python3 tests/test_round.py
+python3 tests/test_confidence.py
+python3 scripts/crosscheck.py
+python3 scripts/check_protocol.py
+npm run ci                 # всё как в CI
+node scripts/e2e.js        # e2e против живого API
+```
+
+CI `.github/workflows/ci.yml` — 5 задач: engine, server+PG, client, math, protocol.
+
+---
+
+## Ключевые выводы
 
 **Техника**
-- RNG **только на сервере**, только CSPRNG. Клиентская случайность не сертифицируется никогда.
-- Деньги — целыми числами в минорных единицах (`BIGINT`), никогда не float.
-- Provably fair (HMAC-SHA256 commit-reveal) — дополнение к сертификации, не замена.
-- Стек прототипа: PixiJS v8 + `pixi-reels` (фронт), Node.js/TS + Fastify (сервер),
-  PostgreSQL + Redis, Python + numpy (математика). Обоснование — ADR-005 и ADR-006.
-- Клиент не имеет права генерировать исход: он получает готовую сетку с сервера
-  и только показывает её.
+- RNG только на сервере, CSPRNG. Деньги — BIGINT.
+- Provably fair commit-reveal HMAC-SHA256 + offline verifier.
+- Стек: PixiJS v8 + pixi-reels, Fastify 5 + PostgreSQL 16 + JWT + SERIALIZABLE, Python numpy.
+- Клиент не решает исход: `setResult()` + нормализаторы.
 
 **Математика**
-- `Hit Frequency = Ways to Win / Total Ways`
-- `RTP = Total Payout / Total Ways`
-- Free spins: `RTP = (B0 + p1 × n1 × B1) / bet`, с ретриггером `n1 = award / (1 − p_retrigger)`
-- Целевой RTP прототипа: 96% ± 0.5%, симуляция от 10 млн спинов.
-- Принято: RTP 95.98% аналитически, 95.93% на 30 млн спинов, hit frequency 25.9%.
-- Наблюдаемый RTP сходится медленно: sigma = 4.13 ставки за раунд, поэтому
-  для точности ±1 п.п. при 95% доверия нужно ~654 тыс. раундов. На 1 000
-  раундов честный разброс RTP составляет 75–126%. Коридор приёмки
-  95.5–96.5% применим только к выборкам от 5 млн раундов (ADR-007).
-- Банкролл оператора: ~987 ставок под риск разорения 1% (проверено Monte
-  Carlo). Подробности — PAR sheet §9.
+- RTP 95.98% аналитика, 95.93% на 30M, hit 25.9%, sigma 4.126.
+- Разброс: на 1k раундов RTP 74.6–125.5%, поэтому коридор 95.5–96.5% только от 5M (ADR-007).
+- Банкролл ~987 ставок под 1% Ruin.
 
 **Ответственная игра**
-- Лимиты проверяются ДО списания ставки и по худшему исходу раунда.
-- Ужесточение действует немедленно, ослабление — через 24 часа охлаждения.
-- Самоисключение необратимо: разрешено только удлинение срока.
-- Подробности — `docs/RESPONSIBLE-GAMING.md`.
+- Лимиты ДО списания по худшему исходу, ужесточение сразу, ослабление через 24ч охлаждения.
+- Самоисключение необратимо, только удлинение.
+- Reality check каждые 60 минут — модалка, счётчики из БД по календарным окнам UTC (T-027).
 
 **Юридическое**
-- Онлайн-казино без лицензии — уголовное преступление в большинстве юрисдикций.
-- Anjouan ≈ €40–70k год 1 · Curaçao ≈ €75–100k+ · Malta MGA €80–150k+
-- Лицензия — только 15–25% бюджета первого года.
+- Вариант A без покупок — низкий риск, но после High 5 Games $24.9M (2025) и иска WA vs Playtika/Aristocrat $225M+ (2026) граница чёткая: момент покупки фишек = конец варианта A (Q-006 🔴).
+- Apple — только юрлица, 18+. Google Play — ToS, Privacy, RG, дисклеймер.
+- Украина: ст.203-2 УК, закон 4116-20, PlayCity, ДСОМ.
+- ToS/Privacy готовы (docs/TERMS.md, docs/PRIVACY.md), age-gate 18+.
 
 **Экономика**
-- Маржа тонкая: аффилиаты 20–40% NGR, игры 12–16% GGR, PAM 4%, PSP 2–6%.
-- Условие жизнеспособности: **LTV ≥ 3 × CPA**.
-- Оборотный капитал на выплаты — обязателен, забывают чаще всего.
+- LTV ≥ 3×CPA, аффилиаты 20–40% NGR, rolling reserve 5–10% на 180 дней.
 
 ---
 
 ## Дисклеймер
 
-Материалы репозитория носят исследовательский и образовательный характер
-и **не являются юридической или финансовой консультацией**.
+Материалы носят исследовательский характер, не юр./фин. консультация. Запуск с реальными деньгами без лицензии противоправен. Азартные игры вызывают зависимость — обязательны лимиты, самоисключение, reality check.
 
-Азартные игры регулируются законом. Запуск продукта с реальными деньгами
-без соответствующей лицензии противоправен. Перед любым коммерческим
-запуском обязательна консультация с профильным юристом в целевой юрисдикции.
-
-Азартные игры вызывают зависимость. Любой продукт проекта обязан включать
-механики ответственной игры: лимиты, тайм-ауты, самоисключение, ссылки на помощь.

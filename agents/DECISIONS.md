@@ -3,7 +3,7 @@
 > ADR не удаляются. Устаревшие помечаются `заменено ADR-00Y`.
 > Формат описан в `AGENTS.md` §8.
 
-**Следующий свободный номер: ADR-011**
+**Следующий свободный номер: ADR-012**
 
 ---
 
@@ -531,4 +531,64 @@ T-029 требует доказать, что игровой движок не �
 ### Последствия
 **Плюсы:** деплой одной командой `docker compose up`, админка с грантами и блоком, история и верификатор в клиенте, защита от спама спинов, напоминание о времени.
 **Минусы:** rate limiter in-memory теряет состояние при рестарте и не работает в кластере; admin без RBAC (один токен); Chart.js CDN может не загрузиться офлайн — есть fallback alert.
+
+
+---
+
+## ADR-011: Security hardening, e2e, admin итерация, двойной выбор игры (ответ на T-038…T-048)
+
+- **Дата:** 2026-08-19
+- **Агент:** arena-2026-08-19-K / arena-2026-08-19-L
+- **Статус:** принято
+
+### Контекст
+После T-030…T-037 платформа работала, но без защиты от абуза, без e2e проверки, без поиска в админке и без выбора второй игры в клиенте.
+
+### Решение
+
+**Rate limiting (T-038):**
+- `rateLimit.ts` — in-memory Map playerId → timestamps, sliding window 1s, max 10 req/s, 429 + Retry-After.
+- Применён в `POST /rounds` до `settleRound`.
+
+**Reality check (T-039):**
+- Сервер после раунда проверяет `needsRealityCheck` из `getPlayerState`, строит сообщение `buildRealityCheck`, обновляет `sessions.reality_check_at`, добавляет `realityCheck` в ответ.
+- Клиент показывает модалку `#reality-modal`.
+
+**Блок игрока (T-040):**
+- `POST /admin/block` — меняет `players.status` (active/suspended/closed), audit_log, проверка X-Admin-Token.
+- `admin.html` — форма блока.
+
+**Деплой, админка, графики, история, верификатор, hardening (T-030…T-041, ADR-010) уже описаны.**
+
+**e2e (T-042):**
+- `scripts/e2e.js` — полный флоу: health, demo auth, seed current, set limit, 3 rounds, idempotent repeat, history, wallet, limits, rtp monitoring, admin stats/daily/grant/audit. Запускается `node scripts/e2e.js http://localhost:3000 $ADMIN_TOKEN`.
+
+**Админка поиск (T-043):**
+- `GET /admin/players?search=&status=` — ILIKE по username, фильтр по статусу.
+
+**Аудит экспорт (T-044):**
+- `GET /admin/audit?limit=&format=csv/json` — возвращает audit_log, CSV с экранированием.
+
+**Security hardening (T-045):**
+- `@fastify/helmet` — CSP выключен для простоты, остальные заголовки включены.
+- `@fastify/cors` — origin true, credentials true.
+- Rate limit для `/auth/demo` — 5 req/s per IP in-memory Map.
+- `ADMIN_TOKEN` обязателен для админки, 403 иначе.
+
+**README (T-046):**
+- Обновлён с новыми фичами: 2 игры, деплой docker-compose, админка с графиками и поиском, история и верификатор в клиенте, rate limiting, reality check, e2e.
+
+**Вторая игра в клиенте (T-047):**
+- `client/index.html` — селект `#game-select` с двумя играми.
+- `client/src/api.ts` — `game(code)` и `listGames()` и `playRound(bet, gameCode)`.
+- `main.ts` — загрузка списка игр, смена игры on change, перерисовка paytable.
+
+### Альтернативы
+- **Redis для rate limiting** — отложено, in-memory достаточно для одного инстанса.
+- **JWT RBAC вместо X-Admin-Token** — отложено для простоты демо.
+- **E2E на Playwright** — отложено: fetch-скрипт покрывает API, Playwright нужен для UI анимаций.
+
+### Последствия
+**Плюсы:** защита от спама спинов и брута demo входа, e2e покрывает регресс, админка удобнее, клиент поддерживает обе игры.
+**Минусы:** rate limiter in-memory, нет кластерной синхронизации; e2e не проверяет UI анимации.
 

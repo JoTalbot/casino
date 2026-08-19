@@ -27,6 +27,7 @@ const WIN_DISPLAY_MS = 1400;
 const ui = {
   balance: document.getElementById("balance") as HTMLElement,
   bet: document.getElementById("bet") as HTMLSelectElement,
+  gameSelect: document.getElementById("game-select") as HTMLSelectElement,
   spin: document.getElementById("spin") as HTMLButtonElement,
   turbo: document.getElementById("turbo") as HTMLInputElement,
   win: document.getElementById("win") as HTMLElement,
@@ -115,8 +116,24 @@ async function main(): Promise<void> {
   }
 
   let game: GameInfo;
+  let selectedGameCode = (ui.gameSelect?.value as string) || "crown-of-fortune";
   try {
-    game = await api.game();
+    // Попробуем загрузить список игр, чтобы заполнить селект второй игрой
+    try {
+      const games = await api.listGames();
+      if (ui.gameSelect) {
+        ui.gameSelect.innerHTML = "";
+        for (const g of games) {
+          const opt = document.createElement("option");
+          opt.value = g.code;
+          opt.textContent = g.name;
+          if (g.code === selectedGameCode) opt.selected = true;
+          ui.gameSelect.appendChild(opt);
+        }
+      }
+    } catch {}
+    selectedGameCode = (ui.gameSelect?.value as string) || "crown-of-fortune";
+    game = await api.game(selectedGameCode);
   } catch (error) {
     setStatus(`Сервер недоступен: ${(error as Error).message}`);
     log(`Не удалось получить описание игры: ${(error as Error).message}`, "error");
@@ -126,6 +143,57 @@ async function main(): Promise<void> {
   ui.gameName.textContent = `${game.name} v${game.version}`;
   ui.configHash.textContent = game.configHash;
   ui.configHash.title = "SHA-256 математики";
+
+  if (ui.gameSelect) {
+    ui.gameSelect.addEventListener("change", () => {
+      void (async () => {
+        selectedGameCode = ui.gameSelect.value;
+        try {
+          const newGame = await api.game(selectedGameCode);
+          game = newGame;
+          ui.gameName.textContent = `${game.name} v${game.version}`;
+          ui.configHash.textContent = game.configHash;
+          log(`Игра изменена на ${game.name}`, "info");
+          // Перерисовать таблицу выплат
+          const paytableHost = document.getElementById("paytable") as HTMLElement;
+          if (paytableHost) {
+            paytableHost.innerHTML = "";
+            for (const symbol of game.symbols) {
+              const pays = game.paytable[symbol];
+              const theme = SYMBOL_THEMES[symbol];
+              const row = document.createElement("div");
+              row.className = "pay-row";
+              const chip = document.createElement("span");
+              chip.className = "pay-chip";
+              chip.textContent = theme?.glyph ?? symbol;
+              if (theme) {
+                chip.style.background = `#${theme.fill.toString(16).padStart(6, "0")}`;
+                chip.style.color = `#${theme.accent.toString(16).padStart(6, "0")}`;
+                chip.style.borderColor = `#${theme.accent.toString(16).padStart(6, "0")}`;
+              }
+              row.appendChild(chip);
+              const values = document.createElement("span");
+              values.className = "pay-values";
+              if (symbol === game.scatter) {
+                const parts = Object.entries(game.scatterPays).map(([n, mult]) => `${n}: ${mult}× ставки`);
+                values.textContent = parts.join(" · ") || "—";
+              } else if (symbol === game.wild) {
+                values.textContent = "замещает любой символ, кроме scatter";
+              } else if (pays) {
+                values.textContent = Object.entries(pays).map(([count, pay]) => `${count}: ${pay}`).join(" · ");
+              } else {
+                values.textContent = "—";
+              }
+              row.appendChild(values);
+              paytableHost.appendChild(row);
+            }
+          }
+        } catch (e) {
+          log(`Не удалось сменить игру: ${(e as Error).message}`, "error");
+        }
+      })();
+    });
+  }
 
   const app = new Application();
   await app.init({
@@ -223,7 +291,7 @@ async function main(): Promise<void> {
     try {
       const betPerLine = Number(ui.bet.value);
       reelSet.setSpeed(ui.turbo.checked ? "turbo" : "normal");
-      const round = await api.playRound(betPerLine);
+      const round = await api.playRound(betPerLine, selectedGameCode);
       ui.nonce.textContent = String(round.nonce + 1);
       setStatus(`Раунд #${round.nonce}: ставка ${fmt(round.totalBet)}`);
       log(`Раунд #${round.nonce}: ставка ${fmt(round.totalBet)}, спинов ${round.spins.length}`);
