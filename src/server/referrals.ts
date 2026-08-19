@@ -1,4 +1,4 @@
-/** Рефералка (T-059) */
+/** Рефералка (T-059, T-070) */
 import type { Database } from "./db.js";
 
 const REFERRAL_BONUS = 5000n;
@@ -7,17 +7,14 @@ const REFEREE_BONUS = 1000n;
 export async function createReferral(database: Database, referrerId: string, refereeId: string): Promise<boolean> {
   if (referrerId === refereeId) return false;
   return database.transaction(async (client) => {
-    // Проверяем что реферала ещё никто не приглашал
     const existing = await client.query(`SELECT id FROM referrals WHERE referee_id = $1`, [refereeId]);
     if (existing.rows[0]) return false;
 
-    // Создаём запись рефералки
     await client.query(
       `INSERT INTO referrals (referrer_id, referee_id, bonus_amount) VALUES ($1,$2,$3) ON CONFLICT (referee_id) DO NOTHING`,
       [referrerId, refereeId, REFERRAL_BONUS.toString()],
     );
 
-    // Начисляем бонусы обоим
     for (const [pid, amount] of [[referrerId, REFERRAL_BONUS], [refereeId, REFEREE_BONUS]] as const) {
       const walletRes = await client.query<{ id: string; balance: string }>(
         `SELECT id, balance FROM wallets WHERE player_id = $1 AND currency_code = 'CHIP' FOR UPDATE`,
@@ -56,4 +53,17 @@ export async function getReferrals(database: Database, playerId: string) {
     [playerId],
   );
   return res.rows;
+}
+
+export async function getReferralProgress(database: Database, playerId: string) {
+  const cntRes = await database.query<{ count: string }>(`SELECT COUNT(*) as count FROM referrals WHERE referrer_id = $1`, [playerId]);
+  const count = Number(cntRes.rows[0]?.count ?? 0);
+  const target = 5;
+  return {
+    count,
+    target,
+    progress: Math.min(count / target, 1),
+    remaining: Math.max(target - count, 0),
+    hasMaster: count >= target,
+  };
 }

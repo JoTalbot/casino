@@ -169,6 +169,17 @@ export function registerAdminRoutes(app: FastifyInstance, opts: AdminOptions): v
     return { ok: true, playerId: body.playerId, status: newStatus };
   });
 
+  app.delete("/api/v1/admin/chat/:id", async (request, reply) => {
+    if (!checkAdmin(request as any)) return reply.status(403).send({ code: "FORBIDDEN" });
+    const { id } = request.params as { id: string };
+    await opts.database.query(`DELETE FROM chat_messages WHERE id = $1`, [id]);
+    await opts.database.query(
+      `INSERT INTO audit_log (actor_type, actor_id, event_type, subject_type, subject_id, payload) VALUES ('admin','system','chat.delete','chat_message',$1,$2)`,
+      [id, JSON.stringify({ id })],
+    );
+    return { ok: true, id };
+  });
+
   // T-044: экспорт аудита CSV/JSON
   app.get("/api/v1/admin/audit", async (request, reply) => {
     if (!checkAdmin(request as any)) return reply.status(403).send({ code: "FORBIDDEN" });

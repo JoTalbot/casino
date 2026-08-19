@@ -3,13 +3,13 @@
 Статусы: `todo` → `in-progress` → `blocked` / `review` → `done` / `cancelled`
 Приоритеты: `P0` критично · `P1` важно · `P2` желательно · `P3` потом
 
-**ID не переиспользуются.** Следующий свободный ID: **T-069**
+**ID не переиспользуются.** Следующий свободный ID: **T-074**
 
 ---
 
 ## Активные и запланированные
 
-**Весь бэклог T-001…T-068 закрыт.** Новых активных задач нет.
+**Весь бэклог T-001…T-073 закрыт.** Новых активных задач нет.
 
 ---
 
@@ -85,6 +85,11 @@
 | T-066 | Tournament prize cron — scripts/distribute_prizes.js | P2 | done | arena-2026-08-19-O | 2026-08-19 |
 | T-067 | Referral landing — client/public/ref.html | P2 | done | arena-2026-08-19-O | 2026-08-19 |
 | T-068 | ADR-013: PWA, email, tournaments, referrals и мобильная | P2 | done | arena-2026-08-19-O | 2026-08-19 |
+| T-069 | Tournament auto prize — cron сервис в docker-compose для distribute_prizes.js | P2 | done | arena-2026-08-19-P | 2026-08-19 |
+| T-070 | Referral progress — API /referrals/progress до 5 | P2 | done | arena-2026-08-19-P | 2026-08-19 |
+| T-071 | Chat moderation — фильтр мата, admin delete | P2 | done | arena-2026-08-19-P | 2026-08-19 |
+| T-072 | PWA offline — кэш API /games и /health в sw.js | P2 | done | arena-2026-08-19-P | 2026-08-19 |
+| T-073 | Backup restore — scripts/restore.sh | P2 | done | arena-2026-08-19-P | 2026-08-19 |
 
 ---
 

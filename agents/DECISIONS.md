@@ -3,7 +3,7 @@
 > ADR не удаляются. Устаревшие помечаются `заменено ADR-00Y`.
 > Формат описан в `AGENTS.md` §8.
 
-**Следующий свободный номер: ADR-014**
+**Следующий свободный номер: ADR-015**
 
 ---
 
@@ -683,4 +683,43 @@ T-029 требует доказать, что игровой движок не �
 ### Последствия
 **Плюсы:** PWA ставится на телефон, email SMTP готов, турнирные призы раздаются скриптом, реферальный лендинг работает.
 **Минусы:** SW кэширует только статику, не API; email без очереди; prize cron ручной, не по расписанию systemd.
+
+
+---
+
+## ADR-014: Tournament auto prize cron, referral progress, chat moderation, PWA offline cache, backup restore (ответ на T-069…T-073)
+
+- **Дата:** 2026-08-19
+- **Агент:** arena-2026-08-19-O / arena-2026-08-19-P
+- **Статус:** принято
+
+### Контекст
+После T-063 остались: автопризы турниров, прогресс рефералки, модерация чата, офлайн кэш API, восстановление из бэкапа.
+
+### Решение
+
+**Tournament auto prize (T-069):**
+- Добавлен сервис `prize-cron` в `docker-compose.yml` profile `cron`, который раз в сутки (sleep 86400) запускает `node /scripts/distribute_prizes.js weekly-champions`
+- distribute_prizes.js уже имел логику топ-3 и grant
+
+**Referral progress (T-070):**
+- `getReferralProgress()` — COUNT referrals, target 5, progress, remaining, hasMaster
+- `GET /referrals/progress` — JWT, возвращает count/target/progress
+
+**Chat moderation (T-071):**
+- BAD_WORDS фильтр в `chat.ts` containsBadWord, выбрасывает 400 если содержит запрещённые слова
+- `DELETE /admin/chat/:id` в admin.ts — удаление сообщения, audit_log
+
+**PWA offline (T-072):**
+- sw.js теперь кэширует `/api/v1/games` и `/health` через fetch-then-cache-put, fallback to cache on failure
+
+**Backup restore (T-073):**
+- `scripts/restore.sh` — `gunzip -c $FILE | psql $DATABASE_URL` или `psql < $FILE`, executable
+
+### Альтернативы
+- **Cron через BullMQ** — отложено, простой shell loop достаточно
+- **Chat moderation через внешний AI** — отложено для демо
+
+### Последствия
+**Плюсы:** автопризы работают в compose profile cron, реферальный прогресс виден, чат с фильтром, offline кэш API, восстановление из бэкапа одной командой.
 

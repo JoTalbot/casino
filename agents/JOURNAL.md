@@ -1291,3 +1291,27 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 4. T-072: PWA offline — кэшировать API /games и /health
 5. T-073: backup restore — scripts/restore.sh
 
+
+### Сделано (смена P, продолжение)
+
+**T-069 tournament auto prize:**
+- docker-compose.yml: новый сервис prize-cron profile cron, image node:20-alpine, loop while true; node distribute_prizes.js weekly-champions; sleep 86400
+
+**T-070 referral progress:**
+- referrals.ts: getReferralProgress() COUNT, target 5, progress, remaining, hasMaster
+- API GET /referrals/progress
+
+**T-071 chat moderation:**
+- chat.ts: BAD_WORDS фильтр, containsBadWord, throw 400 если мат
+- admin.ts: DELETE /admin/chat/:id + audit_log
+
+**T-072 PWA offline:**
+- sw.js: кэшировать /api/v1/games и /health через fetch-then-cache-put, fallback to cache
+
+**T-073 backup restore:**
+- scripts/restore.sh — gunzip -c | psql или psql < file, executable
+
+**Проверки:**
+- typecheck ok, npm test 117 pass, 3 skip, check_protocol PASS (до закрытия)
+
+**SHIFT END** 22:30 UTC — смена P закрыта, T-069…T-073 done

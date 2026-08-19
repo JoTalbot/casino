@@ -1,10 +1,17 @@
-/** Простой чат (T-061) */
+/** Простой чат (T-061, T-071) */
 import type { Database } from "./db.js";
 
 const MAX_LEN = 500;
 const RATE_LIMIT = 5; // сообщений в минуту
 
 const recent = new Map<string, number[]>();
+
+const BAD_WORDS = ["spam", "scam", "хуй", "пизда"]; // минимальный фильтр для демо
+
+function containsBadWord(text: string): boolean {
+  const low = text.toLowerCase();
+  return BAD_WORDS.some((w) => low.includes(w));
+}
 
 export function canChat(playerId: string): { allowed: boolean; retryAfterMs?: number } {
   const now = Date.now();
@@ -23,6 +30,8 @@ export async function postMessage(database: Database, playerId: string, username
   if (!message || message.length > MAX_LEN) throw new Error("Сообщение 1…500 символов");
   const trimmed = message.trim();
   if (!trimmed) throw new Error("Пустое сообщение");
+  if (containsBadWord(trimmed)) throw new Error("Сообщение содержит запрещённые слова");
+
   const res = await database.query<{ id: string; created_at: string }>(
     `INSERT INTO chat_messages (player_id, username, message) VALUES ($1,$2,$3) RETURNING id, created_at`,
     [playerId, username, trimmed],
@@ -39,5 +48,10 @@ export async function listMessages(database: Database, limit = 50) {
     message: string;
     created_at: string;
   }>(`SELECT id, player_id, username, message, created_at FROM chat_messages ORDER BY created_at DESC LIMIT $1`, [lim]);
-  return res.rows.reverse(); // от старых к новым
+  return res.rows.reverse();
 }
+
+export async function deleteMessage(database: Database, messageId: string) {
+  await database.query(`DELETE FROM chat_messages WHERE id = $1`, [messageId]);
+}
+

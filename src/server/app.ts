@@ -34,9 +34,9 @@ import { claimDailyBonus } from "./bonus.js";
 import { getLeaderboard } from "./leaderboard.js";
 import { exportPlayerData } from "./gdpr.js";
 import { listTournaments, getTournamentLeaderboard, updateTournamentScores } from "./tournaments.js";
-import { createReferral, getReferrals } from "./referrals.js";
+import { createReferral, getReferrals, getReferralProgress } from "./referrals.js";
 import { checkAndUnlockAchievements, listAchievements } from "./achievements.js";
-import { canChat, postMessage, listMessages } from "./chat.js";
+import { canChat, postMessage, listMessages, deleteMessage } from "./chat.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -888,6 +888,19 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     const playerId = (request.user as { sub: string }).sub;
     const list = await getReferrals(options.database, playerId);
     return { referrals: list, inviteCode: playerId, inviteLink: `/api/v1/referrals?code=${playerId}` };
+  });
+
+  // T-070 referral progress
+  app.get("/api/v1/referrals/progress", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const playerId = (request.user as { sub: string }).sub;
+    const prog = await getReferralProgress(options.database, playerId);
+    return prog;
   });
 
   // --- Achievements (T-060) ---
