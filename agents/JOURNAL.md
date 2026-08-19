@@ -1246,3 +1246,27 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 4. T-067: referral landing — client/public/ref.html
 5. T-068: ADR-013 — PWA, email, tournaments, referrals
 
+
+### Сделано (смена O, продолжение — делаю всё)
+
+**T-064 PWA:**
+- manifest.json (name, short_name, theme #ffd257, icons 192/512) + sw.js CACHE crown-v1 с fallback
+- index.html link manifest + meta theme-color, main.ts register service worker
+
+**T-065 email SMTP:**
+- emailSmtp.ts nodemailer transporter из env SMTP_HOST/PORT/USER/PASS, fallback to email mock
+- @types/nodemailer добавлен
+
+**T-066 tournament prize cron:**
+- scripts/distribute_prizes.js — pg Pool, BEGIN, SELECT tournament FOR UPDATE, топ-3, grant prize_pool/3, status finished
+
+**T-067 referral landing:**
+- ref.html с кодом из ?ref=, кнопка сохраняет referral_code в localStorage и redirect. main.ts читает ?ref= и при старте POST /referrals
+
+**T-068 ADR-013:**
+- PWA, email, prize cron, referral landing — решение, альтернативы, последствия
+
+**Проверки:**
+- typecheck ok (с nodemailer types), npm test 117 pass, 3 skip
+
+**SHIFT END** 21:30 UTC — смена O закрыта, T-064…T-068 done
