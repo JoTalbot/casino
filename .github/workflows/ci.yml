@@ -48,6 +48,36 @@ jobs:
       - name: Тесты движка
         run: npm test
 
+  server:
+    name: Сервер и миграции (PostgreSQL)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: casino
+          POSTGRES_PASSWORD: casino_test_only
+          POSTGRES_DB: casino_test
+        options: >-
+          --health-cmd "pg_isready -U casino -d casino_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      TEST_DATABASE_URL: postgresql://casino:casino_test_only@localhost:5432/casino_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Установка зависимостей
+        run: npm ci
+      - name: Миграции и интеграционные тесты
+        run: npm test
+
   client:
     name: Клиент (PixiJS)
     runs-on: ubuntu-latest
