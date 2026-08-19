@@ -7,7 +7,7 @@
 body{font-family:system-ui,sans-serif;background:#070910;color:#dbe4f5;padding:20px;max-width:1100px;margin:0 auto}
 h1{font-size:20px}
 .card{background:#111725;border:1px solid #232c40;border-radius:10px;padding:14px;margin:12px 0}
-input,button{padding:8px 12px;border-radius:6px;border:1px solid #2a3346;background:#0d1220;color:#dbe4f5}
+input,button,select{padding:8px 12px;border-radius:6px;border:1px solid #2a3346;background:#0d1220;color:#dbe4f5}
 button{cursor:pointer}
 button.primary{background:linear-gradient(180deg,#ffd257,#e0a92c);color:#241c05;border:none;font-weight:700}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -34,7 +34,11 @@ th,td{border-bottom:1px solid #232c40;padding:6px;text-align:left}
 
 <div class="card">
 <h2>Игроки (последние 50)</h2>
+<div style="display:flex;gap:8px;margin-bottom:8px">
+<input id="search-player" placeholder="поиск по username">
+<select id="filter-status"><option value="">все статусы</option><option value="active">active</option><option value="suspended">suspended</option><option value="closed">closed</option></select>
 <button id="load-players">Загрузить</button>
+</div>
 <table id="players-table"><thead><tr><th>ID</th><th>Username</th><th>Status</th><th>Balance</th><th>Created</th></tr></thead><tbody></tbody></table>
 </div>
 
@@ -78,6 +82,19 @@ th,td{border-bottom:1px solid #232c40;padding:6px;text-align:left}
 <div style="margin-top:12px"><canvas id="chart-rounds"></canvas></div>
 </div>
 
+<div class="card">
+<h2>Чат — модерация</h2>
+<button id="load-chat">Загрузить чат 50</button>
+<div id="admin-chat-list" style="max-height:300px;overflow-y:auto;margin-top:8px"></div>
+</div>
+
+<div class="card">
+<h2>Аудит лог</h2>
+<button id="load-audit">Загрузить 20</button>
+<button id="load-audit-csv">Скачать CSV</button>
+<pre id="audit" style="max-height:200px;overflow:auto"></pre>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
@@ -92,7 +109,12 @@ async function fetchJson(path, init={}){ const res = await fetch(path, {...init,
 $('load-stats').onclick = async () => { try{ $('stats').textContent=JSON.stringify(await fetchJson('/api/v1/admin/stats'), null, 2);}catch(e){$('stats').textContent='Ошибка: '+e.message} };
 $('load-players').onclick = async () => {
   try{
-    const data = await fetchJson('/api/v1/admin/players?limit=50');
+    const search = $('search-player').value.trim();
+    const status = $('filter-status').value;
+    let url = '/api/v1/admin/players?limit=50';
+    if(search) url += `&search=${encodeURIComponent(search)}`;
+    if(status) url += `&status=${encodeURIComponent(status)}`;
+    const data = await fetchJson(url);
     const tbody = $('players-table').querySelector('tbody'); tbody.innerHTML='';
     for(const p of data.players){ const tr=document.createElement('tr'); tr.innerHTML=`<td style="font-family:monospace;font-size:11px">${p.id.slice(0,8)}…</td><td>${p.username}</td><td>${p.status}</td><td>${p.balance??'—'}</td><td>${new Date(p.created_at).toLocaleString()}</td>`; tbody.appendChild(tr); }
   }catch(e){ alert(e.message) }
@@ -126,35 +148,43 @@ $('load-daily').onclick = async () => {
     const wins = daily.map(d => Number(d.total_win));
     const rounds = daily.map(d => Number(d.rounds));
     const rtp = daily.map(d => d.rtp ? (Number(d.rtp)*100) : 0);
-
     const ctxBet = document.getElementById('chart-bet');
     const ctxRtp = document.getElementById('chart-rtp');
     const ctxRounds = document.getElementById('chart-rounds');
-
-    if(chartBet) chartBet.destroy();
-    if(chartRtp) chartRtp.destroy();
-    if(chartRounds) chartRounds.destroy();
-
+    if(chartBet) chartBet.destroy(); if(chartRtp) chartRtp.destroy(); if(chartRounds) chartRounds.destroy();
     if(typeof Chart !== 'undefined'){
-      chartBet = new Chart(ctxBet, {
-        type: 'bar',
-        data: { labels, datasets: [{ label: 'Ставок CHIP', data: bets, backgroundColor: '#ffd257' }, { label: 'Выигрышей CHIP', data: wins, backgroundColor: '#4dffa8' }] },
-        options: { responsive: true, plugins: { title: { display: true, text: 'Ставки vs Выигрыши по дням' } } }
-      });
-      chartRtp = new Chart(ctxRtp, {
-        type: 'line',
-        data: { labels, datasets: [{ label: 'RTP %', data: rtp, borderColor: '#9d8cf0', tension: 0.2 }] },
-        options: { responsive: true, plugins: { title: { display: true, text: 'RTP по дням %' } }, scales: { y: { min: 0, max: 150 } } }
-      });
-      chartRounds = new Chart(ctxRounds, {
-        type: 'line',
-        data: { labels, datasets: [{ label: 'Раундов', data: rounds, borderColor: '#ffd257', fill: true }] },
-        options: { responsive: true, plugins: { title: { display: true, text: 'Количество раундов по дням' } } }
-      });
-    } else {
-      alert('Chart.js не загрузился (оффлайн). Данные: '+JSON.stringify(daily, null, 2));
-    }
+      chartBet = new Chart(ctxBet, { type: 'bar', data: { labels, datasets: [{ label: 'Ставок CHIP', data: bets, backgroundColor: '#ffd257' }, { label: 'Выигрышей CHIP', data: wins, backgroundColor: '#4dffa8' }] }, options: { responsive: true, plugins: { title: { display: true, text: 'Ставки vs Выигрыши по дням' } } } });
+      chartRtp = new Chart(ctxRtp, { type: 'line', data: { labels, datasets: [{ label: 'RTP %', data: rtp, borderColor: '#9d8cf0', tension: 0.2 }] }, options: { responsive: true, plugins: { title: { display: true, text: 'RTP по дням %' } }, scales: { y: { min: 0, max: 150 } } } });
+      chartRounds = new Chart(ctxRounds, { type: 'line', data: { labels, datasets: [{ label: 'Раундов', data: rounds, borderColor: '#ffd257', fill: true }] }, options: { responsive: true, plugins: { title: { display: true, text: 'Количество раундов по дням' } } } });
+    } else { alert('Chart.js не загрузился. Данные: '+JSON.stringify(daily, null, 2)); }
   }catch(e){ alert('Ошибка графиков: '+e.message) }
+};
+
+$('load-chat').onclick = async () => {
+  try {
+    const data = await fetchJson('/api/v1/chat?limit=50');
+    const list = $('admin-chat-list'); list.innerHTML = '';
+    for (const m of data.messages) {
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #161d2c;font-size:12px';
+      div.innerHTML = `<span><b>${m.username}:</b> ${m.message} <span style="color:#7f8da8">${new Date(m.created_at).toLocaleTimeString()}</span></span><button data-id="${m.id}" style="font-size:10px;padding:2px 6px">Удалить</button>`;
+      div.querySelector('button').onclick = async (e) => {
+        const id = e.target.getAttribute('data-id');
+        if (!confirm('Удалить сообщение?')) return;
+        try { await fetchJson(`/api/v1/admin/chat/${id}`, { method: 'DELETE' }); div.remove(); } catch (err) { alert(err.message); }
+      };
+      list.appendChild(div);
+    }
+  } catch (e) { alert(e.message); }
+};
+
+$('load-audit').onclick = async () => {
+  try { $('audit').textContent = JSON.stringify(await fetchJson('/api/v1/admin/audit?limit=20'), null, 2); } catch(e){ $('audit').textContent = 'Ошибка: '+e.message }
+};
+$('load-audit-csv').onclick = async () => {
+  const token = getToken();
+  if(!token){ alert('Нужен токен'); return; }
+  window.open(`/api/v1/admin/audit?limit=100&format=csv`, '_blank');
 };
 </script>
 </body>

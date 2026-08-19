@@ -72,3 +72,20 @@ services:
 
 volumes:
   pgdata:
+
+  # Бэкап раз в сутки (T-077)
+  backup-cron:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-casino_secret_change_me}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-casino}:${POSTGRES_PASSWORD:-casino_secret_change_me}@db:5432/${POSTGRES_DB:-casino}
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro
+    command: >
+      sh -c "while true; do /usr/local/bin/backup.sh || true; sleep 86400; done"
+    profiles: ["cron", "backup"]

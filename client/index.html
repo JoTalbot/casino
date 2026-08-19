@@ -329,6 +329,10 @@
         <div class="card" id="referrals-card">
           <h2>Рефералка</h2>
           <div class="kv"><dt>Твоя ссылка</dt><dd id="ref-link">—</dd></div>
+          <div style="background:#0d1220;border:1px solid #232c40;border-radius:6px;height:10px;margin:8px 0;overflow:hidden">
+            <div id="ref-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#ffd257,#e0a92c);transition:width .4s"></div>
+          </div>
+          <div id="ref-progress-text" class="note">0/5 до мастера</div>
           <div class="seed-row"><input type="text" id="ref-code" placeholder="вставь код друга"><button id="ref-use">Использовать код</button></div>
           <div id="ref-list" style="margin-top:8px; max-height:120px; overflow-y:auto"></div>
           <p class="note">Бонус 5000 CHIP рефереру + 1000 рефералу.</p>

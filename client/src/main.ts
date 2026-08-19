@@ -580,7 +580,15 @@ async function main(): Promise<void> {
   }
   ui.bonusDaily.addEventListener("click", () => void claimBonus());
 
-  // Tournaments & Leaderboard (T-050, T-055)
+  // Tournaments & Leaderboard (T-050, T-055, T-074 timer)
+  function formatCountdown(endsAt: string): string {
+    const diff = new Date(endsAt).getTime() - Date.now();
+    if (diff <= 0) return "завершён";
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return `${d}д ${h}ч ${m}м`;
+  }
   async function refreshTournaments(): Promise<void> {
     try {
       const data = await fetchWithAuth("/api/v1/tournaments") as { tournaments: { code: string; title: string; status: string; prize_pool: string; ends_at: string }[] };
@@ -588,7 +596,7 @@ async function main(): Promise<void> {
       for (const t of data.tournaments || []) {
         const div = document.createElement("div");
         div.className = "history-item";
-        div.innerHTML = `<span>${t.title} <span class="tag">${t.status}</span> приз ${fmt(Number(t.prize_pool))} CHIP</span><span style="color:var(--muted)">${new Date(t.ends_at).toLocaleDateString()}</span>`;
+        div.innerHTML = `<span>${t.title} <span class="tag">${t.status}</span> приз ${fmt(Number(t.prize_pool))} CHIP <span class="tag">${formatCountdown(t.ends_at)}</span></span><span style="color:var(--muted)">${new Date(t.ends_at).toLocaleDateString()}</span>`;
         div.addEventListener("click", () => void refreshLeaderboard(t.code));
         ui.tournamentsList.appendChild(div);
       }
@@ -613,7 +621,7 @@ async function main(): Promise<void> {
   ui.tournamentsRefresh.addEventListener("click", () => void refreshTournaments());
   ui.leaderboardRefresh.addEventListener("click", () => void refreshLeaderboard());
 
-  // Referrals (T-059)
+  // Referrals (T-059) + Progress (T-075)
   async function refreshReferrals(): Promise<void> {
     try {
       const data = await fetchWithAuth("/api/v1/referrals") as { referrals: { referee_id: string; username: string; bonus_amount: string; created_at: string }[]; inviteCode: string };
@@ -626,6 +634,15 @@ async function main(): Promise<void> {
         ui.refList.appendChild(div);
       }
       if ((data.referrals || []).length === 0) ui.refList.textContent = "пока никого не пригласил";
+
+      // Progress T-075
+      try {
+        const prog = await fetchWithAuth("/api/v1/referrals/progress") as { count: number; target: number; progress: number; remaining: number };
+        const bar = document.getElementById("ref-progress-bar") as HTMLElement | null;
+        const txt = document.getElementById("ref-progress-text") as HTMLElement | null;
+        if (bar) bar.style.width = `${Math.round(prog.progress * 100)}%`;
+        if (txt) txt.textContent = `${prog.count}/${prog.target} до мастера рефералов, осталось ${prog.remaining}`;
+      } catch {}
     } catch (e) { ui.refList.textContent = `ошибка: ${(e as Error).message}`; }
   }
   ui.refUse.addEventListener("click", () => {
@@ -699,4 +716,3 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(()=>{});
   });
 }
-
