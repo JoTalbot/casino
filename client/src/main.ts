@@ -63,6 +63,14 @@ const ui = {
   leaderboardRefresh: document.getElementById("leaderboard-refresh") as HTMLButtonElement,
   tournamentsList: document.getElementById("tournaments-list") as HTMLElement,
   leaderboardList: document.getElementById("leaderboard-list") as HTMLElement,
+  refLink: document.getElementById("ref-link") as HTMLElement,
+  refCode: document.getElementById("ref-code") as HTMLInputElement,
+  refUse: document.getElementById("ref-use") as HTMLButtonElement,
+  refList: document.getElementById("ref-list") as HTMLElement,
+  achList: document.getElementById("ach-list") as HTMLElement,
+  chatList: document.getElementById("chat-list") as HTMLElement,
+  chatMsg: document.getElementById("chat-msg") as HTMLInputElement,
+  chatSend: document.getElementById("chat-send") as HTMLButtonElement,
   roundModal: document.getElementById("round-modal") as HTMLElement,
   modalRoundId: document.getElementById("modal-round-id") as HTMLElement,
   modalContent: document.getElementById("modal-content") as HTMLElement,
@@ -578,9 +586,83 @@ async function main(): Promise<void> {
   ui.tournamentsRefresh.addEventListener("click", () => void refreshTournaments());
   ui.leaderboardRefresh.addEventListener("click", () => void refreshLeaderboard());
 
+  // Referrals (T-059)
+  async function refreshReferrals(): Promise<void> {
+    try {
+      const data = await fetchWithAuth("/api/v1/referrals") as { referrals: { referee_id: string; username: string; bonus_amount: string; created_at: string }[]; inviteCode: string };
+      ui.refLink.textContent = `${window.location.origin}?ref=${data.inviteCode}`;
+      ui.refList.innerHTML = "";
+      for (const r of data.referrals || []) {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `<span>${r.username} +${r.bonus_amount} CHIP</span><span>${new Date(r.created_at).toLocaleDateString()}</span>`;
+        ui.refList.appendChild(div);
+      }
+      if ((data.referrals || []).length === 0) ui.refList.textContent = "пока никого не пригласил";
+    } catch (e) { ui.refList.textContent = `ошибка: ${(e as Error).message}`; }
+  }
+  ui.refUse.addEventListener("click", () => {
+    void (async () => {
+      const code = ui.refCode.value.trim();
+      if (!code) { log("Вставь код", "error"); return; }
+      try {
+        const res = await fetchWithAuth("/api/v1/referrals", { method: "POST", body: JSON.stringify({ referralCode: code }) });
+        log(`Рефералка активирована: ${JSON.stringify(res)}`, "win");
+        await refreshReferrals();
+      } catch (e) { log(`Рефералка ошибка: ${(e as Error).message}`, "error"); }
+    })();
+  });
+
+  // Achievements (T-060)
+  async function refreshAchievements(): Promise<void> {
+    try {
+      const data = await fetchWithAuth("/api/v1/achievements") as { achievements: { code: string; title: string; description: string; reward: string; unlocked_at: string | null }[] };
+      ui.achList.innerHTML = "";
+      for (const a of data.achievements || []) {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        const unlocked = a.unlocked_at ? "✅" : "⬜";
+        div.innerHTML = `<span>${unlocked} ${a.title} — ${a.description} <span class="tag">${a.reward} CHIP</span></span><span style="color:var(--muted)">${a.unlocked_at ? new Date(a.unlocked_at).toLocaleDateString() : ""}</span>`;
+        ui.achList.appendChild(div);
+      }
+    } catch (e) { ui.achList.textContent = `ошибка: ${(e as Error).message}`; }
+  }
+
+  // Chat (T-061)
+  async function refreshChat(): Promise<void> {
+    try {
+      const data = await fetchWithAuth("/api/v1/chat?limit=30") as { messages: { username: string; message: string; created_at: string }[] };
+      ui.chatList.innerHTML = "";
+      for (const m of data.messages || []) {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `<span><b>${m.username}:</b> ${m.message}</span><span style="color:var(--muted)">${new Date(m.created_at).toLocaleTimeString()}</span>`;
+        ui.chatList.appendChild(div);
+      }
+      ui.chatList.scrollTop = ui.chatList.scrollHeight;
+    } catch (e) { ui.chatList.textContent = `ошибка: ${(e as Error).message}`; }
+  }
+  ui.chatSend.addEventListener("click", () => {
+    void (async () => {
+      const msg = ui.chatMsg.value.trim();
+      if (!msg) return;
+      try {
+        await fetchWithAuth("/api/v1/chat", { method: "POST", body: JSON.stringify({ message: msg }) });
+        ui.chatMsg.value = "";
+        await refreshChat();
+      } catch (e) { log(`Чат ошибка: ${(e as Error).message}`, "error"); }
+    })();
+  });
+  ui.chatMsg.addEventListener("keydown", (e) => { if (e.key === "Enter") ui.chatSend.click(); });
+
   await refreshHistory().catch(() => {});
   await refreshTournaments().catch(() => {});
   await refreshLeaderboard().catch(() => {});
+  await refreshReferrals().catch(() => {});
+  await refreshAchievements().catch(() => {});
+  await refreshChat().catch(() => {});
+  // автообновление чата каждые 10 сек
+  setInterval(() => void refreshChat().catch(() => {}), 10000);
 }
 
 void main();
