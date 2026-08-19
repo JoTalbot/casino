@@ -34,6 +34,9 @@ import { claimDailyBonus } from "./bonus.js";
 import { getLeaderboard } from "./leaderboard.js";
 import { exportPlayerData } from "./gdpr.js";
 import { listTournaments, getTournamentLeaderboard, updateTournamentScores } from "./tournaments.js";
+import { createReferral, getReferrals } from "./referrals.js";
+import { checkAndUnlockAchievements, listAchievements } from "./achievements.js";
+import { canChat, postMessage, listMessages } from "./chat.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -423,6 +426,17 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       // Турниры — обновляем счётчики (best effort, не блокируем ответ)
       try {
         await updateTournamentScores(options.database as Database, playerId, Number(settled.record.totalWin), Number(settled.record.totalBet));
+      } catch {
+        // ignore
+      }
+
+      // Ачивки (T-060) — best effort
+      try {
+        const multiple = settled.record.totalBet > 0 ? settled.record.totalWin / settled.record.totalBet : 0;
+        if (settled.record.totalWin > 0) {
+          await checkAndUnlockAchievements(options.database as Database, playerId, { type: "win", totalWin: Number(settled.record.totalWin), totalBet: Number(settled.record.totalBet), multiple });
+        }
+        await checkAndUnlockAchievements(options.database as Database, playerId, { type: "spin" });
       } catch {
         // ignore
       }
@@ -825,6 +839,101 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     } catch (e) {
       request.log.error(e);
       return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  // --- Referrals (T-059) ---
+  app.post("/api/v1/referrals", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const referrerId = (request.user as { sub: string }).sub;
+    const { refereeId, referralCode } = request.body as { refereeId?: string; referralCode?: string };
+    // Для простоты: если передан referralCode, считаем что это playerId реферера, а реферал — текущий игрок
+    // Или если передан refereeId, текущий игрок — реферер
+    let refId: string | undefined;
+    let referee: string | undefined;
+    if (referralCode) {
+      // текущий игрок вводит код реферера
+      refId = referralCode;
+      referee = referrerId;
+    } else if (refereeId) {
+      refId = referrerId;
+      referee = refereeId;
+    } else {
+      return reply.status(400).send({ code: "VALIDATION_FAILED", message: "need refereeId or referralCode" });
+    }
+    try {
+      const ok = await createReferral(options.database, refId, referee!);
+      if (!ok) return reply.status(409).send({ code: "ALREADY_REFERRED", message: "Реферал уже привязан" });
+      // Ачивка реферала
+      try { await checkAndUnlockAchievements(options.database, refId, { type: "referral" }); } catch {}
+      return { ok: true, referrerId: refId, refereeId: referee };
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  app.get("/api/v1/referrals", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const playerId = (request.user as { sub: string }).sub;
+    const list = await getReferrals(options.database, playerId);
+    return { referrals: list, inviteCode: playerId, inviteLink: `/api/v1/referrals?code=${playerId}` };
+  });
+
+  // --- Achievements (T-060) ---
+  app.get("/api/v1/achievements", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const playerId = (request.user as { sub: string }).sub;
+    const list = await listAchievements(options.database, playerId);
+    return { achievements: list };
+  });
+
+  // --- Chat (T-061) ---
+  app.get("/api/v1/chat", async (request, reply) => {
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const { limit } = request.query as { limit?: string };
+    const lim = limit ? parseInt(limit, 10) : 50;
+    const msgs = await listMessages(options.database, lim);
+    return { messages: msgs };
+  });
+
+  app.post("/api/v1/chat", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const playerId = (request.user as { sub: string }).sub;
+    const username = (request.user as { username?: string }).username ?? (request.user as { sub: string }).sub.slice(0, 8);
+    const { message } = request.body as { message?: string };
+    if (!message) return reply.status(400).send({ code: "VALIDATION_FAILED", message: "message required" });
+
+    const rl = canChat(playerId);
+    if (!rl.allowed) {
+      return reply.status(429).header("Retry-After", Math.ceil((rl.retryAfterMs ?? 1000)/1000).toString()).send({ code: "RATE_LIMITED", message: "Слишком часто в чате" });
+    }
+
+    try {
+      const msg = await postMessage(options.database, playerId, username, message);
+      return msg;
+    } catch (e) {
+      return reply.status(400).send({ code: "VALIDATION_FAILED", message: (e as Error).message });
     }
   });
 

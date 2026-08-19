@@ -3,7 +3,7 @@
 > ADR не удаляются. Устаревшие помечаются `заменено ADR-00Y`.
 > Формат описан в `AGENTS.md` §8.
 
-**Следующий свободный номер: ADR-012**
+**Следующий свободный номер: ADR-013**
 
 ---
 
@@ -591,4 +591,52 @@ T-029 требует доказать, что игровой движок не �
 ### Последствия
 **Плюсы:** защита от спама спинов и брута demo входа, e2e покрывает регресс, админка удобнее, клиент поддерживает обе игры.
 **Минусы:** rate limiter in-memory, нет кластерной синхронизации; e2e не проверяет UI анимации.
+
+
+---
+
+## ADR-012: Рефералка, ачивки, чат, бэкап, мобильная адаптация (ответ на T-059…T-063 и T-054…T-058 продолжение)
+
+- **Дата:** 2026-08-19
+- **Агент:** arena-2026-08-19-N / arena-2026-08-19-M
+- **Статус:** принято
+
+### Контекст
+После закрытия деплоя, админки, истории и т.д. соц-казино требует социальных механик для удержания: рефералка (пригласи друга — получи CHIP), ачивки (first win, big win, 100 спинов, referral master), чат для лобби, бэкап скрипт для PG, мобильная адаптация.
+
+### Решение
+
+**Рефералка (T-059):**
+- Таблица `referrals` (referrer_id, referee_id, bonus_amount, UNIQUE referee_id), индекс по referrer.
+- `POST /referrals` — принимает либо `refereeId` (текущий игрок — реферер) либо `referralCode` (текущий игрок вводит код реферера, становится рефералом). Проверка referrer != referee, ON CONFLICT DO NOTHING, начисление бонусов обоим через ledger grant с idempotency `referral:...`, audit_log.
+- `GET /referrals` — список приглашённых, inviteCode = playerId, inviteLink.
+
+**Ачивки (T-060):**
+- Тип `achievement_type` ENUM, таблицы `achievements` (code, title, description, reward) и `player_achievements` (player_id, achievement_id).
+- Сиды 5 ачивок: first_win 100, big_win 500, hundred_spins 1000, referral_master 2500, tournament_winner 5000.
+- `checkAndUnlockAchievements()` — проверяет уже открытые, условие: first_win при любом win>0, big_win при multiple>=100, hundred_spins при COUNT rounds >=100, referral_master при COUNT referrals >=5. При разблокировке INSERT в player_achievements и grant награды через ledger.
+
+**Чат (T-061):**
+- `chat_messages` (id bigserial, player_id, username, message 1…500, created_at), индекс по created_at DESC.
+- In-memory rate limiter 5 сообщений в минуту per player (Map).
+- `POST /chat` — JWT, проверка длины, rate limit 429, INSERT RETURNING.
+- `GET /chat?limit=` — последние N сообщений в порядке от старых к новым для UI.
+
+**Бэкап (T-062):**
+- `scripts/backup.sh` — `pg_dump $DATABASE_URL | gzip > backups/casino_YYYYMMDD_HHMMSS.sql.gz`, оставляет 7 дней, логи.
+
+**Мобильная адаптация (T-054):**
+- `@media max-width 600px` — header padding, main колонка, controls колонкой, stage canvas 100%, kv и rg-grid в 1 колонку, seed-row в колонку, footer 10px.
+
+**Дополнительно (уже в M):**
+- Daily bonus, leaderboard, master RTP, GDPR export, Playwright UI, sound, tournaments, email mock, CI e2e docker.
+
+### Альтернативы
+- **Рефералка через внешний сервис** — отвергнуто: своя таблица проще и контролируемая.
+- **Ачивки через отдельный микросервис** — отвергнуто для демо.
+- **Чат через WebSocket** — отложено: REST polling достаточно для 50 сообщений, WebSocket — для стадии с live-играми.
+
+### Последствия
+**Плюсы:** социальные механики удержания, бэкап, мобильный UX.
+**Минусы:** чат без модерации, ачивки без прогресс-бара в UI, бэкап требует pg_dump на хосте.
 

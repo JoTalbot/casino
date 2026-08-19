@@ -1174,3 +1174,31 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 4. T-062: бэкап скрипт — scripts/backup.sh pg_dump
 5. T-063: ADR-012 — рефералка, ачивки, чат, бэкап
 
+
+### Сделано (смена N, продолжение — делаю всё)
+
+**T-059 рефералка:**
+- Миграция 0003_social.sql: referrals (referrer_id, referee_id, bonus 5000, UNIQUE referee), индекс
+- referrals.ts: createReferral (проверка referee != referrer, UNIQUE check, INSERT, grant 5000 referrer + 1000 referee с idempotency referral:..., audit_log), getReferrals (список приглашённых)
+- API: POST /referrals с refereeId или referralCode, GET /referrals
+
+**T-060 ачивки:**
+- Миграция: achievement_type ENUM, achievements (code, title, description, reward), player_achievements, сиды 5 ачивок
+- achievements.ts: checkAndUnlockAchievements — first_win, big_win (100x), hundred_spins (100 раундов), referral_master (5 рефералов), reward grant через ledger
+- API: GET /achievements
+
+**T-061 чат:**
+- Миграция: chat_messages (id bigserial, player_id, username, message 1…500, created_at), индекс
+- chat.ts: canChat 5 msg/min in-memory, postMessage, listMessages 50
+- API: GET /chat?limit= и POST /chat JWT + rate limit 429
+
+**T-062 бэкап:**
+- scripts/backup.sh — pg_dump $DATABASE_URL | gzip > backups/casino_DATE.sql.gz, keep 7 days, chmod +x
+
+**T-063 ADR-012:**
+- Рефералка, ачивки, чат, бэкап, mobile — решение, альтернативы, последствия
+
+**Проверки:**
+- typecheck ok, npm test 117 pass, 3 skip, check_protocol PASS
+
+**SHIFT END** 19:30 UTC
