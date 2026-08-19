@@ -1,6 +1,0 @@
-agent: arena-2026-08-19-P
-task: T-069
-scope: src/server/**, client/**, scripts/**
-started: 2026-08-19T22:00:00Z
-expires: 2026-08-20T02:00:00Z
-note: продолжаю + — tournament auto prize, referral progress, chat moderation, PWA offline, backup restore

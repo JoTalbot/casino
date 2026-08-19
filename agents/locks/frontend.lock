@@ -1,6 +1,0 @@
-agent: arena-2026-08-19-Q
-task: T-074
-scope: client/**, src/server/**, docs/**
-started: 2026-08-19T23:00:00Z
-expires: 2026-08-20T03:00:00Z
-note: продолжаю + — tournament timer UI, referral progress bar, chat delete UI, backup auto, ADR-015
