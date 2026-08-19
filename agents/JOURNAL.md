@@ -1349,3 +1349,27 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - Всё до 73 закрыто, протокол зелёный, next ID T-074.
 - План: tournament timer UI, referral progress bar, chat delete UI, backup auto, ADR-015
 
+
+### Сделано (смена Q, продолжение — делаю всё)
+
+**T-074 tournament timer UI:**
+- formatCountdown() — дни/часы/минуты до ends_at, отображение в tournaments-list рядом с призом
+
+**T-075 referral progress bar UI:**
+- #ref-progress-bar width по progress*100%, #ref-progress-text 0/5 до мастера, fetch /referrals/progress в refreshReferrals()
+
+**T-076 chat moderation UI:**
+- admin.html — чат модерация: кнопка Удалить, DELETE /admin/chat/:id, audit_log
+- chat.ts — BAD_WORDS фильтр
+
+**T-077 backup auto:**
+- docker-compose.yml — backup-cron service profile cron+backup, pg_dump раз в сутки
+- backup.sh keep 7 days, restore.sh gunzip | psql
+
+**T-078 ADR-015:**
+- tournament timer, referral progress, chat moderation, backup auto — решение
+
+**Проверки:**
+- typecheck ok, npm test 117 pass, 3 skip, check_protocol PASS, локи 0
+
+**SHIFT END** 23:30 UTC — смена Q закрыта, T-074…T-078 done
