@@ -35,6 +35,7 @@ import { getLeaderboard } from "./leaderboard.js";
 import { exportPlayerData } from "./gdpr.js";
 import { listTournaments, getTournamentLeaderboard, updateTournamentScores } from "./tournaments.js";
 import { createReferral, getReferrals, getReferralProgress } from "./referrals.js";
+import { subscribePush, getSubscriptions, sendPushToPlayer } from "./push.js";
 import { checkAndUnlockAchievements, listAchievements } from "./achievements.js";
 import { canChat, postMessage, listMessages, deleteMessage } from "./chat.js";
 
@@ -948,6 +949,32 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     } catch (e) {
       return reply.status(400).send({ code: "VALIDATION_FAILED", message: (e as Error).message });
     }
+  });
+
+  // --- Push notifications (T-079) ---
+  app.post("/api/v1/push/subscribe", async (request, reply) => {
+    try { await request.jwtVerify(); } catch { return reply.status(401).send({ code: "UNAUTHENTICATED" }); }
+    const playerId = (request.user as { sub: string }).sub;
+    const { endpoint, keys } = request.body as { endpoint?: string; keys?: { p256dh: string; auth: string } };
+    if (!endpoint || !keys) return reply.status(400).send({ code: "VALIDATION_FAILED", message: "need endpoint and keys" });
+    await subscribePush(playerId, { endpoint, keys });
+    return { ok: true };
+  });
+
+  app.get("/api/v1/push/subscriptions", async (request, reply) => {
+    try { await request.jwtVerify(); } catch { return reply.status(401).send({ code: "UNAUTHENTICATED" }); }
+    const playerId = (request.user as { sub: string }).sub;
+    const list = await getSubscriptions(playerId);
+    return { subscriptions: list };
+  });
+
+  // --- Backup restore UI (T-077, T-083) — admin only ---
+  app.post("/api/v1/admin/backup", async (request, reply) => {
+    const adminToken = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET;
+    const token = (request.headers["x-admin-token"] as string) ?? "";
+    if (!adminToken || token !== adminToken) return reply.status(403).send({ code: "FORBIDDEN" });
+    // В реальности здесь вызываем backup.sh, для демо возвращаем фиктивный путь
+    return { ok: true, file: `backups/casino_${new Date().toISOString().slice(0,10)}.sql.gz`, message: "Бэкап запущен (mock)" };
   });
 
   // --- Админка (T-031) — включается если задан ADMIN_TOKEN ---
