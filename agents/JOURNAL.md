@@ -1101,3 +1101,23 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - typecheck ok, npm test 117 pass, 3 skip
 
 **SHIFT END** 17:45 UTC
+
+---
+
+## 2026-08-19 — arena-2026-08-19-N
+
+**SHIFT START** 18:00 UTC
+Задачи: T-054 … T-058
+Локи: `backend`
+
+### Контекст
+- Пользователь "+" четвёртый раз — делаю всё дальше после T-053.
+- Всё до 53 закрыто, протокол зелёный. Остались улучшения UX, турниры, email, mobile, CI.
+
+### План
+1. T-054: mobile responsive — улучшить CSS для <600px, контролы в колонку, stage 100%
+2. T-055: турниры — таблица tournaments, API /api/v1/tournaments, /api/v1/tournaments/:id/leaderboard
+3. T-056: email mock — src/server/email.ts с логированием в файл и консоль
+4. T-057: звук в клиенте — заглушка howler? просто Web Audio beep для win/big win
+5. T-058: CI e2e docker — .github/workflows/e2e.yml который поднимает compose и гоняет scripts/e2e.js
+
