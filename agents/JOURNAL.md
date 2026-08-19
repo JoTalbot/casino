@@ -1052,3 +1052,24 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 7. T-048: ADR-011 — hardening и e2e и итерация админки
 8. Закрыть смену, снять лок, push
 
+
+---
+
+## 2026-08-19 — arena-2026-08-19-M
+
+**SHIFT START** 17:30 UTC
+Задачи: T-049 … T-053
+Локи: `backend`
+
+### Контекст
+- Пользователь снова "+" после закрытия T-048 — делаю всё дальше.
+- Бэклог пуст, протокол зелёный. В STATE.md осталось: VPS деплой реальный, графики в клиенте, блок игрока — уже сделано. Дальше можно: daily bonus, leaderboard, master RTP, GDPR export, Playwright UI.
+
+### План
+1. T-049: daily bonus — POST /api/v1/bonus/daily, 1 раз в сутки 1000 CHIP, проверка по ledger_entries tx_type grant и reason daily
+2. T-050: leaderboard — GET /api/v1/leaderboard?by=win|bet&period=day|week|all
+3. T-051: master RTP — использовать game_configs.analytic_rtp ближайший к player.master_rtp или club.master_rtp при выборе конфига
+4. T-052: GDPR export — GET /api/v1/me/export — все данные игрока (профиль, раунды, транзакции, лимиты, seeds history)
+5. T-053: Playwright e2e UI — tests/e2e/client.spec.ts для спин флоу
+6. Обновить TASKS, STATE, push
+
