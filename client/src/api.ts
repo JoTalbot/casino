@@ -50,6 +50,7 @@ export interface RoundRecord {
   spins: SpinRecord[];
   configHash: string;
   balance: number;
+  realityCheck?: { message: string; minutesPlayed: number } | null;
 }
 
 export interface GameInfo {
@@ -225,6 +226,7 @@ function normalizeRound(raw: unknown): RoundRecord {
 
   const bet = (r.bet as { perLine?: number; lines?: number; total?: number }) ?? {};
   const fairness = (r.fairness as { serverSeedHash?: string; clientSeed?: string; nonce?: number; drawCount?: number }) ?? {};
+  const rc = r.realityCheck as { message?: string; minutesPlayed?: number } | null;
 
   return {
     serverSeedHash: (r.serverSeedHash as string) ?? fairness.serverSeedHash ?? "",
@@ -239,6 +241,7 @@ function normalizeRound(raw: unknown): RoundRecord {
     spins: (r.spins as SpinRecord[]) ?? [],
     configHash: (r.configHash as string) ?? "",
     balance: balanceNum,
+    realityCheck: rc ? { message: rc.message ?? "", minutesPlayed: rc.minutesPlayed ?? 0 } : null,
   };
 }
 

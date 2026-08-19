@@ -54,6 +54,15 @@ th,td{border-bottom:1px solid #232c40;padding:6px;text-align:left}
 </div>
 
 <div class="card">
+<h2>Блок игрока</h2>
+<input id="block-player" placeholder="playerId">
+<select id="block-status"><option value="suspended">suspended</option><option value="active">active</option><option value="closed">closed</option></select>
+<input id="block-reason" placeholder="reason">
+<button id="block-btn">Установить статус</button>
+<pre id="block-res"></pre>
+</div>
+
+<div class="card">
 <h2>RTP мониторинг</h2>
 <button id="load-rtp">Проверить RTP</button>
 <pre id="rtp">—</pre>
@@ -99,6 +108,11 @@ $('grant-btn').onclick = async () => {
   const playerId=$('grant-player').value.trim(), amount=Number($('grant-amount').value), reason=$('grant-reason').value.trim();
   if(!playerId||!amount){ alert('need playerId and amount'); return }
   try{ const res=await fetchJson('/api/v1/admin/grant',{method:'POST', body:JSON.stringify({playerId, amount, reason})}); $('grant-res').textContent=JSON.stringify(res,null,2); }catch(e){ $('grant-res').textContent='Ошибка: '+e.message }
+};
+$('block-btn').onclick = async () => {
+  const playerId=$('block-player').value.trim(), status=$('block-status').value, reason=$('block-reason').value.trim();
+  if(!playerId){ alert('need playerId'); return }
+  try{ const res=await fetchJson('/api/v1/admin/block',{method:'POST', body:JSON.stringify({playerId, status, reason})}); $('block-res').textContent=JSON.stringify(res,null,2); }catch(e){ $('block-res').textContent='Ошибка: '+e.message }
 };
 $('load-rtp').onclick = async () => { try{ $('rtp').textContent=JSON.stringify(await fetchJson('/api/v1/admin/rtp'), null, 2);}catch(e){$('rtp').textContent='Ошибка: '+e.message} };
 

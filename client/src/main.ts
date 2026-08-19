@@ -66,6 +66,10 @@ const ui = {
   vCheck: document.getElementById("v-check") as HTMLButtonElement,
   vResult: document.getElementById("v-result") as HTMLElement,
   verifyClose: document.getElementById("verify-close") as HTMLButtonElement,
+  realityModal: document.getElementById("reality-modal") as HTMLElement,
+  realityText: document.getElementById("reality-text") as HTMLElement,
+  realityContinue: document.getElementById("reality-continue") as HTMLButtonElement,
+  realityExit: document.getElementById("reality-exit") as HTMLButtonElement,
 };
 
 function fmt(value: number): string {
@@ -234,6 +238,14 @@ async function main(): Promise<void> {
       const tier = winTier(multiple);
       setStatus(tier === "none" ? "Без выигрыша" : tier === "mega" ? `МЕГА: ${multiple.toFixed(2)}x` : tier === "big" ? `Крупный: ${multiple.toFixed(2)}x` : `Выигрыш ${multiple.toFixed(2)}x`);
       log(`Итог #${round.nonce}: ${fmt(round.totalWin)} (${multiple.toFixed(2)}x), RNG ${round.drawCount}`, round.totalWin > 0 ? "win" : "info");
+
+      // Reality check модалка (T-039)
+      if (round.realityCheck?.message) {
+        ui.realityText.textContent = round.realityCheck.message;
+        ui.realityModal.classList.remove("hidden");
+        log(`Reality check: ${round.realityCheck.message}`, "free");
+      }
+
       await refreshHistory().catch(() => {});
     } catch (error) {
       const message = (error as Error).message;
@@ -244,6 +256,17 @@ async function main(): Promise<void> {
       ui.spin.disabled = false;
     }
   }
+
+  // Reality check handlers
+  ui.realityContinue.addEventListener("click", () => ui.realityModal.classList.add("hidden"));
+  ui.realityExit.addEventListener("click", () => {
+    ui.realityModal.classList.add("hidden");
+    setStatus("Перерыв — игра на паузе");
+    log("Игрок взял перерыв после reality check", "info");
+  });
+  ui.realityModal.addEventListener("click", (e) => {
+    if (e.target === ui.realityModal) ui.realityModal.classList.add("hidden");
+  });
 
   ui.spin.addEventListener("click", () => void playRound());
   document.addEventListener("keydown", (event) => {

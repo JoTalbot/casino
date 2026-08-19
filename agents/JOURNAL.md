@@ -1005,3 +1005,26 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 3. T-040: блок игрока в админке — POST /admin/block и статус suspended
 4. T-041: ADR-010 — деплой, админка, графики, история, верификатор
 
+
+### Сделано (смена K, продолжение)
+
+**T-038 — rate limiting:**
+- `src/server/rateLimit.ts`: Map playerId → timestamps, sliding window 1s, max 10
+- Интеграция в POST /rounds до settleRound, 429 + Retry-After + retryAfterMs
+
+**T-039 — reality check модалка:**
+- Сервер: после settleRound вызывает getPlayerState, needsRealityCheck, buildRealityCheck, обновляет sessions.reality_check_at, добавляет realityCheck в ответ
+- Клиент: RoundRecord.realityCheck?, модалка #reality-modal с message, кнопки Продолжить / Перерыв, обработка клика вне модалки
+
+**T-040 — блок игрока:**
+- `POST /admin/block` в admin.ts: проверка X-Admin-Token, UPDATE players status, audit_log
+- admin.html: форма block-player/status/reason, кнопка, результат
+
+**T-041 — ADR-010:**
+- Деплой, админка, графики, история, верификатор, rate limiting, reality check — решение, альтернативы, последствия
+- Следующий ADR номер ADR-011
+
+**Проверки:**
+- typecheck зелёный, npm test 117 pass, 3 skip
+
+**SHIFT END** 16:45 UTC

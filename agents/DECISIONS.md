@@ -3,7 +3,7 @@
 > ADR не удаляются. Устаревшие помечаются `заменено ADR-00Y`.
 > Формат описан в `AGENTS.md` §8.
 
-**Следующий свободный номер: ADR-010**
+**Следующий свободный номер: ADR-011**
 
 ---
 
@@ -487,3 +487,48 @@ T-029 требует доказать, что игровой движок не �
 ### Последствия
 **Плюсы:** закрыты требования Google Play по RG и Apple по 18+; пользователь видит правила и понимает что фишки без ценности; гейт реализован без бэкенда.
 **Минусы:** гейт обходится очисткой кэша — для регулируемого рынка нужен нативный рейтинг и серверная проверка даты рождения (стадия 6+).
+
+---
+
+## ADR-010: Деплой, админка, графики, история, верификатор, rate limiting и reality check (ответ на T-030-T-041)
+
+- **Дата:** 2026-08-19
+- **Агент:** arena-2026-08-19-I / arena-2026-08-19-J / arena-2026-08-19-K
+- **Статус:** принято
+
+### Контекст
+После закрытия T-024…T-029 остался пробел: боевой сервер работал, но без деплоя, без админки, без истории и верификатора прямо в клиенте, без rate limiting и reality check модалки. Для демо на VPS нужен `docker-compose`, для поддержки — админка, для соответствия spec — 10 req/s лимит, для RG — напоминание о времени в игре.
+
+### Решение
+
+**Деплой (T-030):**
+- `Dockerfile` для API: node:20-alpine, `npm ci`, `npm run build`, CMD `migrate && main`, требует `DATABASE_URL` и `JWT_SECRET`.
+- `client/Dockerfile`: multi-stage node build → nginx:alpine, `nginx.conf` прокси `/api/` → `api:3000`.
+- `docker-compose.yml`: `db` (postgres:16-alpine healthcheck), `api`, `client`, volume `pgdata`, env из `.env`.
+- `.env.example`, `.dockerignore`, `docs/DEPLOY.md` с curl проверкой и чек-листом HTTPS/бэкапов.
+
+**Админка (T-031):**
+- `src/server/admin.ts`: 6 роутов — `/admin/players`, `/admin/rounds`, `/admin/stats`, `/admin/rtp`, `/admin/daily` (агрегация по дням bet/win/rounds/rtp), `POST /admin/grant` (SERIALIZABLE, ledger grant, audit), `POST /admin/block` (update player_status). Проверка `X-Admin-Token` против `ADMIN_TOKEN` env, иначе 403.
+- `client/public/admin.html`: token в localStorage `admin_token`, таблицы, grant и block формы, RTP и daily графики через Chart.js CDN (3 canvas).
+
+**История и верификатор (T-034, T-035):**
+- Клиент: карточка #history-card, список 20 последних раундов `GET /rounds`, клик → модалка #round-modal с JSON, refresh после спина.
+- Верификатор в модалке: поля serverSeed/clientSeed/nonce, `POST /verify`, результат в `pre`. Не требует перехода на `verifier/verify.html`.
+
+**Rate limiting (T-038):**
+- `src/server/rateLimit.ts`: in-memory Map playerId → timestamps, sliding window 1s, max 10 req/s. `globalRateLimiter.check(playerId)` в `POST /rounds` до `settleRound`, возвращает 429 с `Retry-After` и `retryAfterMs`.
+
+**Reality check модалка (T-039):**
+- Сервер: после `settleRound` вызывает `getPlayerState`, `needsRealityCheck`, `buildRealityCheck`, обновляет `sessions.reality_check_at`, добавляет `realityCheck` поле в ответ раунда.
+- Клиент: `RoundRecord.realityCheck?`, если есть message — показывает `#reality-modal` с текстом, кнопки Продолжить / Сделать перерыв, логирование.
+
+### Альтернативы
+- **Kubernetes вместо docker-compose** — отвергнуто для стадии: compose проще для одного VPS, K8s — для масштаба.
+- **Redis для rate limiting** — отложено: in-memory достаточно для одного инстанса API, для кластера нужен Redis.
+- **Отдельный сервис админки на React** — отвергнуто: простой HTML достаточно для демо, React добавит сложность.
+- **Reality check только в логе** — отвергнуто: модалка заметнее и соответствует требованию регуляторов «напоминание должно прерывать игру».
+
+### Последствия
+**Плюсы:** деплой одной командой `docker compose up`, админка с грантами и блоком, история и верификатор в клиенте, защита от спама спинов, напоминание о времени.
+**Минусы:** rate limiter in-memory теряет состояние при рестарте и не работает в кластере; admin без RBAC (один токен); Chart.js CDN может не загрузиться офлайн — есть fallback alert.
+

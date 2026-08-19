@@ -23,10 +23,11 @@ import {
 } from "./seeds.js";
 import { getRoundFull, listRounds } from "./history.js";
 import { getPlayerState, listLimits, setLimit as rgSetLimit, setSelfExclusion } from "./responsibleService.js";
-import { LIMIT_KINDS, type LimitKind } from "../engine/responsible.js";
+import { LIMIT_KINDS, type LimitKind, needsRealityCheck as rgNeedsCheck, buildRealityCheck as rgBuildCheck, REALITY_CHECK_MS } from "../engine/responsible.js";
 import { checkRtp } from "./monitoring.js";
 import { loadGames } from "./gameRegistry.js";
 import { registerAdminRoutes } from "./admin.js";
+import { globalRateLimiter } from "./rateLimit.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -362,13 +363,43 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
 
     const playerId = (request.user as { sub: string }).sub;
     try {
+      // Rate limiting 10 req/s (T-038)
+      const rl = globalRateLimiter.check(playerId);
+      if (!rl.allowed) {
+        return reply
+          .status(429)
+          .header("Retry-After", Math.ceil((rl.retryAfterMs ?? 1000) / 1000).toString())
+          .send({ code: "RATE_LIMITED", message: "Слишком часто, попробуйте позже", retryAfterMs: rl.retryAfterMs });
+      }
+
       const gameEntry = getGameEntry(parsed.gameCode);
       if (!gameEntry) return reply.status(404).send({ code: "NOT_FOUND", message: "Игра не найдена" });
       const cfg = gameEntry.loaded;
       const settled = await settleRound(options.database as Database, cfg, playerId, idempotencyKey as string, parsed.betPerLine, parsed.lines, parsed.gameCode);
 
+      // Reality check (T-039) — проверяем после раунда, отдаём вместе с ответом
+      let realityCheck: { message: string; minutesPlayed: number } | null = null;
+      try {
+        const state = await getPlayerState(options.database as Database, playerId);
+        if (rgNeedsCheck(state.counters, Date.now(), REALITY_CHECK_MS)) {
+          const rc = rgBuildCheck(state.counters, Date.now());
+          realityCheck = { message: rc.message, minutesPlayed: rc.minutesPlayed };
+          // Обновляем last reality check в сессии (best effort)
+          try {
+            await (options.database as Database).query(
+              `UPDATE sessions SET reality_check_at = now() WHERE player_id = $1 AND ended_at IS NULL`,
+              [playerId],
+            );
+          } catch {
+            // ignore
+          }
+        }
+      } catch {
+        // не критично
+      }
+
       // Ответ в формате OpenAPI, но с дополнительными legacy полями для client/src/api.ts
-      const common = {
+      const common: Record<string, unknown> = {
         roundId: settled.roundId,
         gameCode: parsed.gameCode,
         configHash: cfg.hash,
@@ -403,6 +434,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         drawCount: settled.record.drawCount,
         configHashLegacy: cfg.hash,
         balanceLegacy: Number(settled.balance),
+        realityCheck,
       };
 
       if (settled.idempotent) {

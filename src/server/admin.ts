@@ -134,4 +134,19 @@ export function registerAdminRoutes(app: FastifyInstance, opts: AdminOptions): v
     );
     return { daily: res.rows };
   });
+
+  app.post("/api/v1/admin/block", async (request, reply) => {
+    if (!checkAdmin(request as any)) return reply.status(403).send({ code: "FORBIDDEN" });
+    const body = request.body as { playerId?: string; status?: string; reason?: string };
+    if (!body.playerId) return reply.status(400).send({ code: "VALIDATION_FAILED", message: "playerId required" });
+    const allowed = ["active", "suspended", "closed"];
+    const newStatus = body.status ?? "suspended";
+    if (!allowed.includes(newStatus)) return reply.status(400).send({ code: "VALIDATION_FAILED", message: `status must be one of ${allowed.join(",")}` });
+    await opts.database.query(`UPDATE players SET status = $1::player_status, updated_at = now() WHERE id = $2`, [newStatus, body.playerId]);
+    await opts.database.query(
+      `INSERT INTO audit_log (actor_type, actor_id, event_type, subject_type, subject_id, payload) VALUES ('admin','system','player.block','player',$1,$2)`,
+      [body.playerId, JSON.stringify({ status: newStatus, reason: body.reason })],
+    );
+    return { ok: true, playerId: body.playerId, status: newStatus };
+  });
 }
