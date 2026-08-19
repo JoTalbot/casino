@@ -1073,3 +1073,31 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 5. T-053: Playwright e2e UI — tests/e2e/client.spec.ts для спин флоу
 6. Обновить TASKS, STATE, push
 
+
+### Сделано (смена M, продолжение — делаю всё)
+
+**T-049 daily bonus:**
+- bonus.ts claimDailyBonus() — проверка ledger_entries grant daily-bonus сегодня 00:00 UTC, если есть — claimed false, иначе INSERT grant 1000 CHIP с idempotency daily-bonus:player:date, audit log
+- POST /api/v1/bonus/daily — JWT, возвращает claimed, amount, balance, nextClaimAt
+
+**T-050 leaderboard:**
+- leaderboard.ts getLeaderboard(by, period, limit) — day/week/all, by win/bet, GROUP BY player, SUM bet/win, net, rtp, rank
+- GET /api/v1/leaderboard?by=win|bet&period=day|week|all&limit=
+
+**T-051 master RTP:**
+- roundService теперь выбирает game_config ближайший к player.master_rtp (COALESCE 0.96) — WITH target, ORDER BY ABS(analytic_rtp - wanted)
+- Парсит config_json из БД через parseConfig, использует effectiveCfg для playRound и для проверки lines
+- Поддержка нескольких наборов лент для одной игры (is_active может быть несколько, выбирается ближайший)
+
+**T-052 GDPR export:**
+- gdpr.ts exportPlayerData() — player, wallets, rounds (100), ledger (200), limits, selfExclusions, seedPairs (без server_seed активных)
+- GET /api/v1/me/export — JWT, возвращает JSON с экспортом
+
+**T-053 Playwright e2e UI:**
+- tests/e2e/client.spec.ts — age gate клик, спин, проверка баланса и истории, RG и верификатор модалка
+- Запуск npx playwright test
+
+**Проверки:**
+- typecheck ok, npm test 117 pass, 3 skip
+
+**SHIFT END** 17:45 UTC

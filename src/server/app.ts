@@ -30,6 +30,9 @@ import { checkRtp } from "./monitoring.js";
 import { loadGames } from "./gameRegistry.js";
 import { registerAdminRoutes } from "./admin.js";
 import { globalRateLimiter } from "./rateLimit.js";
+import { claimDailyBonus } from "./bonus.js";
+import { getLeaderboard } from "./leaderboard.js";
+import { exportPlayerData } from "./gdpr.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -726,6 +729,64 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     try {
       const result = await checkRtp(options.database);
       return result;
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  // --- Daily bonus (T-049) ---
+  app.post("/api/v1/bonus/daily", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const playerId = (request.user as { sub: string }).sub;
+    try {
+      const res = await claimDailyBonus(options.database, playerId);
+      return {
+        claimed: res.claimed,
+        amount: res.amount.toString(),
+        balance: res.balance.toString(),
+        nextClaimAt: res.nextClaimAt,
+        currency: "CHIP",
+      };
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  // --- Leaderboard (T-050) ---
+  app.get("/api/v1/leaderboard", async (request, reply) => {
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const { by, period, limit } = request.query as { by?: string; period?: string; limit?: string };
+    const byVal = by === "bet" ? "bet" : "win";
+    const periodVal = period === "day" || period === "week" ? period : "all";
+    const lim = limit ? parseInt(limit, 10) : 20;
+    try {
+      const board = await getLeaderboard(options.database, byVal as any, periodVal as any, lim);
+      return { by: byVal, period: periodVal, leaderboard: board };
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  // --- GDPR export (T-052) ---
+  app.get("/api/v1/me/export", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const playerId = (request.user as { sub: string }).sub;
+    try {
+      const data = await exportPlayerData(options.database, playerId);
+      return data;
     } catch (e) {
       request.log.error(e);
       return reply.status(500).send({ code: "INTERNAL_ERROR" });

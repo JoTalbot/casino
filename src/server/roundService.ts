@@ -1,7 +1,7 @@
 /** Атомарное сохранение игрового раунда. Все записи живут в одной SERIALIZABLE-транзакции. */
 import type { PoolClient } from "pg";
 import { playRound, type RoundRecord } from "../engine/round.js";
-import type { LoadedConfig } from "../engine/config.js";
+import { parseConfig, type LoadedConfig } from "../engine/config.js";
 import type { Database } from "./db.js";
 import {
   canPlaceBet,
@@ -141,7 +141,6 @@ export async function settleRound(
   lines: number,
   gameCode = "crown-of-fortune",
 ): Promise<SavedRound> {
-  if (lines !== cfg.config.lines) throw new RoundServiceError("GAME_DISABLED", "Для игры доступно фиксированное число линий.");
   const totalBet = BigInt(betPerLine) * BigInt(lines);
 
   return database.transaction(async (client) => {
@@ -198,13 +197,35 @@ export async function settleRound(
       throw new RoundServiceError("GAME_DISABLED", decision.message);
     }
 
-    const game = await client.query<GameRow>(
-      `SELECT g.id AS game_id, gc.id AS game_config_id, gc.config_hash FROM games g
-       JOIN game_configs gc ON gc.game_id=g.id AND gc.is_active WHERE g.code=$1 AND g.is_enabled`,
-      [gameCode],
+    const game = await client.query<GameRow & { config_json: unknown; analytic_rtp: string; config_hash: string }>(
+      // T-051 master RTP: если у игрока задан master_rtp, выбираем ближайший набор лент
+      `WITH target AS (
+         SELECT COALESCE((SELECT master_rtp FROM players WHERE id = $1), 0.96) as wanted
+       )
+       SELECT g.id AS game_id, gc.id AS game_config_id, gc.config_hash, gc.config_json, gc.analytic_rtp
+       FROM games g
+       JOIN game_configs gc ON gc.game_id = g.id
+       CROSS JOIN target
+       WHERE g.code = $2 AND g.is_enabled
+       ORDER BY ABS(gc.analytic_rtp - target.wanted), gc.is_active DESC
+       LIMIT 1`,
+      [playerId, gameCode],
     );
-    if (!game.rows[0] || game.rows[0].config_hash !== cfg.hash)
-      throw new RoundServiceError("GAME_DISABLED", "Игра недоступна.");
+    if (!game.rows[0]) throw new RoundServiceError("GAME_DISABLED", "Игра недоступна.");
+    // Используем конфиг из БД (для поддержки master RTP), если он есть, иначе переданный из файла
+    let effectiveCfg = cfg;
+    let effectiveHash = cfg.hash;
+    try {
+      if (game.rows[0].config_json) {
+        const parsed = parseConfig(game.rows[0].config_json);
+        effectiveCfg = parsed;
+        effectiveHash = parsed.hash;
+      }
+    } catch {
+      // если парсинг не удался — оставляем файловый cfg
+    }
+
+    if (lines !== effectiveCfg.config.lines) throw new RoundServiceError("GAME_DISABLED", "Для игры доступно фиксированное число линий.");
 
     const wallet = await client.query<WalletRow>(
       "SELECT id, balance FROM wallets WHERE player_id=$1 AND currency_code='CHIP' FOR UPDATE",
@@ -220,7 +241,7 @@ export async function settleRound(
     if (!seed.rows[0]) throw new RoundServiceError("SEED_NOT_FOUND", "Активная пара сидов не найдена.");
     const seedRow = seed.rows[0];
     const nonce = Number(seedRow.next_nonce);
-    const record = playRound(cfg.config, seedRow.server_seed, seedRow.client_seed, nonce, { betPerLine });
+    const record = playRound(effectiveCfg.config, seedRow.server_seed, seedRow.client_seed, nonce, { betPerLine });
 
     const round = await client.query<{ id: string }>(
       `INSERT INTO rounds (external_id, player_id, game_id, game_config_id, config_hash, wallet_id, currency_code, seed_pair_id, nonce, draw_count, bet_per_line, lines, total_bet, total_win, status, settled_at)
@@ -230,7 +251,7 @@ export async function settleRound(
         playerId,
         game.rows[0].game_id,
         game.rows[0].game_config_id,
-        cfg.hash,
+        effectiveHash,
         wallet.rows[0].id,
         seedRow.id,
         nonce,
