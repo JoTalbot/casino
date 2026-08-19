@@ -1,0 +1,6 @@
+agent: arena-2026-08-19-J
+task: T-034
+scope: client/**, src/server/admin.ts
+started: 2026-08-19T15:50:00Z
+expires: 2026-08-19T19:50:00Z
+note: история раундов в клиенте, верификатор в модалке, графики RTP в админке
