@@ -1,0 +1,6 @@
+agent: arena-2026-08-19-K
+task: T-038
+scope: src/server/**, client/**
+started: 2026-08-19T16:20:00Z
+expires: 2026-08-19T20:20:00Z
+note: rate limiting, reality check modal, admin block, ADR-010
