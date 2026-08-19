@@ -827,3 +827,66 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 6. Обновить client api для работы с боевым сервером (опционально) и Vite proxy.
 7. Закрыть чек-лист: typecheck, тесты, protocol check, обновить STATE/HANDOFF/TASKS/JOURNAL, снять лок, push.
 
+
+### Сделано (смена H, продолжение)
+
+**T-026 — боевой сервер (основное, P1):**
+- Полный боевой API по OpenAPI + совместимость с legacy клиентом: `/auth/demo`, `/auth/guest`, `/games`, `/games/:code` (2 игры), `/verify`, `/seeds/current|client|rotate|history`, `/rounds` POST с Idempotency-Key (опционален), GET /rounds и GET /rounds/:roundId, /wallet, /wallet/transactions, /limits, /self-exclusion, /monitoring/rtp.
+- Новые модули: `auth.ts` (guest player 100k CHIP, seed pair, JWT), `seeds.ts`, `history.ts`, `responsibleService.ts` (T-027), `monitoring.ts` (T-028), `gameRegistry.ts` (T-029).
+- `roundService.ts` теперь проверяет RG-лимиты и самоисключение ДО списания (T-027), грузит counters из rounds по календарным окнам UTC, поддерживает gameCode для второй игры.
+- Интеграционный тест `full.integration.test.ts`: 15 шагов — demo → seeds → client seed → round → idempotent repeat 200 → conflict 409 → second round → history → full round → wallet → transactions → rotate → seed history → verify → legacy round. SKIP без БД, зелёный в CI.
+- Клиент `client/src/api.ts` переписан: JWT из localStorage, ensureAuth через /auth/demo, Authorization header, Idempotency-Key, нормализаторы для совместимости с обоими бэкендами.
+
+**T-027 — календарные окна RG:**
+- `responsibleService.ts` и `roundService.ts` считают lossToday/wageredToday/spinsToday/lossWeek запросом `SUM ... WHERE started_at >= сегодня 00:00 UTC`, а не из памяти.
+
+**T-024 — экран ответственной игры:**
+- `client/index.html`: новый card #rg-card — счётчики из БД, установка лимитов, самоисключение, reality check заметка.
+- `client/src/api.ts`: methods limits(), setLimit(), selfExclude().
+- `client/src/main.ts`: refreshRG(), обработчики кнопок, confirm для самоисключения.
+
+**T-025 — ToS, Privacy, age gate:**
+- `docs/TERMS.md` и `docs/PRIVACY.md` — полные тексты соц-казино без реальных денег, 18+, provably-fair, лимиты, самоисключение.
+- `client/public/terms.html` и `privacy.html` — HTML-версии.
+- `client/index.html`: модалка #age-gate, стили, localStorage age_verified, footer с ссылками.
+- `client/src/main.ts`: checkAgeGate(), reload после подтверждения, блокировка игры до 18+.
+
+**T-028 — мониторинг RTP:**
+- `src/server/monitoring.ts`: checkRtp() — observed RTP из rounds, порог 100k, интервал Z*sigma/sqrt(n), sigma 4.126.
+- GET /monitoring/rtp.
+
+**T-029 — вторая игра:**
+- `config/second-game.json` — Crown of Fortune II v1.1.0.
+- `gameRegistry.ts`: loadGames(), ensureAllGames().
+- `app.ts`: /games возвращает обе игры, /games/:code поддерживает обе, POST /rounds выбирает cfg по gameCode.
+- `src/engine/multiGame.test.ts` — тест что движок играет обе игры детерминировано.
+
+**Тесты и проверки:**
+- `npm run typecheck` — зелёный
+- `npm test` — 117 pass, 2 skip (PG) локально
+- `npm --prefix client test` — 21/21 pass
+- `python3 scripts/check_protocol.py` — зелёный (предупреждений нет после обновления STATE)
+
+**Протокол:**
+- STATE.md переписан: стадия 5 и 6 закрыты, текущая 6, тесты 210, риски, Q-006.
+- HANDOFF.md переписан для следующего агента.
+- TASKS.md: T-024…T-029 отмечены done, агент H, добавлены в выполненные.
+- Лок backend снят в финальном коммите.
+
+### Проблемы / не доделано
+
+- Админка не реализована — единственный кусок стадии 5.
+- Docker/docker-compose нет.
+- monitoring использует фиксированный SIGMA, а не читает confidence.json — при смене математики надо обновить.
+- Неделя считается как 7 дней, а не календарная пн-вс.
+- Age gate в localStorage обходится очисткой — для веба ок, для нативного нужен нативный диалог.
+- GitHub PAT из сообщения пользователя — критическая утечка, требует немедленной ротации владельцем.
+
+### Для следующего агента
+
+- Сделать админку и деплой.
+- Добавить интеграционные тесты для RG-лимитов и мониторинга.
+- Ротация токена PAT — срочно.
+
+**SHIFT END** 15:00 UTC
+
