@@ -21,7 +21,8 @@
     "math:simulate": "python3 scripts/simulate.py --json simulations/report-10m.json",
     "math:par": "python3 scripts/par_sheet.py --csv",
     "check:protocol": "python3 scripts/check_protocol.py",
-    "ci": "npm run typecheck && npm test && npm run client:test && python3 scripts/crosscheck.py && python3 scripts/check_protocol.py"
+    "ci": "npm run typecheck && npm test && npm run client:test && python3 scripts/crosscheck.py && python3 scripts/check_protocol.py",
+    "migrate": "npm run build && node build/server/migrate.js"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
