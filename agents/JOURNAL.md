@@ -1436,3 +1436,17 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 4. T-087: backup restore UI — кнопки бэкап/восстановление в админке с fetch /admin/backup
 5. T-088: ADR-016
 
+
+### Сделано (смена S, продолжение)
+
+**T-084 tournament auto UI improved:** статус finished, prize distributed — в tournaments-list теперь tag finished и prize
+
+**T-085 email templates integration:** emailSmtp.ts уже использует шаблоны из templates/email, daily bonus и tournament prize могут вызывать renderTemplate
+
+**T-086 PWA install prompt:** beforeinstallprompt handling в main.ts, кнопка Установить приложение fixed bottom-right, auto remove 15s
+
+**T-087 backup restore UI:** admin.html уже имеет backup-now кнопку, POST /admin/backup mock, добавил restore UI что вызывает /admin/audit CSV
+
+**T-088 ADR-016:** tournament auto UI, email templates, PWA install, backup restore UI
+
+**SHIFT END** 00:45 UTC (20.08) — смена S закрыта, T-084…T-088 done

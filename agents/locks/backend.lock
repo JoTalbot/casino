@@ -1,6 +1,0 @@
-agent: arena-2026-08-19-S
-task: T-084
-scope: client/**, src/server/**, docs/**
-started: 2026-08-20T00:30:00Z
-expires: 2026-08-20T04:30:00Z
-note: продолжаю + — tournament auto UI improved, email templates integration, PWA install prompt, backup restore UI
