@@ -958,3 +958,29 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 3. T-036: графики RTP и активности в админке — canvas + Chart.js CDN (с fallback).
 4. T-037: тесты для админки и мониторинга — unit на api и интеграционный с ADMIN_TOKEN.
 
+
+### Сделано (смена J, продолжение)
+
+**T-034 — история раундов в клиенте:**
+- Добавлена карточка #history-card в index.html: список последних 20 раундов, кнопки refresh и верификатор
+- Модалка #round-modal с деталями раунда (JSON)
+- client/src/api.ts: listRounds() и getRound()
+- main.ts: refreshHistory(), openRound(), historyItem клик → модалка, обновление после каждого спина
+
+**T-035 — верификатор в модалке:**
+- Модалка #verify-modal: поля serverSeed, clientSeed, nonce, кнопка check
+- api.verifyRound() → POST /verify
+- Показ результата в pre #v-result
+
+**T-036 — графики RTP в админке:**
+- client/public/admin.html: добавлены 3 canvas (bet, rtp, rounds), Chart.js CDN
+- src/server/admin.ts: новый эндпоинт GET /admin/daily?days=14 — агрегация по дням (SUM bet/win, COUNT, RTP)
+- JS: load-daily кнопка, fetch daily, построение 3 графиков bar/line
+
+**T-037 — тесты админки:**
+- src/server/admin.integration.test.ts: 5 шагов — demo, round, stats, players, grant, rtp, daily, forbid без токена. SKIP без PG, зелёный в CI с ADMIN_TOKEN.
+
+**Проверки:**
+- typecheck зелёный, npm test 117 pass, 3 skip
+
+**SHIFT END** 16:10 UTC
