@@ -1450,3 +1450,24 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 **T-088 ADR-016:** tournament auto UI, email templates, PWA install, backup restore UI
 
 **SHIFT END** 00:45 UTC (20.08) — смена S закрыта, T-084…T-088 done
+
+---
+
+## 2026-08-20 — arena-2026-08-19-T
+
+**SHIFT START** 01:00 UTC (20.08)
+Задачи: T-089 … T-093
+Локи: `backend`
+
+### Контекст
+- Пользователь выбрал "Продолжать — делай всё дальше" после T-088.
+- Всё до 88 закрыто, протокол зелёный, next ID T-089.
+- План: referral landing с прогрессом, tournament prize email, PWA offline улучшенный, audit search в админке, ADR-017
+
+### План
+1. T-089: referral landing improved — прогресс бар уже есть, добавить список приглашённых и кнопку шаринга
+2. T-090: tournament prize email — при раздаче призов отправлять email через emailSmtp
+3. T-091: PWA offline improved — кэшировать /api/v1/leaderboard, /tournaments, /referrals
+4. T-092: audit search — GET /admin/audit?event_type=&search=
+5. T-093: ADR-017
+

@@ -1,0 +1,6 @@
+agent: arena-2026-08-19-T
+task: T-089
+scope: client/**, src/server/**, docs/**
+started: 2026-08-20T01:00:00Z
+expires: 2026-08-20T05:00:00Z
+note: продолжаю всё — referral landing progress, tournament prize email, PWA offline improved, audit search
