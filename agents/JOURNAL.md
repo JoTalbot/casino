@@ -1415,3 +1415,24 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - admin.html уже имеет кнопки backup/restore? Добавлен POST /admin/backup mock endpoint, возвращает file path
 
 **SHIFT END** 00:30 UTC (20.08) — смена R закрыта, T-079…T-083 done
+
+---
+
+## 2026-08-20 — arena-2026-08-19-S
+
+**SHIFT START** 00:30 UTC (20.08)
+Задачи: T-084 … T-088
+Локи: `backend`
+
+### Контекст
+- Пользователь "+" одиннадцатый раз — делаю всё дальше после T-083.
+- Всё до 83 закрыто, протокол зелёный, next ID T-084.
+- План: tournament auto UI улучшенный, email templates интеграция в bonus/tournament, PWA install prompt, backup restore UI в админке улучшенный, ADR-016
+
+### План
+1. T-084: tournament auto UI improved — показывать статус finished, prize distributed, countdown 0
+2. T-085: email templates integration — использовать шаблоны в daily bonus и tournament prize
+3. T-086: PWA install prompt — beforeinstallprompt handling в клиенте
+4. T-087: backup restore UI — кнопки бэкап/восстановление в админке с fetch /admin/backup
+5. T-088: ADR-016
+
