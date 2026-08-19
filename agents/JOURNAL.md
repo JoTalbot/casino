@@ -775,3 +775,11 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 Задачи: T-026
 Локи: `backend`
 
+### Сделано
+- Подключён JWT-защищённый POST `/api/v1/rounds` с Idempotency-Key и 409 доменными ошибками.
+- Коммит `e1c9238`, typecheck зелёный.
+
+### Проблемы / не доделано
+- Нужен full-scenario PostgreSQL тест и полный повторный ответ идемпотентного запроса.
+
+**SHIFT END** 12:28 UTC
