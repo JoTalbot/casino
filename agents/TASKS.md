@@ -3,13 +3,13 @@
 Статусы: `todo` → `in-progress` → `blocked` / `review` → `done` / `cancelled`
 Приоритеты: `P0` критично · `P1` важно · `P2` желательно · `P3` потом
 
-**ID не переиспользуются.** Следующий свободный ID: **T-054**
+**ID не переиспользуются.** Следующий свободный ID: **T-059**
 
 ---
 
 ## Активные и запланированные
 
-**Весь бэклог T-001…T-053 закрыт.** Новых активных задач нет.
+**Весь бэклог T-001…T-058 закрыт.** Новых активных задач нет.
 
 ---
 
@@ -70,6 +70,11 @@
 | T-051 | Master RTP — выбор набора лент по player.master_rtp / club.master_rtp | P2 | done | arena-2026-08-19-M | 2026-08-19 |
 | T-052 | GDPR export — GET /api/v1/me/export все данные игрока | P2 | done | arena-2026-08-19-M | 2026-08-19 |
 | T-053 | Playwright e2e UI — спин флоу в браузере | P3 | done | arena-2026-08-19-M | 2026-08-19 |
+| T-054 | Mobile responsive — <600px колонка, stage 100% | P2 | done | arena-2026-08-19-M | 2026-08-19 |
+| T-055 | Турниры — таблица tournaments, API /tournaments, /tournaments/:id/leaderboard, update scores | P2 | done | arena-2026-08-19-M | 2026-08-19 |
+| T-056 | Email mock — логи в консоль и logs/email.log | P2 | done | arena-2026-08-19-M | 2026-08-19 |
+| T-057 | Звук в клиенте — Web Audio beep для win/big win | P2 | done | arena-2026-08-19-M | 2026-08-19 |
+| T-058 | CI e2e docker — .github/workflows/e2e.yml compose up + e2e.js | P2 | done | arena-2026-08-19-M | 2026-08-19 |
 
 ---
 
