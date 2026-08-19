@@ -1028,3 +1028,27 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - typecheck зелёный, npm test 117 pass, 3 skip
 
 **SHIFT END** 16:45 UTC
+
+---
+
+## 2026-08-19 — arena-2026-08-19-L
+
+**SHIFT START** 17:00 UTC
+Задачи: T-042 … T-048
+Локи: `backend`
+
+### Контекст
+- Пользователь "Делай всё" — продолжаю после закрытия T-041.
+- Бэклог пуст, протокол зелёный, все фичи базовые готовы.
+- В STATE.md предлагалось: VPS деплой, история, графики, блок — уже сделано. Остались: e2e, поиск в админке, экспорт аудита, hardening, README, выбор второй игры в клиенте.
+
+### План
+1. T-042: e2e сценарий — скрипт scripts/e2e.js который гоняет полный флоу demo → limits → rounds → history → grant → block через fetch
+2. T-043: админка поиск — GET /admin/players?search=&status=
+3. T-044: экспорт аудита CSV — GET /admin/audit?limit=&format=csv/json
+4. T-045: security hardening — helmet, cors, rate limit для /auth/demo
+5. T-046: README — обновить с новыми фичами (2 игры, деплой, админка, графики, history, verifier, rate limit, reality check)
+6. T-047: выбор второй игры в клиенте — селект gameCode
+7. T-048: ADR-011 — hardening и e2e и итерация админки
+8. Закрыть смену, снять лок, push
+
