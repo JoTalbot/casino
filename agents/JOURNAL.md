@@ -1490,3 +1490,17 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - referral landing, prize email, PWA offline, audit search
 
 **SHIFT END** 01:30 UTC (20.08) — смена T закрыта, T-089…T-093 done
+
+---
+
+## 2026-08-20 — arena-2026-08-20-A
+
+**SHIFT START** 02:00 UTC (20.08)
+Задачи: T-094 … T-098
+Локи: `backend`
+
+### Контекст
+- Пользователь "+" двенадцатый раз — делаю всё дальше после T-093.
+- Всё до 93 закрыто, протокол зелёный, next ID T-094.
+- План: referral leaderboard UI, tournament prize email templates integration, PWA install prompt improved, audit search UI, ADR-018
+
