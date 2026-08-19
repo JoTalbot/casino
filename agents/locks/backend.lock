@@ -1,0 +1,6 @@
+agent: arena-2026-08-19-G
+task: T-026
+scope: src/server/**, tests/server/**
+started: 2026-08-19T12:40:00Z
+expires: 2026-08-19T16:40:00Z
+note: продолжаю T-026: полный идемпотентный ответ и PostgreSQL сценарий раунда
