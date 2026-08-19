@@ -759,3 +759,11 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 ### План
 - Реализовать атомарный игровой раунд с ledger и идемпотентностью.
 
+### Сделано
+- Реализована serializable-доменная операция `settleRound()` с блокировками, ledger, spins, audit log и nonce.
+- Изменения запушены: `c5bdfa4`; `npm run typecheck` зелёный.
+
+### Проблемы / не доделано
+- HTTP POST `/api/v1/rounds` и PostgreSQL-интеграционные фикстуры ещё не подключены.
+
+**SHIFT END** 12:18 UTC
