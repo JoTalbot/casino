@@ -89,6 +89,12 @@ th,td{border-bottom:1px solid #232c40;padding:6px;text-align:left}
 </div>
 
 <div class="card">
+<h2>Бэкап / Восстановление</h2>
+<button id="backup-now">Сделать бэкап (mock)</button>
+<pre id="backup-res">—</pre>
+</div>
+
+<div class="card">
 <h2>Аудит лог</h2>
 <button id="load-audit">Загрузить 20</button>
 <button id="load-audit-csv">Скачать CSV</button>
@@ -185,6 +191,9 @@ $('load-audit-csv').onclick = async () => {
   const token = getToken();
   if(!token){ alert('Нужен токен'); return; }
   window.open(`/api/v1/admin/audit?limit=100&format=csv`, '_blank');
+};
+$('backup-now').onclick = async () => {
+  try { const res = await fetchJson('/api/v1/admin/backup', { method: 'POST' }); $('backup-res').textContent = JSON.stringify(res, null, 2); } catch(e){ $('backup-res').textContent = 'Ошибка: '+e.message }
 };
 </script>
 </body>

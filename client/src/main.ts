@@ -716,3 +716,24 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(()=>{});
   });
 }
+
+// PWA install prompt (T-086)
+let deferredPrompt: any = null;
+window.addEventListener('beforeinstallprompt', (e: Event) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.createElement('button');
+  btn.textContent = 'Установить приложение';
+  btn.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#ffd257;color:#241c05;border:none;padding:10px 16px;border-radius:8px;font-weight:700;z-index:999';
+  btn.onclick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      console.log('PWA choice', choice);
+      deferredPrompt = null;
+      btn.remove();
+    }
+  };
+  document.body.appendChild(btn);
+  setTimeout(() => btn.remove(), 15000);
+});
