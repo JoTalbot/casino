@@ -1373,3 +1373,24 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - typecheck ok, npm test 117 pass, 3 skip, check_protocol PASS, локи 0
 
 **SHIFT END** 23:30 UTC — смена Q закрыта, T-074…T-078 done
+
+---
+
+## 2026-08-19 — arena-2026-08-19-R
+
+**SHIFT START** 00:00 UTC (20.08)
+Задачи: T-079 … T-083
+Локи: `backend`
+
+### Контекст
+- Пользователь "+" десятый раз — делаю всё дальше после T-078.
+- Всё до 78 закрыто, протокол зелёный, next ID T-079.
+- План: push notifications (Web Push), email templates, referral landing улучшенный, tournament auto UI с прогрессом, backup restore UI в админке.
+
+### План
+1. T-079: push notifications — Web Push API, VAPID keys, подписка
+2. T-080: email templates — красивые HTML шаблоны для welcome, daily bonus, tournament
+3. T-081: referral landing улучшенный — прогресс бар, список приглашённых на лендинге
+4. T-082: tournament auto UI — показывать призы и статус finished
+5. T-083: backup restore UI в админке — кнопки бэкап/восстановление
+
