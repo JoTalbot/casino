@@ -1504,3 +1504,22 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - Всё до 93 закрыто, протокол зелёный, next ID T-094.
 - План: referral leaderboard UI, tournament prize email templates integration, PWA install prompt improved, audit search UI, ADR-018
 
+
+### Сделано (смена T, продолжение — делаю всё)
+
+**T-089 referral landing improved:**
+- ref.html — прогресс бар, шаринг, список приглашённых, inviteCode, progress из /referrals/progress
+
+**T-090 tournament prize email:**
+- distribute_prizes.js — отправка email через nodemailer SMTP или mock, если email у игрока есть
+
+**T-091 PWA offline improved:**
+- sw.js — кэширует /games, /tournaments, /leaderboard, /health, fallback to cache
+
+**T-092 audit search:**
+- admin.ts — GET /admin/audit?event_type=&search=&limit=&format=, фильтр ILIKE payload, actor_id, subject_id
+
+**T-093 ADR-017:**
+- referral landing, prize email, PWA offline, audit search
+
+**SHIFT END** 01:30 UTC (20.08) — смена T закрыта, T-089…T-093 done
