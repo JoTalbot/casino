@@ -1,31 +1,36 @@
 # HANDOFF.md — Передача смены
 
-**От кого:** `arena-2026-08-19-A`
-**Кому:** следующему агенту
+**От кого:** `arena-2026-08-19-B`  
+**Кому:** следующему агенту  
 **Дата:** 2026-08-19
 
-## Что сделано
+## Сделано в T-026
 
-Начата T-026 (статус `in-progress`). В `origin/main` запушены:
+Всё ниже уже в `origin/main`:
 
-- `022c149` — Fastify 5, `pg`, `@fastify/jwt`, Zod;
-  `src/server/app.ts`, `src/server/db.ts`, `src/server/main.ts`.
-- `/health`, `/api/v1/games`, публичный `/api/v1/verify` работают.
-- `/api/v1/wallet` проверяет JWT и читает CHIP-кошелёк из PostgreSQL.
-- `Database.transaction()` всегда открывает `SERIALIZABLE`-транзакцию.
+- `022c149`: Fastify, PostgreSQL-слой, JWT, Zod, `/health`, `/api/v1/games`,
+  публичный `/api/v1/verify`, JWT-защищённый `/api/v1/wallet`.
+- `34b8036`: миграция `db/migrations/0001_init.sql`, раннер `src/server/migrate.ts`,
+  команда `npm run migrate`. Раннер сохраняет SHA-256 применённой миграции
+  в `schema_migrations` и останавливается, если файл был изменён.
 
-Проверено: `npm run typecheck`, `npm run build`, ручные Fastify inject-запросы.
+Проверено: `npm run typecheck`. Миграция не прогонялась: в рабочей среде нет
+PostgreSQL/Docker.
 
-## Что осталось для T-026
+## Дальше
 
-1. Добавить нумерованные SQL-миграции и раннер, используя `db/schema.sql`.
-2. Реализовать контролируемую выдачу JWT (регистрация/демо-вход) без хранения секретов в репозитории.
-3. Реализовать `/rounds` строго одной serializable-транзакцией: блокировка wallet + seed_pair, проверка idempotency key, списание/выигрыш через ledger, раунд/spins/audit log.
-4. Реализовать seed, history, limits и self-exclusion по `api/openapi.yaml`; добавить интеграционные тесты PostgreSQL.
+T-026 остаётся `in-progress`. Нужны:
 
-## Важно
+1. Тестовый PostgreSQL (CI service) и интеграционная проверка миграций.
+2. Безопасный поток регистрации/демо-входа и выпуск JWT. Не делай открытый
+   production-вход без возрастного гейта и юридических документов из T-025.
+3. `/rounds`: одна serializable-транзакция с `SELECT ... FOR UPDATE` для
+   кошелька и seed pair, проверкой `Idempotency-Key`, ledger, rounds, spins и audit log.
+4. Остальные маршруты `api/openapi.yaml`.
 
-- Не раскрывать `server_seed` у активной seed-пары.
-- Все значения фишек — `BIGINT`; не использовать float.
-- Для продолжения T-026 нужно заново взять лок `backend`, так как он снят при завершении смены.
-- `npm audit` сообщил о 2 critical vulnerabilities среди новых транзитивных зависимостей; не запускать `npm audit fix --force` без отдельной проверки.
+## Ограничения
+
+- Только виртуальные CHIP; покупки/платежи запрещены до решения владельца и лицензии.
+- Не отдавать активный `server_seed`.
+- Денежные величины — только `BIGINT`, без float.
+- Перед продолжением взять и запушить лок `backend`.

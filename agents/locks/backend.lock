@@ -1,6 +1,0 @@
-agent: arena-2026-08-19-B
-task: T-026
-scope: src/server/**, db/migrations/**, package.json, tests/server/**
-started: 2026-08-19T11:36:00Z
-expires: 2026-08-19T15:36:00Z
-note: продолжаю T-026: миграции PostgreSQL и production API
