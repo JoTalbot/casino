@@ -24,6 +24,7 @@ import {
 import { getRoundFull, listRounds } from "./history.js";
 import { getPlayerState, listLimits, setLimit as rgSetLimit, setSelfExclusion } from "./responsibleService.js";
 import { LIMIT_KINDS, type LimitKind } from "../engine/responsible.js";
+import { checkRtp } from "./monitoring.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -638,11 +639,24 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     }
   });
 
+  // --- Мониторинг RTP (T-028, ADR-007) ---
+  app.get("/api/v1/monitoring/rtp", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    try {
+      const result = await checkRtp(options.database);
+      return result;
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
   // --- Совместимость со старым devServer ---
-  // devServer имел GET /api/v1/limits без JWT и POST /api/v1/self-exclusion без JWT
-  // Для локального dev оставляем публичные аналоги, если БД отсутствует — они работают в памяти?
-  // В боевом режиме они требуют JWT, выше уже реализовано. Здесь — 404 для совместимости, чтобы не ломать старый клиент.
-  // Но для devServer-совместимости добавим алиасы, которые возвращают 503 если нет БД (клиент покажет ошибку, но не упадёт).
 
   return app;
 }
