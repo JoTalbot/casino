@@ -373,6 +373,20 @@ export const api = {
     return request("/api/v1/self-exclusion", { method: "POST", body: JSON.stringify({ durationDays }) });
   },
 
+  async listRounds(limit = 20, offset = 0): Promise<{ rounds: { roundId: string; gameCode: string; totalBet: number; totalWin: number; spinsCount?: number; startedAt: string }[] }> {
+    await ensureAuth();
+    return request(`/api/v1/rounds?limit=${limit}&offset=${offset}`);
+  },
+
+  async getRound(roundId: string): Promise<{ roundId: string; gameCode: string; totalWin: number; bet: { total: number }; spins: SpinRecord[]; fairness: { serverSeed?: string; serverSeedHash: string; clientSeed: string; nonce: number } }> {
+    await ensureAuth();
+    return request(`/api/v1/rounds/${roundId}`);
+  },
+
+  async verifyRound(serverSeed: string, clientSeed: string, nonce: number): Promise<{ valid: boolean; round?: RoundRecord }> {
+    return request("/api/v1/verify", { method: "POST", body: JSON.stringify({ serverSeed, clientSeed, nonce, gameCode: "crown-of-fortune" }) });
+  },
+
   // Утилиты для отладки / ручной ротации токена
   clearToken() {
     clearStoredToken();

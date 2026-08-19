@@ -59,6 +59,18 @@ th,td{border-bottom:1px solid #232c40;padding:6px;text-align:left}
 <pre id="rtp">—</pre>
 </div>
 
+<div class="card">
+<h2>Графики — активность по дням (14 дней)</h2>
+<button id="load-daily">Загрузить графики</button>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px">
+  <div><canvas id="chart-bet"></canvas></div>
+  <div><canvas id="chart-rtp"></canvas></div>
+</div>
+<div style="margin-top:12px"><canvas id="chart-rounds"></canvas></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
 <script>
 const $ = (id) => document.getElementById(id);
 function getToken(){ try{return localStorage.getItem('admin_token')||''}catch{return ''} }
@@ -89,6 +101,47 @@ $('grant-btn').onclick = async () => {
   try{ const res=await fetchJson('/api/v1/admin/grant',{method:'POST', body:JSON.stringify({playerId, amount, reason})}); $('grant-res').textContent=JSON.stringify(res,null,2); }catch(e){ $('grant-res').textContent='Ошибка: '+e.message }
 };
 $('load-rtp').onclick = async () => { try{ $('rtp').textContent=JSON.stringify(await fetchJson('/api/v1/admin/rtp'), null, 2);}catch(e){$('rtp').textContent='Ошибка: '+e.message} };
+
+let chartBet, chartRtp, chartRounds;
+$('load-daily').onclick = async () => {
+  try{
+    const data = await fetchJson('/api/v1/admin/daily?days=14');
+    const daily = data.daily;
+    const labels = daily.map(d => d.day);
+    const bets = daily.map(d => Number(d.total_bet));
+    const wins = daily.map(d => Number(d.total_win));
+    const rounds = daily.map(d => Number(d.rounds));
+    const rtp = daily.map(d => d.rtp ? (Number(d.rtp)*100) : 0);
+
+    const ctxBet = document.getElementById('chart-bet');
+    const ctxRtp = document.getElementById('chart-rtp');
+    const ctxRounds = document.getElementById('chart-rounds');
+
+    if(chartBet) chartBet.destroy();
+    if(chartRtp) chartRtp.destroy();
+    if(chartRounds) chartRounds.destroy();
+
+    if(typeof Chart !== 'undefined'){
+      chartBet = new Chart(ctxBet, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'Ставок CHIP', data: bets, backgroundColor: '#ffd257' }, { label: 'Выигрышей CHIP', data: wins, backgroundColor: '#4dffa8' }] },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Ставки vs Выигрыши по дням' } } }
+      });
+      chartRtp = new Chart(ctxRtp, {
+        type: 'line',
+        data: { labels, datasets: [{ label: 'RTP %', data: rtp, borderColor: '#9d8cf0', tension: 0.2 }] },
+        options: { responsive: true, plugins: { title: { display: true, text: 'RTP по дням %' } }, scales: { y: { min: 0, max: 150 } } }
+      });
+      chartRounds = new Chart(ctxRounds, {
+        type: 'line',
+        data: { labels, datasets: [{ label: 'Раундов', data: rounds, borderColor: '#ffd257', fill: true }] },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Количество раундов по дням' } } }
+      });
+    } else {
+      alert('Chart.js не загрузился (оффлайн). Данные: '+JSON.stringify(daily, null, 2));
+    }
+  }catch(e){ alert('Ошибка графиков: '+e.message) }
+};
 </script>
 </body>
 </html>

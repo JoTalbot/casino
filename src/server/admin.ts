@@ -110,4 +110,28 @@ export function registerAdminRoutes(app: FastifyInstance, opts: AdminOptions): v
       activeSeeds: Number(activeSeeds.rows[0]?.c ?? 0),
     };
   });
+
+  app.get("/api/v1/admin/daily", async (request, reply) => {
+    if (!checkAdmin(request as any)) return reply.status(403).send({ code: "FORBIDDEN" });
+    const { days } = request.query as { days?: string };
+    const d = Math.min(Math.max(days ? parseInt(days, 10) : 14, 1), 90);
+    const res = await opts.database.query<{
+      day: string;
+      rounds: string;
+      total_bet: string;
+      total_win: string;
+      rtp: string | null;
+    }>(
+      `SELECT date_trunc('day', started_at)::date as day,
+              COUNT(*) as rounds,
+              SUM(total_bet) as total_bet,
+              SUM(total_win) as total_win,
+              CASE WHEN SUM(total_bet) > 0 THEN SUM(total_win)::float / SUM(total_bet)::float ELSE NULL END as rtp
+       FROM rounds
+       WHERE status='settled' AND started_at >= now() - ($1::int || ' days')::interval
+       GROUP BY 1 ORDER BY 1 ASC`,
+      [d],
+    );
+    return { daily: res.rows };
+  });
 }

@@ -145,6 +145,16 @@
       .limit-item { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #161d2c; }
       .footer { text-align:center; color:var(--muted); font-size:11px; padding:14px; border-top:1px solid var(--line); margin-top:18px; }
       .footer a { color: var(--muted); text-decoration: underline; }
+      /* Modals */
+      .modal { position: fixed; inset: 0; background: rgba(3,5,10,.88); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 900; }
+      .modal.hidden { display: none; }
+      .modal-box { background: #111725; border: 1px solid #2a3346; border-radius: 12px; padding: 18px; max-width: 560px; width: 95%; max-height: 85vh; overflow-y: auto; }
+      .modal-box h3 { margin: 0 0 10px; font-size: 15px; }
+      .history-item { display:flex; justify-content: space-between; padding:6px 0; border-bottom:1px solid #161d2c; font-size:12px; cursor:pointer; }
+      .history-item:hover { background: #0d1220; }
+      .tag { display:inline-block; font-size:10px; padding:2px 6px; border-radius:4px; background:#1a2336; color:var(--muted); margin-left:6px; }
+      .tag.win { color: var(--win); border:1px solid #1e3a2a; }
+      input[type="number"] { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius:6px; padding:8px 12px; font:inherit; }
     </style>
   </head>
   <body>
@@ -267,13 +277,50 @@
           <div id="log"></div>
         </div>
 
+        <div class="card" id="history-card">
+          <h2>История раундов</h2>
+          <div class="seed-row">
+            <button id="history-refresh">Обновить</button>
+            <button id="verify-open">Верификатор</button>
+          </div>
+          <div id="history-list" style="max-height:200px;overflow-y:auto;margin-top:8px"></div>
+          <p class="note">Последние 20 раундов. Клик — детали. Provably fair проверяется офлайн.</p>
+        </div>
+
         <div class="card">
           <h2>Правила и приватность</h2>
-          <p class="note"><a href="/terms.html" target="_blank">Правила игры (ToS)</a> · <a href="/privacy.html" target="_blank">Конфиденциальность</a> · <a href="/verifier/verify.html" target="_blank">Верификатор</a></p>
+          <p class="note"><a href="/terms.html" target="_blank">Правила игры (ToS)</a> · <a href="/privacy.html" target="_blank">Конфиденциальность</a> · <a href="/admin.html" target="_blank">Админка</a> · <a href="/verifier/verify.html" target="_blank">Верификатор</a></p>
           <p class="note">Соц-казино без реальных денег. Покупки отключены (Q-006). Если появятся — нужен юр. анализ и геоблокировка Вашингтона.</p>
         </div>
       </div>
     </main>
+
+    <div id="round-modal" class="modal hidden">
+      <div class="modal-box">
+        <h3>Детали раунда <span id="modal-round-id"></span></h3>
+        <div id="modal-content" style="font-size:12px; white-space:pre-wrap; word-break:break-all"></div>
+        <div class="seed-row" style="margin-top:12px">
+          <button id="modal-close">Закрыть</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="verify-modal" class="modal hidden">
+      <div class="modal-box">
+        <h3>Верификатор раунда (provably fair)</h3>
+        <p class="note">Вставь serverSeed (раскрытый после ротации), clientSeed и nonce — сервер пересчитает раунд.</p>
+        <div style="display:grid; gap:8px; margin-top:8px">
+          <input type="text" id="v-server" placeholder="serverSeed 64 hex">
+          <input type="text" id="v-client" placeholder="clientSeed">
+          <input type="number" id="v-nonce" placeholder="nonce">
+          <button id="v-check" class="primary">Проверить</button>
+          <pre id="v-result" style="background:#0d1220;border:1px solid #232c40;border-radius:6px;padding:8px;font-size:11px;max-height:200px;overflow:auto"></pre>
+        </div>
+        <div class="seed-row" style="margin-top:12px">
+          <button id="verify-close">Закрыть</button>
+        </div>
+      </div>
+    </div>
     <div class="footer">
       18+ · Виртуальные фишки без денежной ценности · <a href="/terms.html">ToS</a> · <a href="/privacy.html">Privacy</a> · <a href="https://github.com/JoTalbot/casino" target="_blank">GitHub</a> · Crown of Fortune v1.0 · RTP 95.98%
     </div>
