@@ -22,6 +22,8 @@ import {
   setClientSeed,
 } from "./seeds.js";
 import { getRoundFull, listRounds } from "./history.js";
+import { getPlayerState, listLimits, setLimit as rgSetLimit, setSelfExclusion } from "./responsibleService.js";
+import { LIMIT_KINDS, type LimitKind } from "../engine/responsible.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -539,7 +541,108 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     };
   });
 
-  // Совместимость со старым devServer путём без префикса /api/v1/auth? Оставим health уже есть.
+  // --- Ответственная игра (T-024, T-027) ---
+  app.get("/api/v1/limits", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const playerId = (request.user as { sub: string }).sub;
+    try {
+      const state = await getPlayerState(options.database, playerId);
+      const rows = await listLimits(options.database, playerId);
+      return {
+        limits: rows.map((r) => ({
+          kind: r.kind,
+          value: Number(r.value),
+          effectiveFrom: r.effective_from,
+          coolingUntil: r.cooling_until,
+        })),
+        selfExclusion: state.selfExclusion,
+        counters: state.counters,
+      };
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  app.post("/api/v1/limits", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const playerId = (request.user as { sub: string }).sub;
+    const body = request.body as { kind?: string; value?: number };
+    if (!body.kind || !LIMIT_KINDS.includes(body.kind as LimitKind)) {
+      return reply.status(400).send({ code: "VALIDATION_FAILED", message: `kind must be one of ${LIMIT_KINDS.join(",")}` });
+    }
+    if (!Number.isInteger(body.value) || (body.value as number) <= 0) {
+      return reply.status(400).send({ code: "VALIDATION_FAILED", message: "value must be positive integer" });
+    }
+    try {
+      const applied = await rgSetLimit(options.database, playerId, body.kind as LimitKind, body.value as number);
+      return {
+        kind: applied.limit.kind,
+        value: applied.limit.value,
+        effectiveFrom: new Date(applied.limit.effectiveFrom).toISOString(),
+        coolingUntil: applied.limit.coolingUntil ? new Date(applied.limit.coolingUntil).toISOString() : null,
+        tightening: applied.tightening,
+        immediate: applied.immediate,
+        message: applied.message,
+      };
+    } catch (e) {
+      const err = e as Error & { code?: string; retryAt?: string };
+      if (err.code === "COOLING") {
+        return reply.status(403).send({ code: "COOLING_PERIOD", message: err.message, retryAt: err.retryAt });
+      }
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  app.post("/api/v1/self-exclusion", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const playerId = (request.user as { sub: string }).sub;
+    const body = request.body as { durationDays?: number | null; reason?: string };
+    let durationDays: number | null = null;
+    if (body.durationDays !== undefined && body.durationDays !== null) {
+      if (!Number.isInteger(body.durationDays) || body.durationDays <= 0) {
+        return reply.status(400).send({ code: "VALIDATION_FAILED", message: "durationDays must be positive integer or null" });
+      }
+      durationDays = body.durationDays;
+    }
+    try {
+      const { exclusion, changed } = await setSelfExclusion(options.database, playerId, durationDays);
+      return {
+        startedAt: new Date(exclusion.startedAt).toISOString(),
+        endsAt: exclusion.endsAt ? new Date(exclusion.endsAt).toISOString() : null,
+        changed,
+        message:
+          exclusion.endsAt === null
+            ? "Самоисключение установлено бессрочно."
+            : "Самоисключение действует. Досрочное снятие невозможно.",
+      };
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  // --- Совместимость со старым devServer ---
+  // devServer имел GET /api/v1/limits без JWT и POST /api/v1/self-exclusion без JWT
+  // Для локального dev оставляем публичные аналоги, если БД отсутствует — они работают в памяти?
+  // В боевом режиме они требуют JWT, выше уже реализовано. Здесь — 404 для совместимости, чтобы не ломать старый клиент.
+  // Но для devServer-совместимости добавим алиасы, которые возвращают 503 если нет БД (клиент покажет ошибку, но не упадёт).
 
   return app;
 }
