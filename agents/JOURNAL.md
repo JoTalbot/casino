@@ -767,3 +767,11 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - HTTP POST `/api/v1/rounds` и PostgreSQL-интеграционные фикстуры ещё не подключены.
 
 **SHIFT END** 12:18 UTC
+
+
+## 2026-08-19 — arena-2026-08-19-F
+
+**SHIFT START** 12:20 UTC
+Задачи: T-026
+Локи: `backend`
+

@@ -1,0 +1,6 @@
+agent: arena-2026-08-19-F
+task: T-026
+scope: src/server/**, tests/server/**
+started: 2026-08-19T12:20:00Z
+expires: 2026-08-19T16:20:00Z
+note: подключаю HTTP маршрут раунда и обработку идемпотентности
