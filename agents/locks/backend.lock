@@ -1,6 +1,0 @@
-agent: arena-2026-08-19-N
-task: T-054
-scope: client/**, src/server/**, docs/**
-started: 2026-08-19T18:00:00Z
-expires: 2026-08-19T22:00:00Z
-note: продолжаю всё — mobile responsive, email mock, tournaments, sound, CI e2e docker

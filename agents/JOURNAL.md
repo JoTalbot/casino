@@ -1151,3 +1151,5 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 **Проверки:**
 - typecheck ok, npm test 117 pass, 3 skip
 
+
+**SHIFT END** 18:30 UTC — смена M закрыта, всё до T-058 done
