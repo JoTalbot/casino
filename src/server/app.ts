@@ -25,13 +25,17 @@ import { getRoundFull, listRounds } from "./history.js";
 import { getPlayerState, listLimits, setLimit as rgSetLimit, setSelfExclusion } from "./responsibleService.js";
 import { LIMIT_KINDS, type LimitKind } from "../engine/responsible.js";
 import { checkRtp } from "./monitoring.js";
+import { loadGames } from "./gameRegistry.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
 
-// Новый API допускает опциональные поля для совместимости с legacy-клиентом
+// Поддержка двух игр для T-029
+const gameCodes = ["crown-of-fortune", "crown-of-fortune-ii"] as const;
+type GameCode = (typeof gameCodes)[number];
+
 const roundBody = z.object({
-  gameCode: z.literal("crown-of-fortune").optional().default("crown-of-fortune"),
+  gameCode: z.enum(gameCodes).optional().default("crown-of-fortune"),
   betPerLine: z.number().int().positive().max(100),
   lines: z.number().int().positive().optional().default(20),
 });
@@ -40,7 +44,7 @@ const verifyBody = z.object({
   serverSeed: sha256,
   clientSeed: z.string().min(1).max(256).refine((seed) => !seed.includes(":")),
   nonce: z.number().int().nonnegative(),
-  gameCode: z.literal("crown-of-fortune").optional(),
+  gameCode: z.enum(gameCodes).optional(),
   configHash: sha256.optional(),
 });
 
@@ -52,7 +56,13 @@ export interface AppOptions {
 export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   const app = fastify({ logger: true });
   await app.register(jwt, { secret: options.jwtSecret });
-  const loaded = loadConfig();
+  const gamesRegistry = loadGames();
+  const primary = gamesRegistry.get("crown-of-fortune") ?? { code: "crown-of-fortune", loaded: loadConfig() };
+  const loaded = primary.loaded;
+
+  function getGameEntry(code: string) {
+    return gamesRegistry.get(code) ?? (code === "crown-of-fortune" ? primary : undefined);
+  }
 
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof z.ZodError) {
@@ -67,11 +77,13 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   // --- Публичные: verify ---
   app.post("/api/v1/verify", async (request) => {
     const body = verifyBody.parse(request.body);
-    if (body.configHash && body.configHash !== loaded.hash) {
-      return { valid: false, code: "CONFIG_HASH_MISMATCH", configHash: loaded.hash };
+    const gameEntry = body.gameCode ? getGameEntry(body.gameCode) : undefined;
+    const cfgEntry = gameEntry ?? primary;
+    if (body.configHash && body.configHash !== cfgEntry.loaded.hash) {
+      return { valid: false, code: "CONFIG_HASH_MISMATCH", configHash: cfgEntry.loaded.hash };
     }
-    const round = playRound(loaded.config, body.serverSeed, body.clientSeed, body.nonce);
-    return { valid: true, configHash: loaded.hash, round };
+    const round = playRound(cfgEntry.loaded.config, body.serverSeed, body.clientSeed, body.nonce);
+    return { valid: true, configHash: cfgEntry.loaded.hash, round };
   });
 
   // --- Демо-вход: создаёт гостя, кошелёк CHIP 100k, seed pair, возвращает JWT ---
@@ -108,10 +120,20 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     return reply.status(res.statusCode).send(res.json());
   });
 
-  // --- Игры ---
-  app.get("/api/v1/games", async () => ({
-    games: [
-      {
+  // --- Игры (T-029 — вторая игра на том же движке) ---
+  app.get("/api/v1/games", async () => {
+    const list = Array.from(gamesRegistry.values()).map((entry) => ({
+      code: entry.code,
+      name: entry.loaded.config.name,
+      version: entry.loaded.config.version,
+      configHash: entry.loaded.hash,
+      lines: entry.loaded.config.lines,
+      reels: 5,
+      rows: 3,
+      enabled: true,
+    }));
+    if (list.length === 0) {
+      list.push({
         code: "crown-of-fortune",
         name: loaded.config.name,
         version: loaded.config.version,
@@ -120,43 +142,45 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         reels: 5,
         rows: 3,
         enabled: true,
-      },
-    ],
-  }));
+      });
+    }
+    return { games: list };
+  });
 
   app.get("/api/v1/games/:code", async (request, reply) => {
     const { code } = request.params as { code: string };
-    if (code !== "crown-of-fortune") {
+    const entry = getGameEntry(code);
+    if (!entry) {
       return reply.status(404).send({ code: "NOT_FOUND", message: "Игра не найдена" });
     }
-    // Полные детали из config
+    const cfg = entry.loaded.config;
+    const hash = entry.loaded.hash;
     return {
-      code: "crown-of-fortune",
-      title: loaded.config.name,
-      name: loaded.config.name,
-      version: loaded.config.version,
-      configHash: loaded.hash,
+      code: entry.code,
+      title: cfg.name,
+      name: cfg.name,
+      version: cfg.version,
+      configHash: hash,
       reels: 5,
       rows: 3,
-      lines: loaded.config.lines,
-      symbols: loaded.config.symbols,
-      wild: loaded.config.wild,
-      scatter: loaded.config.scatter,
-      paytable: loaded.config.paytable,
-      scatterPays: loaded.config.scatterPays,
+      lines: cfg.lines,
+      symbols: cfg.symbols,
+      wild: cfg.wild,
+      scatter: cfg.scatter,
+      paytable: cfg.paytable,
+      scatterPays: cfg.scatterPays,
       freeSpins: {
-        trigger: loaded.config.scatterTrigger,
-        award: loaded.config.freeSpinsAward,
-        multiplier: loaded.config.freeSpinMultiplier,
-        retriggerEnabled: loaded.config.retriggerEnabled,
+        trigger: cfg.scatterTrigger,
+        award: cfg.freeSpinsAward,
+        multiplier: cfg.freeSpinMultiplier,
+        retriggerEnabled: cfg.retriggerEnabled,
       },
-      // legacy поля для client/src/api.ts
-      freeSpinsAward: loaded.config.freeSpinsAward,
-      freeSpinMultiplier: loaded.config.freeSpinMultiplier,
-      wildReels: loaded.config.wildReels,
-      maxWinCap: loaded.config.maxWinCap,
-      declaredRtp: loaded.config.targetRtp,
-      targetRtp: loaded.config.targetRtp,
+      freeSpinsAward: cfg.freeSpinsAward,
+      freeSpinMultiplier: cfg.freeSpinMultiplier,
+      wildReels: cfg.wildReels,
+      maxWinCap: cfg.maxWinCap,
+      declaredRtp: cfg.targetRtp,
+      targetRtp: cfg.targetRtp,
       volatilityIndex: 8.06,
       hitFrequency: 0.2585,
       betLevels: [10, 20, 50, 100, 200, 500, 1000],
@@ -337,13 +361,16 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
 
     const playerId = (request.user as { sub: string }).sub;
     try {
-      const settled = await settleRound(options.database as Database, loaded, playerId, idempotencyKey as string, parsed.betPerLine, parsed.lines);
+      const gameEntry = getGameEntry(parsed.gameCode);
+      if (!gameEntry) return reply.status(404).send({ code: "NOT_FOUND", message: "Игра не найдена" });
+      const cfg = gameEntry.loaded;
+      const settled = await settleRound(options.database as Database, cfg, playerId, idempotencyKey as string, parsed.betPerLine, parsed.lines, parsed.gameCode);
 
       // Ответ в формате OpenAPI, но с дополнительными legacy полями для client/src/api.ts
       const common = {
         roundId: settled.roundId,
         gameCode: parsed.gameCode,
-        configHash: loaded.hash,
+        configHash: cfg.hash,
         status: "settled" as const,
         bet: { perLine: parsed.betPerLine, lines: parsed.lines, total: Number(settled.record.totalBet) },
         fairness: {
@@ -362,11 +389,9 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
           scatterCount: s.scatterCount,
           triggeredFreeSpins: s.triggeredFreeSpins,
           winDetails: s.winDetails,
-          // legacy flat grid for client compat: grid[reel][row] уже есть
         })),
         totalWin: Number(settled.record.totalWin),
         balance: { amount: settled.balance.toString(), currency: "CHIP" as const },
-        // legacy flat поля
         serverSeedHash: settled.record.serverSeedHash,
         clientSeed: settled.record.clientSeed,
         nonce: settled.record.nonce,
@@ -375,7 +400,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         totalBet: Number(settled.record.totalBet),
         capped: settled.record.capped,
         drawCount: settled.record.drawCount,
-        configHashLegacy: loaded.hash,
+        configHashLegacy: cfg.hash,
         balanceLegacy: Number(settled.balance),
       };
 

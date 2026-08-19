@@ -139,6 +139,7 @@ export async function settleRound(
   externalId: string,
   betPerLine: number,
   lines: number,
+  gameCode = "crown-of-fortune",
 ): Promise<SavedRound> {
   if (lines !== cfg.config.lines) throw new RoundServiceError("GAME_DISABLED", "Для игры доступно фиксированное число линий.");
   const totalBet = BigInt(betPerLine) * BigInt(lines);
@@ -199,7 +200,8 @@ export async function settleRound(
 
     const game = await client.query<GameRow>(
       `SELECT g.id AS game_id, gc.id AS game_config_id, gc.config_hash FROM games g
-       JOIN game_configs gc ON gc.game_id=g.id AND gc.is_active WHERE g.code='crown-of-fortune' AND g.is_enabled`,
+       JOIN game_configs gc ON gc.game_id=g.id AND gc.is_active WHERE g.code=$1 AND g.is_enabled`,
+      [gameCode],
     );
     if (!game.rows[0] || game.rows[0].config_hash !== cfg.hash)
       throw new RoundServiceError("GAME_DISABLED", "Игра недоступна.");
