@@ -9,25 +9,7 @@
 
 ## Активные и запланированные
 
-Новые задачи смены Q — продолжаю +:
-
-| ID | Задача | Приоритет | Статус | Агент | Обновлено |
-|----|--------|-----------|--------|-------|-----------|
-| T-074 | Tournament timer UI в клиенте — обратный отсчёт до конца турнира | P2 | in-progress | arena-2026-08-19-Q | 2026-08-19 |
-| T-075 | Referral progress bar UI — показывает 0/5, прогресс бар | P2 | todo | — | 2026-08-19 |
-| T-076 | Chat moderation UI в админке — кнопка удалить сообщение | P2 | todo | — | 2026-08-19 |
-| T-077 | Backup auto — cron сервис для бэкапа раз в сутки в compose | P2 | todo | — | 2026-08-19 |
-| T-078 | ADR-015: tournament timer, referral progress, chat moderation, backup auto | P2 | todo | — | 2026-08-19 |
-
-Ранее закрытые (T-001…T-073 — done):
-
-| ID | Задача | Приоритет | Статус | Агент | Обновлено |
-|----|--------|-----------|--------|-------|-----------|
-| T-069 | Tournament auto prize — cron сервис в docker-compose для distribute_prizes.js | P2 | done | arena-2026-08-19-P | 2026-08-19 |
-| T-070 | Referral progress — API /referrals/progress до 5 | P2 | done | arena-2026-08-19-P | 2026-08-19 |
-| T-071 | Chat moderation — фильтр мата, admin delete | P2 | done | arena-2026-08-19-P | 2026-08-19 |
-| T-072 | PWA offline — кэш API /games и /health в sw.js | P2 | done | arena-2026-08-19-P | 2026-08-19 |
-| T-073 | Backup restore — scripts/restore.sh | P2 | done | arena-2026-08-19-P | 2026-08-19 |
+**Весь бэклог T-001…T-078 закрыт.** Новых активных задач нет.
 
 ---
 
@@ -108,6 +90,11 @@
 | T-071 | Chat moderation — фильтр мата, admin delete | P2 | done | arena-2026-08-19-P | 2026-08-19 |
 | T-072 | PWA offline — кэш API /games и /health в sw.js | P2 | done | arena-2026-08-19-P | 2026-08-19 |
 | T-073 | Backup restore — scripts/restore.sh | P2 | done | arena-2026-08-19-P | 2026-08-19 |
+| T-074 | Tournament timer UI в клиенте — обратный отсчёт до конца турнира | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
+| T-075 | Referral progress bar UI — показывает 0/5, прогресс бар | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
+| T-076 | Chat moderation UI в админке — кнопка удалить сообщение | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
+| T-077 | Backup auto — cron сервис для бэкапа раз в сутки в compose | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
+| T-078 | ADR-015: tournament timer, referral progress, chat moderation, backup auto | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
 
 ---
 
