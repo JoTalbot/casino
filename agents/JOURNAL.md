@@ -1270,3 +1270,24 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - typecheck ok (с nodemailer types), npm test 117 pass, 3 skip
 
 **SHIFT END** 21:30 UTC — смена O закрыта, T-064…T-068 done
+
+---
+
+## 2026-08-19 — arena-2026-08-19-P
+
+**SHIFT START** 22:00 UTC
+Задачи: T-069 … T-073
+Локи: `backend`
+
+### Контекст
+- Пользователь "+" восьмой раз — делаю всё дальше после T-068.
+- Всё до 68 закрыто, протокол зелёный, next ID T-069.
+- План: tournament auto prize via cron service, referral progress UI, chat moderation, PWA offline cache API, backup restore script.
+
+### План
+1. T-069: tournament auto prize — добавить сервис в docker-compose для периодического запуска distribute_prizes.js
+2. T-070: referral progress — API /api/v1/referrals/progress с подсчётом до 5
+3. T-071: chat moderation — фильтр мата, admin delete message
+4. T-072: PWA offline — кэшировать API /games и /health
+5. T-073: backup restore — scripts/restore.sh
+
