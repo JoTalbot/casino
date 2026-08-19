@@ -1315,3 +1315,37 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - typecheck ok, npm test 117 pass, 3 skip, check_protocol PASS (до закрытия)
 
 **SHIFT END** 22:30 UTC — смена P закрыта, T-069…T-073 done
+
+---
+
+## 2026-08-19 — arena-2026-08-19-Q
+
+**SHIFT START** 23:00 UTC
+Задачи: T-074 … T-078
+Локи: `frontend`
+
+### Контекст
+- Пользователь "+" девятый раз — делаю всё дальше после T-073.
+- Всё до 73 закрыто, протокол зелёный, next ID T-074.
+
+### План
+1. T-074: tournament timer UI в клиенте — обратный отсчёт до конца турнира
+2. T-075: referral progress bar UI — показывает 0/5, прогресс бар
+3. T-076: chat moderation UI в админке — кнопка удалить сообщение
+4. T-077: backup auto — cron сервис для бэкапа раз в сутки в compose
+5. T-078: ADR-015 — tournament timer, referral progress, chat moderation, backup auto
+
+
+---
+
+## 2026-08-19 — arena-2026-08-19-Q
+
+**SHIFT START** 23:00 UTC
+Задачи: T-074 … T-078
+Локи: `frontend`
+
+### Контекст
+- Пользователь "+" девятый раз — делаю всё дальше после T-073.
+- Всё до 73 закрыто, протокол зелёный, next ID T-074.
+- План: tournament timer UI, referral progress bar, chat delete UI, backup auto, ADR-015
+
