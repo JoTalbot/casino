@@ -16,6 +16,7 @@ import {
   winTier,
 } from "./presentation.js";
 import { ShapeSymbol, SYMBOL_THEMES } from "./symbols.js";
+import { soundWin, soundSpin } from "./sound.js";
 
 const REELS = 5;
 const ROWS = 3;
@@ -56,6 +57,12 @@ const ui = {
   historyList: document.getElementById("history-list") as HTMLElement,
   historyRefresh: document.getElementById("history-refresh") as HTMLButtonElement,
   verifyOpen: document.getElementById("verify-open") as HTMLButtonElement,
+  bonusDaily: document.getElementById("bonus-daily") as HTMLButtonElement,
+  bonusStatus: document.getElementById("bonus-status") as HTMLElement,
+  tournamentsRefresh: document.getElementById("tournaments-refresh") as HTMLButtonElement,
+  leaderboardRefresh: document.getElementById("leaderboard-refresh") as HTMLButtonElement,
+  tournamentsList: document.getElementById("tournaments-list") as HTMLElement,
+  leaderboardList: document.getElementById("leaderboard-list") as HTMLElement,
   roundModal: document.getElementById("round-modal") as HTMLElement,
   modalRoundId: document.getElementById("modal-round-id") as HTMLElement,
   modalContent: document.getElementById("modal-content") as HTMLElement,
@@ -255,6 +262,7 @@ async function main(): Promise<void> {
   async function present(spin: SpinRecord, round: RoundRecord): Promise<void> {
     const targets = toColumnTargets(spin.grid);
     const anticipation = anticipationReels(spin.grid, game.scatter);
+    soundSpin();
     const spinPromise = reelSet.spin();
     if (anticipation.length > 0) reelSet.setAnticipation(anticipation);
     reelSet.setResult(targets);
@@ -306,6 +314,7 @@ async function main(): Promise<void> {
       const tier = winTier(multiple);
       setStatus(tier === "none" ? "Без выигрыша" : tier === "mega" ? `МЕГА: ${multiple.toFixed(2)}x` : tier === "big" ? `Крупный: ${multiple.toFixed(2)}x` : `Выигрыш ${multiple.toFixed(2)}x`);
       log(`Итог #${round.nonce}: ${fmt(round.totalWin)} (${multiple.toFixed(2)}x), RNG ${round.drawCount}`, round.totalWin > 0 ? "win" : "info");
+      soundWin(multiple);
 
       // Reality check модалка (T-039)
       if (round.realityCheck?.message) {
@@ -498,7 +507,80 @@ async function main(): Promise<void> {
     })();
   });
 
+  // Daily bonus (T-049)
+  async function claimBonus(): Promise<void> {
+    try {
+      const res = await (api as any).dailyBonus?.() ?? await fetchWithAuth("/api/v1/bonus/daily", { method: "POST" });
+      // fallback if dailyBonus not in api.ts typed
+      const data = res as { claimed: boolean; amount: string; balance: string; nextClaimAt: string | null };
+      if (data.claimed) {
+        ui.bonusStatus.textContent = `Получено ${data.amount} CHIP! Баланс ${fmt(Number(data.balance))}`;
+        ui.balance.textContent = fmt(Number(data.balance));
+        log(`Daily bonus: +${data.amount} CHIP`, "win");
+      } else {
+        ui.bonusStatus.textContent = `Уже получено сегодня. Следующий: ${data.nextClaimAt ? new Date(data.nextClaimAt).toLocaleString() : "завтра"}`;
+      }
+    } catch (e) {
+      // Try direct fetch for older api.ts without dailyBonus method
+      try {
+        const raw = await fetch("/api/v1/bonus/daily", { method: "POST", headers: { "content-type": "application/json", Authorization: `Bearer ${localStorage.getItem("casino_jwt") || ""}` } });
+        const txt = await raw.text();
+        const body = JSON.parse(txt);
+        if (raw.ok) {
+          ui.bonusStatus.textContent = body.claimed ? `Получено ${body.amount} CHIP!` : `Уже получено`;
+          if (body.balance) ui.balance.textContent = fmt(Number(body.balance));
+        } else {
+          ui.bonusStatus.textContent = `Ошибка: ${body.message || raw.status}`;
+        }
+      } catch (err) {
+        ui.bonusStatus.textContent = `Ошибка: ${(e as Error).message}`;
+      }
+    }
+  }
+  async function fetchWithAuth(path: string, init: RequestInit = {}): Promise<unknown> {
+    const token = (() => { try { return localStorage.getItem("casino_jwt") || ""; } catch { return ""; } })();
+    const res = await fetch(path, { ...init, headers: { "content-type": "application/json", Authorization: `Bearer ${token}`, ...(init.headers as Record<string, string>) } });
+    const txt = await res.text();
+    try { return JSON.parse(txt); } catch { return txt; }
+  }
+  ui.bonusDaily.addEventListener("click", () => void claimBonus());
+
+  // Tournaments & Leaderboard (T-050, T-055)
+  async function refreshTournaments(): Promise<void> {
+    try {
+      const data = await fetchWithAuth("/api/v1/tournaments") as { tournaments: { code: string; title: string; status: string; prize_pool: string; ends_at: string }[] };
+      ui.tournamentsList.innerHTML = "";
+      for (const t of data.tournaments || []) {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `<span>${t.title} <span class="tag">${t.status}</span> приз ${fmt(Number(t.prize_pool))} CHIP</span><span style="color:var(--muted)">${new Date(t.ends_at).toLocaleDateString()}</span>`;
+        div.addEventListener("click", () => void refreshLeaderboard(t.code));
+        ui.tournamentsList.appendChild(div);
+      }
+      if ((data.tournaments || []).length === 0) ui.tournamentsList.textContent = "нет активных турниров";
+    } catch (e) { ui.tournamentsList.textContent = `ошибка: ${(e as Error).message}`; }
+  }
+  async function refreshLeaderboard(code?: string): Promise<void> {
+    try {
+      const path = code ? `/api/v1/tournaments/${code}/leaderboard?limit=10` : `/api/v1/leaderboard?by=win&period=week&limit=10`;
+      const data = await fetchWithAuth(path) as { leaderboard: { rank: number; username: string; totalWin: number; totalBet: number; rounds: number }[] };
+      const board = data.leaderboard || (data as { leaderboard: unknown[] }).leaderboard || [];
+      ui.leaderboardList.innerHTML = "";
+      for (const row of board as { rank: number; username: string; totalWin: number; totalBet: number; rounds: number }[]) {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `<span>#${row.rank} ${row.username} — win ${fmt(row.totalWin)} (bet ${fmt(row.totalBet)})</span><span>${row.rounds} раундов</span>`;
+        ui.leaderboardList.appendChild(div);
+      }
+      if (board.length === 0) ui.leaderboardList.textContent = "пока пусто";
+    } catch (e) { ui.leaderboardList.textContent = `ошибка: ${(e as Error).message}`; }
+  }
+  ui.tournamentsRefresh.addEventListener("click", () => void refreshTournaments());
+  ui.leaderboardRefresh.addEventListener("click", () => void refreshLeaderboard());
+
   await refreshHistory().catch(() => {});
+  await refreshTournaments().catch(() => {});
+  await refreshLeaderboard().catch(() => {});
 }
 
 void main();

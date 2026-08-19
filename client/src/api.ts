@@ -396,6 +396,19 @@ export const api = {
     return request("/api/v1/verify", { method: "POST", body: JSON.stringify({ serverSeed, clientSeed, nonce, gameCode: "crown-of-fortune" }) });
   },
 
+  async dailyBonus(): Promise<{ claimed: boolean; amount: string; balance: string; nextClaimAt: string | null }> {
+    await ensureAuth();
+    return request("/api/v1/bonus/daily", { method: "POST" });
+  },
+
+  async leaderboard(by: "win" | "bet" = "win", period: "day" | "week" | "all" = "week", limit = 10): Promise<{ leaderboard: { rank: number; username: string; totalWin: number; totalBet: number; rounds: number }[] }> {
+    return request(`/api/v1/leaderboard?by=${by}&period=${period}&limit=${limit}`);
+  },
+
+  async tournaments(): Promise<{ tournaments: { code: string; title: string; status: string; prize_pool: string; ends_at: string }[] }> {
+    return request("/api/v1/tournaments");
+  },
+
   // Утилиты для отладки / ручной ротации токена
   clearToken() {
     clearStoredToken();

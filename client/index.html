@@ -50,6 +50,17 @@
         align-items: start;
       }
       @media (max-width: 1080px) { main { grid-template-columns: 1fr; } }
+      @media (max-width: 600px) {
+        header { padding: 10px 12px; }
+        main { padding: 10px 10px 20px; gap: 10px; }
+        .controls { flex-direction: column; align-items: stretch; }
+        #stage canvas { width: 100% !important; height: auto !important; }
+        .kv { grid-template-columns: 1fr; }
+        .rg-grid { grid-template-columns: 1fr; }
+        .seed-row { flex-direction: column; }
+        .footer { font-size: 10px; }
+        #age-box { padding: 16px; }
+      }
       .card {
         background: var(--panel);
         border: 1px solid var(--line);
@@ -292,6 +303,25 @@
           </div>
           <div id="history-list" style="max-height:200px;overflow-y:auto;margin-top:8px"></div>
           <p class="note">Последние 20 раундов. Клик — детали. Provably fair проверяется офлайн.</p>
+        </div>
+
+        <div class="card" id="bonus-card">
+          <h2>Бонусы</h2>
+          <div class="seed-row">
+            <button id="bonus-daily">Daily bonus 1000 CHIP</button>
+            <span id="bonus-status" class="note"></span>
+          </div>
+          <p class="note">1 раз в сутки, сбрасывается в 00:00 UTC.</p>
+        </div>
+
+        <div class="card" id="tournaments-card">
+          <h2>Турниры</h2>
+          <div class="seed-row">
+            <button id="tournaments-refresh">Обновить турниры</button>
+            <button id="leaderboard-refresh">Лидерборд</button>
+          </div>
+          <div id="tournaments-list" style="margin-top:8px"></div>
+          <div id="leaderboard-list" style="margin-top:8px; max-height:200px; overflow-y:auto"></div>
         </div>
 
         <div class="card">

@@ -1,0 +1,49 @@
+name: e2e docker + API
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/server/**"
+      - "db/**"
+      - "docker-compose.yml"
+      - "scripts/e2e.js"
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env
+        run: |
+          cp .env.example .env
+          echo "JWT_SECRET=test-jwt-secret-64-chars-long-for-e2e-tests-1234567890" >> .env
+          echo "ADMIN_TOKEN=e2e-admin-token" >> .env
+          echo "POSTGRES_PASSWORD=e2e_test_pwd" >> .env
+
+      - name: Build and start stack
+        run: |
+          docker compose up -d --build
+          docker compose ps
+
+      - name: Wait for API health
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/health; then echo "API up"; break; fi
+            echo "waiting $i..."; sleep 2
+          done
+          curl -sf http://localhost:3000/health
+
+      - name: Run e2e.js
+        run: |
+          node scripts/e2e.js http://localhost:3000 e2e-admin-token
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Shutdown
+        if: always()
+        run: docker compose down -v

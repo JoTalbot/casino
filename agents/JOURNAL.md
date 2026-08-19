@@ -1121,3 +1121,33 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 4. T-057: звук в клиенте — заглушка howler? просто Web Audio beep для win/big win
 5. T-058: CI e2e docker — .github/workflows/e2e.yml который поднимает compose и гоняет scripts/e2e.js
 
+
+### Сделано (смена M, продолжение 2 — делаю всё дальше)
+
+**Mobile responsive (T-054):**
+- Добавлен @media max-width 600px в index.html — header, controls в колонку, stage 100%, kv в 1 колонку, seed-row в колонку, footer 10px
+
+**Tournaments (T-055):**
+- db/migrations/0002_tournaments.sql — tournaments (code, title, status, game_code, starts_at, ends_at, prize_pool) + tournament_scores, индекс по total_win DESC, демо турнир weekly-champions
+- src/server/tournaments.ts — listTournaments, getTournamentLeaderboard (фильтр по датам турнира), updateTournamentScores (INSERT ... ON CONFLICT DO UPDATE), best effort
+- app.ts — GET /tournaments, GET /tournaments/:code/leaderboard, update scores после каждого успешного раунда
+
+**Email mock (T-056):**
+- src/server/email.ts — sendEmail логирует в консоль и в logs/email.log, sendWelcomeEmail, sendRealityCheckEmail
+
+**Sound (T-057):**
+- client/src/sound.ts — Web Audio beep, soundWin(multiple) с арпеджио для mega, soundSpin() для вращения
+- main.ts — beep при present() и после расчёта multiple
+
+**CI e2e docker (T-058):**
+- .github/workflows/e2e.yml — поднимает compose, ждёт health, гоняет scripts/e2e.js с ADMIN_TOKEN, логи при фейле, down -v
+
+**Доп. фичи для делаю всё (T-049…T-053 уже done, теперь):**
+- client/index.html — добавлены карточки bonus-card (daily bonus 1000 CHIP) и tournaments-card (турниры + лидерборд), модалки reality уже были
+- client/src/api.ts — dailyBonus(), leaderboard(), tournaments(), расширен RoundRecord с realityCheck
+- main.ts — claimBonus(), refreshTournaments(), refreshLeaderboard(), game-select для второй игры, sound, reality modal, history
+- app.ts — helmet, cors, rate limit auth/demo 5/s, bonus daily endpoint, leaderboard, tournaments, GDPR export, master RTP выбор конфига ближайшего к player.master_rtp, update scores
+
+**Проверки:**
+- typecheck ok, npm test 117 pass, 3 skip
+

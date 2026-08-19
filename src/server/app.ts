@@ -33,6 +33,7 @@ import { globalRateLimiter } from "./rateLimit.js";
 import { claimDailyBonus } from "./bonus.js";
 import { getLeaderboard } from "./leaderboard.js";
 import { exportPlayerData } from "./gdpr.js";
+import { listTournaments, getTournamentLeaderboard, updateTournamentScores } from "./tournaments.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -419,6 +420,13 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         // не критично
       }
 
+      // Турниры — обновляем счётчики (best effort, не блокируем ответ)
+      try {
+        await updateTournamentScores(options.database as Database, playerId, Number(settled.record.totalWin), Number(settled.record.totalBet));
+      } catch {
+        // ignore
+      }
+
       // Ответ в формате OpenAPI, но с дополнительными legacy полями для client/src/api.ts
       const common: Record<string, unknown> = {
         roundId: settled.roundId,
@@ -769,6 +777,33 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     try {
       const board = await getLeaderboard(options.database, byVal as any, periodVal as any, lim);
       return { by: byVal, period: periodVal, leaderboard: board };
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  // --- Tournaments (T-055) ---
+  app.get("/api/v1/tournaments", async (request, reply) => {
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    try {
+      const list = await listTournaments(options.database);
+      return { tournaments: list };
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  app.get("/api/v1/tournaments/:code/leaderboard", async (request, reply) => {
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const { code } = request.params as { code: string };
+    const { limit } = request.query as { limit?: string };
+    const lim = limit ? parseInt(limit, 10) : 20;
+    try {
+      const board = await getTournamentLeaderboard(options.database, code, lim);
+      if (!board) return reply.status(404).send({ code: "NOT_FOUND", message: "Турнир не найден" });
+      return board;
     } catch (e) {
       request.log.error(e);
       return reply.status(500).send({ code: "INTERNAL_ERROR" });
