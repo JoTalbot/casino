@@ -1471,3 +1471,22 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 4. T-092: audit search — GET /admin/audit?event_type=&search=
 5. T-093: ADR-017
 
+
+### Сделано (смена T, продолжение)
+
+**T-089 referral landing improved:**
+- ref.html — прогресс бар #bar, текст 0/5, кнопка поделиться с navigator.clipboard, список приглашённых, auto-load progress и referrals через JWT
+
+**T-090 tournament prize email:**
+- distribute_prizes.js — после гранта приза, если у игрока есть email, отправляет письмо через nodemailer SMTP или mock лог
+
+**T-091 PWA offline improved:**
+- sw.js — кэширует /games, /tournaments, /leaderboard, /health, fallback to cache
+
+**T-092 audit search:**
+- admin.ts audit endpoint — фильтр event_type = и search ILIKE payload::text, actor_id, subject_id
+
+**T-093 ADR-017:**
+- referral landing, prize email, PWA offline, audit search
+
+**SHIFT END** 01:30 UTC (20.08) — смена T закрыта, T-089…T-093 done
