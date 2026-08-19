@@ -9,25 +9,7 @@
 
 ## Активные и запланированные
 
-Новые задачи смены R — продолжаю +:
-
-| ID | Задача | Приоритет | Статус | Агент | Обновлено |
-|----|--------|-----------|--------|-------|-----------|
-| T-079 | Push notifications — Web Push API, VAPID, подписка | P2 | in-progress | arena-2026-08-19-R | 2026-08-19 |
-| T-080 | Email templates — HTML шаблоны welcome, daily bonus, tournament | P2 | todo | — | 2026-08-19 |
-| T-081 | Referral landing улучшенный — прогресс бар, список на лендинге | P2 | todo | — | 2026-08-19 |
-| T-082 | Tournament auto UI — призы и статус finished в клиенте | P2 | todo | — | 2026-08-19 |
-| T-083 | Backup restore UI в админке — кнопки бэкап/восстановление | P2 | todo | — | 2026-08-19 |
-
-Ранее закрытые (T-001…T-078 — done):
-
-| ID | Задача | Приоритет | Статус | Агент | Обновлено |
-|----|--------|-----------|--------|-------|-----------|
-| T-074 | Tournament timer UI в клиенте — обратный отсчёт до конца турнира | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
-| T-075 | Referral progress bar UI — показывает 0/5, прогресс бар | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
-| T-076 | Chat moderation UI в админке — кнопка удалить сообщение | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
-| T-077 | Backup auto — cron сервис для бэкапа раз в сутки в compose | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
-| T-078 | ADR-015: tournament timer, referral progress, chat moderation, backup auto | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
+**Весь бэклог T-001…T-083 закрыт.** Новых активных задач нет.
 
 ---
 
@@ -113,6 +95,11 @@
 | T-076 | Chat moderation UI в админке — кнопка удалить сообщение | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
 | T-077 | Backup auto — cron сервис для бэкапа раз в сутки в compose | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
 | T-078 | ADR-015: tournament timer, referral progress, chat moderation, backup auto | P2 | done | arena-2026-08-19-Q | 2026-08-19 |
+| T-079 | Push notifications — Web Push API, VAPID, подписка | P2 | done | arena-2026-08-19-R | 2026-08-19 |
+| T-080 | Email templates — HTML шаблоны welcome, daily bonus, tournament | P2 | done | arena-2026-08-19-R | 2026-08-19 |
+| T-081 | Referral landing улучшенный — прогресс бар, список на лендинге | P2 | done | arena-2026-08-19-R | 2026-08-19 |
+| T-082 | Tournament auto UI — призы и статус finished в клиенте | P2 | done | arena-2026-08-19-R | 2026-08-19 |
+| T-083 | Backup restore UI в админке — кнопки бэкап/восстановление | P2 | done | arena-2026-08-19-R | 2026-08-19 |
 
 ---
 
