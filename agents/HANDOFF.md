@@ -51,6 +51,24 @@ T-177/T-180. В `.github/workflows/ci.yml` в задачу `engine` добави
 Заодно проверь миграцию `0004_push.sql` на живой базе — она ещё не
 применялась нигде, кроме теории.
 
+## Боевой стенд (добавлено после деплоя)
+
+Развёрнут на сервере владельца: `/root/casino`, `docker compose -p casino`
+с оверлеем `deploy/docker-compose.shared-host.yml`. Витрина наружу —
+`http://167.233.95.7:21899`, API `127.0.0.1:21110`, PostgreSQL без публикации.
+Сервер общий: nginx с чужими сайтами, девять aios-контейнеров — не трогать.
+Домен `api.autosklo.org.ua` занят чужим сайтом, казино там не вешать.
+
+Обновление стенда:
+```bash
+cd /root/casino && git pull origin main
+docker compose -p casino -f docker-compose.yml \
+  -f deploy/docker-compose.shared-host.yml up -d --build
+```
+
+Деплой вскрыл четыре бага, невидимых для CI (T-184…T-187) — все закрыты.
+Это лучший аргумент за T-182.
+
 ## Известные проблемы
 
 - `checkAndUnlockAchievements` глушит любые исключения `catch {}` — ошибки
