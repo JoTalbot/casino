@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Crown of Fortune — прототип клиента</title>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffd257">
     <style>
       :root {
@@ -163,6 +163,36 @@
       }
       #spin:active:not(:disabled) { transform: translateY(2px) scale(.99); }
       label.check { display: flex; align-items: center; gap: 6px; color: var(--muted); cursor: pointer; }
+      .bonus-btn {
+        border-color: rgba(255, 210, 87, 0.45);
+        background: linear-gradient(180deg, rgba(60, 42, 12, 0.9), rgba(28, 20, 8, 0.9));
+        color: #ffd257;
+      }
+      .bonus-btn b { color: #fff3cf; }
+      .bonus-box { max-width: 720px; }
+      .bonus-lead { color: var(--muted); margin: 0 0 14px; font-size: 13px; }
+      .chests { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      @media (max-width: 700px) { .chests { grid-template-columns: 1fr; } }
+      .chest {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 10px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(120, 145, 190, 0.22);
+        background: linear-gradient(180deg, rgba(30, 40, 62, 0.9), rgba(14, 19, 32, 0.95));
+        cursor: pointer;
+        transition: transform .14s ease, border-color .16s ease, box-shadow .2s ease;
+      }
+      .chest img { width: 96px; height: 96px; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(0,0,0,.55)); transition: transform .18s ease; }
+      .chest:hover { transform: translateY(-3px); border-color: rgba(255, 210, 87, 0.6); box-shadow: 0 14px 30px rgba(0,0,0,.5), 0 0 24px rgba(255,190,80,.16); }
+      .chest:hover img { transform: scale(1.06) rotate(-2deg); }
+      .chest.active { border-color: #ffd257; box-shadow: 0 0 0 1px rgba(255,210,87,.5), 0 14px 30px rgba(0,0,0,.5); }
+      .chest-title { font-weight: 700; color: #ffd257; font-size: 15px; }
+      .chest-desc { font-size: 12px; color: var(--text); text-align: center; min-height: 32px; }
+      .chest-risk { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+      .bonus-note { margin-top: 14px; }
       .side { display: flex; flex-direction: column; gap: 14px; }
       .kv { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px 10px; font-size: 12px; }
       .kv dt { color: var(--muted); }
@@ -269,6 +299,7 @@
               </select>
             </div>
             <label class="check"><input type="checkbox" id="turbo" /> Турбо</label>
+            <button id="bonus-open" class="bonus-btn">🎁 Бонус: <b id="bonus-label">обычный</b></button>
             <button id="spin">КРУТИТЬ</button>
           </div>
           <p class="note">
@@ -431,6 +462,41 @@
         <div class="seed-row" style="margin-top:12px">
           <button id="verify-close">Закрыть</button>
         </div>
+      </div>
+    </div>
+
+    <div id="bonus-modal" class="modal hidden">
+      <div class="modal-box bonus-box">
+        <h3>Сундуки короны</h3>
+        <p class="bonus-lead">
+          Выбери форму бонусной серии. Денег в игре от этого не прибавляется и не убавляется —
+          выигрыш распределяется иначе: короче серия, дороже каждый спин.
+        </p>
+        <div class="chests">
+          <button class="chest" data-tier="1">
+            <img src="/bonus/chest_closed.png" alt="" />
+            <span class="chest-title">Обычный</span>
+            <span class="chest-desc">Вся серия фриспинов, множитель ×2</span>
+            <span class="chest-risk">риск: низкий</span>
+          </button>
+          <button class="chest" data-tier="5">
+            <img src="/bonus/chest_closed.png" alt="" />
+            <span class="chest-title">Рискованный</span>
+            <span class="chest-desc">Спинов в 5 раз меньше, каждый в 5 раз дороже</span>
+            <span class="chest-risk">риск: средний</span>
+          </button>
+          <button class="chest" data-tier="25">
+            <img src="/bonus/chest_closed.png" alt="" />
+            <span class="chest-title">Всё и сразу</span>
+            <span class="chest-desc">Один спин на всю серию, множитель до ×25</span>
+            <span class="chest-risk">риск: высокий</span>
+          </button>
+        </div>
+        <p class="note bonus-note">
+          Выбор сохраняется и применяется к следующим раундам. Тир участвует в
+          проверке раунда: без него результат не воспроизвести.
+        </p>
+        <div class="modal-actions"><button id="bonus-close">Закрыть</button></div>
       </div>
     </div>
 

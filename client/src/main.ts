@@ -7,7 +7,7 @@ import { Application, Container, Graphics } from "pixi.js";
 import { ReelSetBuilder, SpeedPresets } from "pixi-reels";
 import gsap from "gsap";
 
-import { api, type GameInfo, type RoundRecord, type SpinRecord } from "./api.js";
+import { api, apiUrl, type GameInfo, type RoundRecord, type SpinRecord } from "./api.js";
 import {
   anticipationReels,
   toColumnTargets,
@@ -36,6 +36,10 @@ const ui = {
   gameSelect: document.getElementById("game-select") as HTMLSelectElement,
   spin: document.getElementById("spin") as HTMLButtonElement,
   turbo: document.getElementById("turbo") as HTMLInputElement,
+  bonusOpen: document.getElementById("bonus-open") as HTMLButtonElement,
+  bonusLabel: document.getElementById("bonus-label") as HTMLElement,
+  bonusModal: document.getElementById("bonus-modal") as HTMLElement,
+  bonusClose: document.getElementById("bonus-close") as HTMLButtonElement,
   win: document.getElementById("win") as HTMLElement,
   status: document.getElementById("status") as HTMLElement,
   gameName: document.getElementById("game-name") as HTMLElement,
@@ -337,7 +341,7 @@ async function main(): Promise<void> {
     if (refCode) {
       // пытаемся активировать рефералку один раз
       try {
-        const res = await fetch("/api/v1/referrals", { method: "POST", headers: { "content-type": "application/json", Authorization: `Bearer ${localStorage.getItem('casino_jwt') || ''}` }, body: JSON.stringify({ referralCode: refCode }) });
+        const res = await fetch(apiUrl("/api/v1/referrals"), { method: "POST", headers: { "content-type": "application/json", Authorization: `Bearer ${localStorage.getItem('casino_jwt') || ''}` }, body: JSON.stringify({ referralCode: refCode }) });
         if (res.ok) {
           log(`Реферальный код ${refCode} активирован, бонус 1000 CHIP`, "win");
           try { localStorage.removeItem('referral_code'); } catch {}
@@ -403,7 +407,7 @@ async function main(): Promise<void> {
     try {
       const betPerLine = Number(ui.bet.value);
       reelSet.setSpeed(ui.turbo.checked ? "turbo" : "normal");
-      const round = await api.playRound(betPerLine, selectedGameCode);
+      const round = await api.playRound(betPerLine, selectedGameCode, bonusTier);
       ui.nonce.textContent = String(round.nonce + 1);
       setStatus(`Раунд #${round.nonce}: ставка ${fmt(round.totalBet)}`);
       log(`Раунд #${round.nonce}: ставка ${fmt(round.totalBet)}, спинов ${round.spins.length}`);
@@ -459,6 +463,52 @@ async function main(): Promise<void> {
   ui.realityModal.addEventListener("click", (e) => {
     if (e.target === ui.realityModal) ui.realityModal.classList.add("hidden");
   });
+
+  // --- Бонус-игра «Сундуки короны» (T-195) ---
+  //
+  // Тир выбирается ДО спина и уходит на сервер вместе с запросом раунда.
+  // Так выбор попадает в запись раунда и в проверку: раунд можно
+  // переиграть офлайн. Пост-фактум выбор был бы не проверяемым.
+  const BONUS_LABELS: Record<number, string> = { 1: "обычный", 5: "рискованный", 25: "всё и сразу" };
+  const BONUS_KEY = "casino_bonus_tier";
+  let bonusTier = (() => {
+    try {
+      const stored = Number(localStorage.getItem(BONUS_KEY));
+      return stored === 5 || stored === 25 ? stored : 1;
+    } catch {
+      return 1;
+    }
+  })();
+
+  function applyBonusTier(tier: number): void {
+    bonusTier = tier;
+    ui.bonusLabel.textContent = BONUS_LABELS[tier] ?? "обычный";
+    try { localStorage.setItem(BONUS_KEY, String(tier)); } catch {}
+    for (const node of document.querySelectorAll<HTMLElement>(".chest")) {
+      node.classList.toggle("active", Number(node.dataset.tier) === tier);
+    }
+  }
+  applyBonusTier(bonusTier);
+
+  ui.bonusOpen.addEventListener("click", () => ui.bonusModal.classList.remove("hidden"));
+  ui.bonusClose.addEventListener("click", () => ui.bonusModal.classList.add("hidden"));
+  ui.bonusModal.addEventListener("click", (e) => {
+    if (e.target === ui.bonusModal) ui.bonusModal.classList.add("hidden");
+  });
+  for (const node of document.querySelectorAll<HTMLElement>(".chest")) {
+    node.addEventListener("click", () => {
+      const tier = Number(node.dataset.tier) || 1;
+      applyBonusTier(tier);
+      // Крышка «открывается» на выбранном сундуке — маленькая обратная связь.
+      const img = node.querySelector("img");
+      if (img) {
+        img.setAttribute("src", "/bonus/chest_open.png");
+        setTimeout(() => img.setAttribute("src", "/bonus/chest_closed.png"), 900);
+      }
+      log(`Бонус: ${BONUS_LABELS[tier]}`, "free");
+      setTimeout(() => ui.bonusModal.classList.add("hidden"), 450);
+    });
+  }
 
   ui.spin.addEventListener("click", () => void playRound());
   document.addEventListener("keydown", (event) => {
@@ -638,7 +688,7 @@ async function main(): Promise<void> {
     } catch (e) {
       // Try direct fetch for older api.ts without dailyBonus method
       try {
-        const raw = await fetch("/api/v1/bonus/daily", { method: "POST", headers: { "content-type": "application/json", Authorization: `Bearer ${localStorage.getItem("casino_jwt") || ""}` } });
+        const raw = await fetch(apiUrl("/api/v1/bonus/daily"), { method: "POST", headers: { "content-type": "application/json", Authorization: `Bearer ${localStorage.getItem("casino_jwt") || ""}` } });
         const txt = await raw.text();
         const body = JSON.parse(txt);
         if (raw.ok) {
@@ -654,7 +704,7 @@ async function main(): Promise<void> {
   }
   async function fetchWithAuth(path: string, init: RequestInit = {}): Promise<unknown> {
     const token = (() => { try { return localStorage.getItem("casino_jwt") || ""; } catch { return ""; } })();
-    const res = await fetch(path, { ...init, headers: { "content-type": "application/json", Authorization: `Bearer ${token}`, ...(init.headers as Record<string, string>) } });
+    const res = await fetch(apiUrl(path), { ...init, headers: { "content-type": "application/json", Authorization: `Bearer ${token}`, ...(init.headers as Record<string, string>) } });
     const txt = await res.text();
     try { return JSON.parse(txt); } catch { return txt; }
   }
@@ -793,7 +843,9 @@ void main();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    // Scope service worker'а обязан совпадать с префиксом приложения:
+    // под /casino/ регистрация «/sw.js» ушла бы в корень чужого сайта.
+    navigator.serviceWorker.register(apiUrl('/sw.js'), { scope: apiUrl('/') + '/' }).catch(() => {});
   });
 }
 

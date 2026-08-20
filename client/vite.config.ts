@@ -16,7 +16,18 @@ import { defineConfig } from "vite";
  * 2. `allowedHosts` — Vite по умолчанию отклоняет запросы с чужим
  *    заголовком Host, и превью в песочнице получает «Blocked request».
  */
+/**
+ * BASE_PATH задаёт префикс, под которым живёт клиент (T-196).
+ *
+ * На своём порту это `/`, а в Telegram Mini App — `/casino/`: там мы
+ * подселяемся к чужому домену отдельной локацией, потому что Telegram
+ * принимает только HTTPS, а свободного домена с сертификатом нет.
+ * Все обращения к API строятся от этого же префикса.
+ */
+const base = process.env.BASE_PATH ?? "/";
+
 export default defineConfig({
+  base,
   server: {
     host: "0.0.0.0",
     port: 5173,

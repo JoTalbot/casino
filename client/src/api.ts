@@ -95,6 +95,19 @@ export interface RotateResult {
 
 const TOKEN_KEY = "casino_jwt";
 
+/**
+ * Префикс, под которым отдаётся клиент, — он же префикс API (T-196).
+ *
+ * На своём порту это `/`, в Telegram Mini App — `/casino/`. Абсолютные
+ * пути вида `/api/v1/...` там ушли бы мимо приложения, поэтому все
+ * запросы строятся через `apiUrl`.
+ */
+const BASE = (import.meta.env?.BASE_URL ?? "/").replace(/\/+$/, "");
+
+export function apiUrl(path: string): string {
+  return `${BASE}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 function getStoredToken(): string | null {
   try {
     if (typeof localStorage !== "undefined") return localStorage.getItem(TOKEN_KEY);
@@ -131,7 +144,7 @@ function jsonHeaders(init?: RequestInit): Record<string, string> {
 }
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<{ status: number; body: T; rawText: string }> {
-  const resp = await fetch(path, {
+  const resp = await fetch(apiUrl(path), {
     ...init,
     headers: jsonHeaders(init),
   });
@@ -150,7 +163,7 @@ async function ensureAuth(): Promise<string | null> {
   const existing = getStoredToken();
   if (existing) return existing;
   try {
-    const { status, body } = await fetchJson<{ token: string }>(`/api/v1/auth/demo`, { method: "POST" });
+    const { status, body } = await fetchJson<{ token: string }>("/api/v1/auth/demo", { method: "POST" });
     if (status === 201 || status === 200) {
       const token = (body as { token: string }).token;
       if (token) {
@@ -169,7 +182,7 @@ async function request<T>(path: string, init?: RequestInit, retryAuth = true): P
   const headers: Record<string, string> = jsonHeaders(init);
   if (token) headers["authorization"] = `Bearer ${token}`;
 
-  const response = await fetch(path, { ...init, headers });
+  const response = await fetch(apiUrl(path), { ...init, headers });
   const text = await response.text();
   let body: unknown;
   try {
@@ -184,7 +197,7 @@ async function request<T>(path: string, init?: RequestInit, retryAuth = true): P
     const newToken = await ensureAuth();
     if (newToken) {
       const retryHeaders = { ...headers, authorization: `Bearer ${newToken}` };
-      const retryResp = await fetch(path, { ...init, headers: retryHeaders });
+      const retryResp = await fetch(apiUrl(path), { ...init, headers: retryHeaders });
       const retryText = await retryResp.text();
       let retryBody: unknown;
       try {
@@ -363,13 +376,13 @@ export const api = {
     return normalizeRotate(raw);
   },
 
-  async playRound(betPerLine: number, gameCode = "crown-of-fortune"): Promise<RoundRecord> {
+  async playRound(betPerLine: number, gameCode = "crown-of-fortune", bonusTier = 1): Promise<RoundRecord> {
     await ensureAuth();
     const idempotencyKey = (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`) as string;
     const raw = await request<unknown>("/api/v1/rounds", {
       method: "POST",
       headers: { "idempotency-key": idempotencyKey },
-      body: JSON.stringify({ gameCode, betPerLine, lines: 20 }),
+      body: JSON.stringify({ gameCode, betPerLine, lines: 20, bonusTier }),
     });
     return normalizeRound(raw);
   },
