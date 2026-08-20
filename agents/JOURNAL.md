@@ -1705,3 +1705,9 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 ### Контекст
 - Пользователь "+" — делаю всё дальше после T-108.
 
+
+### Сделано (смена E — делаю всё)
+
+**T-109…T-113 done:** prize email HTML, referral leaderboard chart, PWA install prompt, backup restore UI, ADR-021
+
+**SHIFT END** 06:00 UTC — смена E закрыта, T-109…T-113 done
