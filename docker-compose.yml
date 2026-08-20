@@ -27,6 +27,9 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-casino}:${POSTGRES_PASSWORD:-casino_secret_change_me}@db:5432/${POSTGRES_DB:-casino}
       JWT_SECRET: ${JWT_SECRET:-change-this-jwt-secret-to-64-random-chars}
+      # Админ-маршруты включаются, только если токен задан (см. app.ts).
+      # Пустое значение = админки нет, это безопасное поведение по умолчанию.
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
       PORT: 3000
     ports:
       - "${API_PORT:-3000}:3000"
