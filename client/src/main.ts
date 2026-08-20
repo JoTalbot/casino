@@ -15,13 +15,18 @@ import {
   winningPositions,
   winTier,
 } from "./presentation.js";
-import { ShapeSymbol, SYMBOL_THEMES } from "./symbols.js";
+import { ArtSymbol, SYMBOL_THEMES } from "./artSymbols.js";
+import { WinFx, animateMarquee, buildBackdrop, buildFrame, buildMarquee, buildReelWindow, type CabinetLayout } from "./cabinet.js";
 import { soundWin, soundSpin } from "./sound.js";
 
 const REELS = 5;
 const ROWS = 3;
-const CELL = 116;
-const GAP = 8;
+const CELL = 124;
+const GAP = 10;
+/** Поле вокруг окна барабанов под золотую раму. */
+const FRAME_PAD = 34;
+/** Высота зоны вывески над барабанами. */
+const MARQUEE_H = 74;
 const FREE_SPIN_PAUSE_MS = 850;
 const WIN_DISPLAY_MS = 1400;
 
@@ -192,7 +197,7 @@ async function main(): Promise<void> {
               chip.className = "pay-chip";
               chip.textContent = theme?.glyph ?? symbol;
               if (theme) {
-                chip.style.background = `#${theme.fill.toString(16).padStart(6, "0")}`;
+                chip.style.background = `#${theme.shade.toString(16).padStart(6, "0")}22`;
                 chip.style.color = `#${theme.accent.toString(16).padStart(6, "0")}`;
                 chip.style.borderColor = `#${theme.accent.toString(16).padStart(6, "0")}`;
               }
@@ -220,24 +225,44 @@ async function main(): Promise<void> {
     });
   }
 
+  // Раскладка кабинета: окно барабанов + рама + вывеска сверху (T-190).
+  const boardWidth = REELS * CELL + (REELS - 1) * GAP;
+  const boardHeight = ROWS * CELL + (ROWS - 1) * GAP;
+  const layout: CabinetLayout = {
+    width: boardWidth + FRAME_PAD * 2,
+    height: boardHeight + FRAME_PAD * 2 + MARQUEE_H,
+    boardX: FRAME_PAD,
+    boardY: FRAME_PAD + MARQUEE_H,
+    boardWidth,
+    boardHeight,
+    reels: REELS,
+    gap: GAP,
+  };
+
   const app = new Application();
   await app.init({
-    width: REELS * CELL + (REELS - 1) * GAP + 40,
-    height: ROWS * CELL + (ROWS - 1) * GAP + 40,
-    background: "#0a0d14",
+    width: layout.width,
+    height: layout.height,
+    background: "#05070f",
     antialias: true,
+    resolution: Math.min(window.devicePixelRatio || 1, 2),
+    autoDensity: true,
   });
   ui.stage.appendChild(app.canvas);
 
-  const frame = new Graphics()
-    .roundRect(6, 6, app.screen.width - 12, app.screen.height - 12, 16)
-    .fill({ color: 0x11151f })
-    .stroke({ width: 2, color: 0x2a3346 });
-  app.stage.addChild(frame);
+  // Порядок слоёв: задник → окно → барабаны → рама → вывеска → эффекты.
+  app.stage.addChild(buildBackdrop(layout));
+  app.stage.addChild(buildReelWindow(layout));
 
   const board = new Container();
-  board.position.set(20, 20);
+  board.position.set(layout.boardX, layout.boardY);
   app.stage.addChild(board);
+
+  const frameLayer = buildFrame(layout);
+  const marquee = buildMarquee(layout, game.name ?? "Crown of Fortune");
+  const winFx = new WinFx(layout);
+  app.stage.addChild(frameLayer, marquee, winFx.view);
+  animateMarquee(marquee, app.ticker);
 
   const reelSet = new ReelSetBuilder()
     .reels(REELS)
@@ -245,7 +270,7 @@ async function main(): Promise<void> {
     .symbolSize(CELL, CELL)
     .symbolGap(GAP, GAP)
     .symbols((registry) => {
-      for (const id of game.symbols) registry.register(id, ShapeSymbol, {});
+      for (const id of game.symbols) registry.register(id, ArtSymbol, {});
     })
     .weights(Object.fromEntries(game.symbols.map((id) => [id, 1])))
     .speed("normal", SpeedPresets.NORMAL)
@@ -312,6 +337,7 @@ async function main(): Promise<void> {
     reelSet.setResult(targets);
     await spinPromise;
     if (spin.win > 0) {
+      winFx.pulse(gsap, 0.16);
       const positions = winningPositions(spin);
       const label = spin.free ? `Фриспин ${spin.index}: +${fmt(spin.win)}${spin.multiplier > 1 ? ` (×${spin.multiplier})` : ""}` : `Выигрыш: +${fmt(spin.win)}`;
       ui.win.textContent = `+${fmt(spin.win)}`;
@@ -357,6 +383,15 @@ async function main(): Promise<void> {
       const multiple = winMultiple(round.totalWin, round.totalBet);
       const tier = winTier(multiple);
       setStatus(tier === "none" ? "Без выигрыша" : tier === "mega" ? `МЕГА: ${multiple.toFixed(2)}x` : tier === "big" ? `Крупный: ${multiple.toFixed(2)}x` : `Выигрыш ${multiple.toFixed(2)}x`);
+      // Баннер поднимается только на крупных выигрышах: если праздновать
+      // каждую мелочь, праздник перестаёт читаться (T-190).
+      if (tier === "mega" || tier === "big") {
+        await winFx.celebrate(
+          gsap,
+          `${tier === "mega" ? "МЕГА-ВЫИГРЫШ" : "КРУПНЫЙ ВЫИГРЫШ"}\n+${fmt(round.totalWin)}`,
+          tier === "mega" ? 2200 : 1500,
+        );
+      }
       log(`Итог #${round.nonce}: ${fmt(round.totalWin)} (${multiple.toFixed(2)}x), RNG ${round.drawCount}`, round.totalWin > 0 ? "win" : "info");
       soundWin(multiple);
 
@@ -434,7 +469,7 @@ async function main(): Promise<void> {
     chip.className = "pay-chip";
     chip.textContent = theme?.glyph ?? symbol;
     if (theme) {
-      chip.style.background = `#${theme.fill.toString(16).padStart(6, "0")}`;
+      chip.style.background = `#${theme.shade.toString(16).padStart(6, "0")}22`;
       chip.style.color = `#${theme.accent.toString(16).padStart(6, "0")}`;
       chip.style.borderColor = `#${theme.accent.toString(16).padStart(6, "0")}`;
     }
