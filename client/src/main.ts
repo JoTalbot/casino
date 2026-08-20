@@ -290,7 +290,7 @@ async function main(): Promise<void> {
   // фазы анимации на живом стенде — без него причины «медленного спина»
   // видны лишь по секундомеру (T-191).
   if (new URLSearchParams(window.location.search).has("debug")) {
-    (window as unknown as { __casino?: unknown }).__casino = { app, reelSet, layout, winFx };
+    (window as unknown as { __casino?: unknown }).__casino = { app, reelSet, layout, winFx, gsap };
   }
 
   const idle = toColumnTargets(
