@@ -16,10 +16,13 @@ services:
     # Порт наружу не публикуем вовсе
     ports: !reset []
 
+  # !override обязателен: без него compose СКЛАДЫВАЕТ списки портов
+  # с базовым файлом, контейнер пытается занять порт дважды и падает
+  # с "address already in use" на заведомо свободном порту.
   api:
-    ports:
+    ports: !override
       - "127.0.0.1:${API_PORT:-3110}:3000"
 
   client:
-    ports:
+    ports: !override
       - "127.0.0.1:${CLIENT_PORT:-8899}:80"
