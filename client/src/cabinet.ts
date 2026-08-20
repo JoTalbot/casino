@@ -508,6 +508,8 @@ export class WinFx {
   private readonly flash = new Graphics();
   private readonly sparks = new Container();
   private readonly banner = new Container();
+  private bonusLayer?: Container;
+  private bonusCounter?: Text;
 
   constructor(private readonly layout: CabinetLayout) {
     const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = layout;
@@ -809,6 +811,70 @@ export class WinFx {
         },
       });
     });
+  }
+
+  /**
+   * Режим бонуса (T-212): пока идёт серия фриспинов, окно барабанов
+   * подсвечивается тёплым золотом, а сверху висит счётчик «спин N из M».
+   * Без этого бонус визуально не отличается от обычной игры — а он
+   * должен ощущаться отдельным состоянием.
+   */
+  setBonusMode(active: boolean, spin = 0, total = 0, multiplier = 1): void {
+    const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = this.layout;
+
+    if (!active) {
+      this.bonusLayer?.destroy({ children: true });
+      this.bonusLayer = undefined;
+      this.bonusCounter = undefined;
+      return;
+    }
+
+    if (!this.bonusLayer) {
+      const layer = new Container();
+      layer.eventMode = "none";
+
+      const tint = new Graphics();
+      tint.roundRect(x, y, bw, bh, Math.min(bw, bh) * 0.045).fill(
+        new FillGradient({
+          type: "linear",
+          start: { x: 0.5, y: 0 },
+          end: { x: 0.5, y: 1 },
+          colorStops: [
+            { offset: 0, color: "rgba(255,190,80,0.16)" },
+            { offset: 0.5, color: "rgba(255,150,40,0.05)" },
+            { offset: 1, color: "rgba(255,190,80,0.16)" },
+          ],
+          textureSpace: "local",
+        }),
+      );
+      // Золотая кромка внутри окна: рамка «горит» на время серии.
+      tint.roundRect(x + 2, y + 2, bw - 4, bh - 4, Math.min(bw, bh) * 0.045)
+        .stroke({ width: 3, color: 0xffd257, alpha: 0.55 });
+      layer.addChild(tint);
+
+      this.bonusCounter = new Text({
+        text: "",
+        style: new TextStyle({
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: Math.round(bh * 0.075),
+          fontWeight: "700",
+          fill: 0xffd257,
+          stroke: { width: 4, color: 0x2a1600 },
+          dropShadow: { color: 0x000000, alpha: 0.6, blur: 4, distance: 2, angle: Math.PI / 2 },
+        }),
+      });
+      this.bonusCounter.anchor.set(0.5, 0);
+      this.bonusCounter.position.set(x + bw / 2, y + bh * 0.012);
+      layer.addChild(this.bonusCounter);
+
+      this.view.addChildAt(layer, 0);
+      this.bonusLayer = layer;
+    }
+
+    if (this.bonusCounter) {
+      const mult = multiplier > 1 ? ` · ×${multiplier}` : "";
+      this.bonusCounter.text = `БОНУС · спин ${spin} из ${total}${mult}`;
+    }
   }
 
   private spawnSparks(gsapInstance: typeof import("gsap").default, count: number): void {

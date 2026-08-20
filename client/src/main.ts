@@ -497,9 +497,14 @@ async function main(): Promise<void> {
           const freeCount = round.spins.filter((s) => s.free).length;
           await winFx.celebrateBonus(gsap, freeCount, spin.multiplier, ui.turbo.checked ? 1200 : 2200);
         }
+        if (spin.free) {
+          const freeSpins = round.spins.filter((x) => x.free);
+          winFx.setBonusMode(true, freeSpins.indexOf(spin) + 1, freeSpins.length, spin.multiplier);
+        }
         await present(spin, round);
         if (spin.index < round.spins.length - 1) await sleep(FREE_SPIN_PAUSE_MS);
       }
+      winFx.setBonusMode(false);
       ui.balance.textContent = fmt(round.balance);
       ui.win.textContent = round.totalWin > 0 ? `+${fmt(round.totalWin)}` : "0";
       if (round.capped) log(`Потолок ${game.maxWinCap}x`, "win");
