@@ -444,8 +444,19 @@ export class WinFx {
     amount: string,
     holdMs = 1500,
   ): Promise<void> {
-    const { boardHeight: bh } = this.layout;
+    const { boardWidth: bw, boardHeight: bh } = this.layout;
     this.banner.removeChildren().forEach((child) => child.destroy());
+
+    // Подложка: поверх барабанов текст иначе спорит с символами.
+    const scrim = new Graphics();
+    const sw = Math.min(bw * 0.92, bh * 2.1);
+    const sh = bh * 0.46;
+    scrim
+      .roundRect(-sw / 2, -sh / 2, sw, sh, sh * 0.22)
+      .fill({ color: 0x0a0713, alpha: 0.82 })
+      .roundRect(-sw / 2, -sh / 2, sw, sh, sh * 0.22)
+      .stroke({ width: 2.5, color: 0xffd257, alpha: 0.75 });
+    this.banner.addChild(scrim);
 
     const titleText = new Text({
       text: title,
