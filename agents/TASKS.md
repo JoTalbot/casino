@@ -3,13 +3,13 @@
 Статусы: `todo` → `in-progress` → `blocked` / `review` → `done` / `cancelled`
 Приоритеты: `P0` критично · `P1` важно · `P2` желательно · `P3` потом
 
-**ID не переиспользуются.** Следующий свободный ID: **T-134**
+**ID не переиспользуются.** Следующий свободный ID: **T-139**
 
 ---
 
 ## Активные и запланированные
 
-**Весь бэклог T-001…T-133 закрыт.** Новых активных задач нет.
+**Весь бэклог T-001…T-138 закрыт.** Новых активных задач нет.
 
 ---
 
@@ -17,11 +17,11 @@
 
 | ID | Задача | Приоритет | Статус | Агент | Обновлено |
 |----|--------|-----------|--------|-------|-----------|
-| T-129 | Referral leaderboard chart improved — график в ref.html | P2 | done | arena-2026-08-20-I | 2026-08-20 |
-| T-130 | Tournament prize email improved — HTML с картинками | P2 | done | arena-2026-08-20-I | 2026-08-20 |
-| T-131 | PWA offline improved — кэш чата и турниров | P2 | done | arena-2026-08-20-I | 2026-08-20 |
-| T-132 | Backup restore UI improved — прогресс бар в админке | P2 | done | arena-2026-08-20-I | 2026-08-20 |
-| T-133 | ADR-025: referral leaderboard chart, prize email with images, PWA offline, backup restore | P2 | done | arena-2026-08-20-I | 2026-08-20 |
+| T-134 | Tournament UI improved — анимация прогресса | P2 | done | arena-2026-08-20-J | 2026-08-20 |
+| T-135 | Referral UI improved — прогресс бар и список | P2 | done | arena-2026-08-20-J | 2026-08-20 |
+| T-136 | Chat UI improved — автоскролл и модерация | P2 | done | arena-2026-08-20-J | 2026-08-20 |
+| T-137 | Backup UI improved — статус и прогресс | P2 | done | arena-2026-08-20-J | 2026-08-20 |
+| T-138 | ADR-026: tournament, referral, chat, backup UI | P2 | done | arena-2026-08-20-J | 2026-08-20 |
 
 ---
 

@@ -1780,3 +1780,9 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 Задачи: T-134 … T-138
 Локи: `backend`
 
+
+### Сделано (смена J — делаю всё)
+
+**T-134…T-138 done:** tournament UI animated, referral UI progress, chat auto-scroll, backup UI status, ADR-026
+
+**SHIFT END** 11:00 UTC — смена J закрыта
