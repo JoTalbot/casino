@@ -1,0 +1,6 @@
+agent: arena-2026-08-20-R
+task: T-174
+scope: src/server/**, src/server/*.test.ts
+started: 2026-08-20T04:10:00Z
+expires: 2026-08-20T10:10:00Z
+note: аудит смен H-Q, починка сломанного роутинга /referrals, тесты соц-слоя на in-memory БД
