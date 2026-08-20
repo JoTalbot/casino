@@ -1,0 +1,6 @@
+agent: arena-2026-08-20-L
+task: T-144
+scope: client/**, src/server/**, docs/**
+started: 2026-08-20T12:30:00Z
+expires: 2026-08-20T16:30:00Z
+note: продолжаю + — tournament UI, referral UI, chat UI, backup UI, ADR
