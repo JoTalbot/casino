@@ -1,0 +1,6 @@
+agent: arena-2026-08-20-O
+task: T-159
+scope: client/**, src/server/**
+started: 2026-08-20T15:30:00Z
+expires: 2026-08-20T19:30:00Z
+note: продолжаю + — tournament, referral, chat, backup, ADR
