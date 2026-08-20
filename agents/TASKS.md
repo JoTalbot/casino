@@ -3,13 +3,13 @@
 Статусы: `todo` → `in-progress` → `blocked` / `review` → `done` / `cancelled`
 Приоритеты: `P0` критично · `P1` важно · `P2` желательно · `P3` потом
 
-**ID не переиспользуются.** Следующий свободный ID: **T-139**
+**ID не переиспользуются.** Следующий свободный ID: **T-144**
 
 ---
 
 ## Активные и запланированные
 
-**Весь бэклог T-001…T-138 закрыт.** Новых активных задач нет.
+**Весь бэклог T-001…T-143 закрыт.** Новых активных задач нет.
 
 ---
 
@@ -17,11 +17,11 @@
 
 | ID | Задача | Приоритет | Статус | Агент | Обновлено |
 |----|--------|-----------|--------|-------|-----------|
-| T-134 | Tournament UI improved — анимация прогресса | P2 | done | arena-2026-08-20-J | 2026-08-20 |
-| T-135 | Referral UI improved — прогресс бар и список | P2 | done | arena-2026-08-20-J | 2026-08-20 |
-| T-136 | Chat UI improved — автоскролл и модерация | P2 | done | arena-2026-08-20-J | 2026-08-20 |
-| T-137 | Backup UI improved — статус и прогресс | P2 | done | arena-2026-08-20-J | 2026-08-20 |
-| T-138 | ADR-026: tournament, referral, chat, backup UI | P2 | done | arena-2026-08-20-J | 2026-08-20 |
+| T-139 | Tournament leaderboard with avatars improved | P2 | done | arena-2026-08-20-K | 2026-08-20 |
+| T-140 | Referral share improved | P2 | done | arena-2026-08-20-K | 2026-08-20 |
+| T-141 | PWA offline improved | P2 | done | arena-2026-08-20-K | 2026-08-20 |
+| T-142 | Backup verification improved | P2 | done | arena-2026-08-20-K | 2026-08-20 |
+| T-143 | ADR-027 | P2 | done | arena-2026-08-20-K | 2026-08-20 |
 
 ---
 
