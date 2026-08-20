@@ -1597,3 +1597,17 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 **T-103 ADR-019**
 
 **SHIFT END** 03:30 UTC (20.08) — смена C закрыта, T-099…T-103 done
+
+---
+
+## 2026-08-20 — arena-2026-08-20-D
+
+**SHIFT START** 03:30 UTC (20.08)
+Задачи: T-104 … T-108
+Локи: `backend`
+
+### Контекст
+- Пользователь "+" пятнадцатый раз — делаю всё дальше после T-103.
+- Всё до 103 закрыто, протокол зелёный, next ID T-104.
+- План: tournament animated progress, referral graph, email with images, backup cron improved, ADR-020
+
