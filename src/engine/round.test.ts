@@ -204,12 +204,22 @@ describe("оценка линий", () => {
   });
 
   test("по линии берётся максимум, а не первый подходящий символ", () => {
-    // wild-wild-wild-TEN-TEN: CROWN за 3 (150) выгоднее TEN за 5 (113).
+    // wild-wild-wild-TEN-TEN читается двумя способами: три короны (через
+    // wild) или пять десяток. Движок обязан выбрать дороже.
+    //
+    // Суммы берутся из конфигурации, а не зашиваются: они меняются при
+    // каждой перекалибровке математики, и зашитое число превращает
+    // осмысленный тест в ложную тревогу (так и вышло при переходе на
+    // бонус с сундуками, T-211).
+    const crownThree = cfg.paytable.CROWN["3"] ?? 0;
+    const tenFive = cfg.paytable.TEN["5"] ?? 0;
+    assert.ok(crownThree > tenFive, "предпосылка теста: три короны дороже пяти десяток");
+
     const { total, details } = evaluateLines(
       cfg,
       singleLine(["WILD", "WILD", "WILD", "TEN", "TEN"]),
     );
-    assert.equal(total, 150);
+    assert.equal(total, crownThree);
     assert.equal(details[0].symbol, "CROWN");
   });
 

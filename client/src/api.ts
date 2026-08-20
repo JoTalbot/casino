@@ -304,7 +304,7 @@ function normalizeGame(raw: unknown): GameInfo {
     lines: (g.lines as number) ?? 20,
     symbols: (g.symbols as string[]) ?? [],
     wild: (g.wild as string) ?? "WILD",
-    scatter: (g.scatter as string) ?? "SCATTER",
+    scatter: (g.scatter as string) ?? "CHEST",
     paytable: (g.paytable as Record<string, Record<string, number>>) ?? {},
     scatterPays: (g.scatterPays as Record<string, number>) ?? (g.scatterPays as Record<string, number>) ?? {},
     freeSpinsAward: (g.freeSpinsAward as Record<string, number>) ?? (g as { freeSpins?: { award?: Record<string, number> } }).freeSpins?.award ?? {},

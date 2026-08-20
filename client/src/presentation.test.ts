@@ -20,6 +20,13 @@ import {
 } from "./presentation.js";
 import type { SpinRecord } from "./api.js";
 
+/**
+ * Имя символа-триггера читается из конфигурации игры, а не зашивается.
+ * При переходе на бонус с сундуками (T-211) scatter переименован в CHEST,
+ * и зашитая строка превратила бы осмысленные тесты в ложные падения.
+ */
+const SCATTER_ID: string = JSON.parse(readFileSync("../config/game.json", "utf8")).scatter;
+
 interface FixtureCase {
   kind: string;
   nonce: number;
@@ -129,23 +136,23 @@ describe("предвкушение (anticipation)", () => {
       ["A", "TEN", "J"],
       ["Q", "K", "A"],
     ];
-    expect(anticipationReels(grid, "SCATTER")).toEqual([]);
+    expect(anticipationReels(grid, SCATTER_ID)).toEqual([]);
   });
 
   it("тормозит оставшиеся барабаны после второго скаттера", () => {
     const grid = [
-      ["SCATTER", "J", "Q"],
-      ["SCATTER", "A", "TEN"],
+      [SCATTER_ID, "J", "Q"],
+      [SCATTER_ID, "A", "TEN"],
       ["J", "Q", "K"],
       ["A", "TEN", "J"],
       ["Q", "K", "A"],
     ];
-    expect(anticipationReels(grid, "SCATTER")).toEqual([2, 3, 4]);
+    expect(anticipationReels(grid, SCATTER_ID)).toEqual([2, 3, 4]);
   });
 
   it("не возвращает индексы вне набора барабанов", () => {
     for (const spin of allSpins) {
-      for (const reel of anticipationReels(spin.grid, "SCATTER")) {
+      for (const reel of anticipationReels(spin.grid, SCATTER_ID)) {
         expect(reel).toBeGreaterThanOrEqual(0);
         expect(reel).toBeLessThan(5);
       }
@@ -153,7 +160,7 @@ describe("предвкушение (anticipation)", () => {
   });
 
   it("срабатывает хотя бы на одном спине из фикстур", () => {
-    const triggered = allSpins.filter((s) => anticipationReels(s.grid, "SCATTER").length > 0);
+    const triggered = allSpins.filter((s) => anticipationReels(s.grid, SCATTER_ID).length > 0);
     expect(triggered.length).toBeGreaterThan(0);
   });
 });

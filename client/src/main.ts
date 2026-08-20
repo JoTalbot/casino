@@ -41,7 +41,6 @@ const ui = {
   spin: document.getElementById("spin") as HTMLButtonElement,
   turbo: document.getElementById("turbo") as HTMLInputElement,
   bonusOpen: document.getElementById("bonus-open") as HTMLButtonElement,
-  bonusLabel: document.getElementById("bonus-label") as HTMLElement,
   bonusModal: document.getElementById("bonus-modal") as HTMLElement,
   bonusClose: document.getElementById("bonus-close") as HTMLButtonElement,
   autoCount: document.getElementById("auto-count") as HTMLSelectElement,
@@ -558,52 +557,18 @@ async function main(): Promise<void> {
     if (e.target === ui.realityModal) ui.realityModal.classList.add("hidden");
   });
 
-  // --- Бонус-игра «Сундуки короны» (T-195) ---
-  //
-  // Тир выбирается ДО спина и уходит на сервер вместе с запросом раунда.
-  // Так выбор попадает в запись раунда и в проверку: раунд можно
-  // переиграть офлайн. Пост-фактум выбор был бы не проверяемым.
-  const BONUS_LABELS: Record<number, string> = { 1: "обычный", 5: "рискованный", 25: "всё и сразу" };
-  const BONUS_KEY = "casino_bonus_tier";
-  let bonusTier = (() => {
-    try {
-      const stored = Number(localStorage.getItem(BONUS_KEY));
-      return stored === 5 || stored === 25 ? stored : 1;
-    } catch {
-      return 1;
-    }
-  })();
-
-  function applyBonusTier(tier: number): void {
-    bonusTier = tier;
-    ui.bonusLabel.textContent = BONUS_LABELS[tier] ?? "обычный";
-    try { localStorage.setItem(BONUS_KEY, String(tier)); } catch {}
-    for (const node of document.querySelectorAll<HTMLElement>(".chest")) {
-      node.classList.toggle("active", Number(node.dataset.tier) === tier);
-    }
-  }
-  applyBonusTier(bonusTier);
+  // Бонус ловится на барабанах: три сундука дают серию фриспинов на
+  // премиальных лентах (T-211). Выбор формы серии до спина убран —
+  // владелец справедливо заметил, что бонус должен выпадать, а не
+  // настраиваться. Движок такую возможность сохранил (bonusTier), но
+  // клиент всегда шлёт обычный режим.
+  const bonusTier = 1;
 
   ui.bonusOpen.addEventListener("click", () => ui.bonusModal.classList.remove("hidden"));
   ui.bonusClose.addEventListener("click", () => ui.bonusModal.classList.add("hidden"));
   ui.bonusModal.addEventListener("click", (e) => {
     if (e.target === ui.bonusModal) ui.bonusModal.classList.add("hidden");
   });
-  for (const node of document.querySelectorAll<HTMLElement>(".chest")) {
-    node.addEventListener("click", () => {
-      const tier = Number(node.dataset.tier) || 1;
-      applyBonusTier(tier);
-      haptic.select();
-      // Крышка «открывается» на выбранном сундуке — маленькая обратная связь.
-      const img = node.querySelector("img");
-      if (img) {
-        img.setAttribute("src", "/bonus/chest_open.png");
-        setTimeout(() => img.setAttribute("src", "/bonus/chest_closed.png"), 900);
-      }
-      log(`Бонус: ${BONUS_LABELS[tier]}`, "free");
-      setTimeout(() => ui.bonusModal.classList.add("hidden"), 450);
-    });
-  }
 
   // В Telegram спин переезжает на нативную главную кнопку: она крупная,
   // всегда внизу экрана и не уезжает при скролле.

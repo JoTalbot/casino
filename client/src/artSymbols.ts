@@ -47,7 +47,7 @@ export const SYMBOL_THEMES: Record<string, SymbolTheme> = {
   RING: { accent: 0xffc978, shade: 0xa96c1c, glyph: "КОЛЬЦО", rank: "high", shape: "ring" },
   CROWN: { accent: 0xffd257, shade: 0xa8741a, glyph: "КОРОНА", rank: "high", shape: "crown" },
   WILD: { accent: 0xff77dd, shade: 0x8e1c74, glyph: "WILD", rank: "special", shape: "wild" },
-  SCATTER: { accent: 0x5cffb8, shade: 0x11785a, glyph: "SCATTER", rank: "special", shape: "scatter" },
+  CHEST: { accent: 0xffc978, shade: 0x7a4a12, glyph: "СУНДУК", rank: "special", shape: "scatter" },
 };
 
 const FALLBACK: SymbolTheme = { accent: 0x8899aa, shade: 0x44515f, glyph: "?", rank: "low", shape: "royal" };
@@ -66,7 +66,7 @@ const ICON_FILES: Record<string, string> = {
   CHALICE: "chalice",
   SWORD: "sword",
   WILD: "wild",
-  SCATTER: "scatter",
+  CHEST: "chest",
   A: "A",
   K: "K",
   Q: "Q",
@@ -80,7 +80,7 @@ const ICON_FIT: Record<string, number> = {
   CHALICE: 0.76,
   SWORD: 0.82,
   WILD: 0.8,
-  SCATTER: 0.74,
+  CHEST: 0.82,
   A: 0.66,
   K: 0.66,
   Q: 0.66,
@@ -547,7 +547,7 @@ class SymbolPainter {
     // Искра
     g.circle(-r * 0.28, cy - r * 0.32, s * 0.022).fill({ color: 0xffffff, alpha: 0.95 });
 
-    this.label.text = "SCATTER";
+    this.label.text = "СУНДУК";
     this.label.style.fontSize = Math.max(8, Math.round(s * 0.1));
     this.label.style.fill = t.accent;
     this.label.style.stroke = { width: Math.max(1, s * 0.01), color: 0x06231a };

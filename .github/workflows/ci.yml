@@ -134,7 +134,7 @@ jobs:
         # configHash вшит в верификатор и в фикстуры. Незамеченное
         # изменение сломало бы проверку всех уже сыгранных раундов.
         run: |
-          EXPECTED=5f9b9c35c7b483eb718d5bf59d48514aa3103b9fb53c20133ff1f9947ac1d70e
+          EXPECTED=a5852c7ee58d51f76046331f93d393ed05244d8b15d02d22ac02e57ddc8cd77e
           ACTUAL=$(python3 -c "
           import sys; sys.path.insert(0, '.')
           from slotmath.config import load_config

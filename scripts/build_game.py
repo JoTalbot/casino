@@ -28,14 +28,20 @@ from slotmath.strips import build_strip, max_scatter_in_window  # noqa: E402
 #   CROWN  — топовый символ
 #   RING, CHALICE, SWORD — премиальные
 #   A, K, Q, J, TEN — низкие (карточные)
-#   WILD    — замещает всё, кроме scatter
-#   SCATTER — триггер фриспинов, платит из любой позиции
+#   WILD    — замещает всё, кроме сундука
+#   CHEST   — сундук: триггер бонуса, платит из любой позиции
+#
+# Версия 1.1.0 (T-211): scatter переименован в CHEST и стал сундуком —
+# «поймай три сундука». Бонусная серия крутится на лентах, где нет ни одного
+# карточного символа: только меч, кубок, перстень, корона и wild. Это резко
+# поднимает ценность фриспинов, поэтому награда снижена с 10/15/25 до
+# 8/12/20, а базовая игра пересчитана калибровкой под те же 96%.
 
 SYMBOLS = [
     "TEN", "J", "Q", "K", "A",          # низкие
     "SWORD", "CHALICE", "RING",         # премиальные
     "CROWN",                            # топ
-    "WILD", "SCATTER",
+    "WILD", "CHEST",
 ]
 
 PREMIUM = ["CROWN", "RING", "CHALICE", "SWORD"]
@@ -72,49 +78,55 @@ PAYTABLE = {
 # отраслевая норма для средней волатильности.
 BASE_COUNTS = [
     # барабан 0 (без wild)
-    {"TEN": 7, "J": 7, "Q": 6, "K": 6, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 2, "CROWN": 1, "SCATTER": 1},
+    {"TEN": 7, "J": 7, "Q": 6, "K": 6, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 2, "CROWN": 1, "CHEST": 1},
     # барабан 1
-    {"TEN": 6, "J": 6, "Q": 6, "K": 5, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 2, "CROWN": 1, "WILD": 2, "SCATTER": 1},
+    {"TEN": 6, "J": 6, "Q": 6, "K": 5, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 2, "CROWN": 1, "WILD": 2, "CHEST": 1},
     # барабан 2
-    {"TEN": 6, "J": 6, "Q": 6, "K": 5, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 2, "CROWN": 1, "WILD": 2, "SCATTER": 1},
+    {"TEN": 6, "J": 6, "Q": 6, "K": 5, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 2, "CROWN": 1, "WILD": 2, "CHEST": 1},
     # барабан 3
-    {"TEN": 6, "J": 6, "Q": 6, "K": 5, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 2, "CROWN": 1, "WILD": 2, "SCATTER": 1},
+    {"TEN": 6, "J": 6, "Q": 6, "K": 5, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 2, "CROWN": 1, "WILD": 2, "CHEST": 1},
     # барабан 4 (без wild)
-    {"TEN": 7, "J": 7, "Q": 6, "K": 6, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 2, "CROWN": 1, "SCATTER": 1},
+    {"TEN": 7, "J": 7, "Q": 6, "K": 6, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 2, "CROWN": 1, "CHEST": 1},
 ]
 
-# Ленты фриспинов: вдвое больше wild, больше премиальных, меньше мусора.
-# Scatter оставляем по 1 — иначе ретриггер разгоняется и RTP уходит в разнос.
+# Ленты бонуса: НИ ОДНОГО карточного символа.
+#
+# В бонусе крутятся только меч, кубок, перстень, корона и wild — каждый
+# оборот собирает премиальную комбинацию, и это главный смысл фичи.
+# Сундук оставляем по одному на барабан: он нужен для ретриггера, но при
+# большем количестве серия разгоняется и RTP уходит в разнос.
+#
+# Расплата за щедрость — редкость: триггер примерно раз в 290 спинов.
 FREE_COUNTS = [
-    {"TEN": 6, "J": 6, "Q": 5, "K": 5, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 3, "CROWN": 2, "SCATTER": 1},
-    {"TEN": 5, "J": 5, "Q": 5, "K": 4, "A": 4, "SWORD": 4, "CHALICE": 3, "RING": 3, "CROWN": 2, "WILD": 4, "SCATTER": 1},
-    {"TEN": 5, "J": 5, "Q": 5, "K": 4, "A": 4, "SWORD": 4, "CHALICE": 3, "RING": 3, "CROWN": 2, "WILD": 4, "SCATTER": 1},
-    {"TEN": 5, "J": 5, "Q": 5, "K": 4, "A": 4, "SWORD": 4, "CHALICE": 3, "RING": 3, "CROWN": 2, "WILD": 4, "SCATTER": 1},
-    {"TEN": 6, "J": 6, "Q": 5, "K": 5, "A": 5, "SWORD": 4, "CHALICE": 3, "RING": 3, "CROWN": 2, "SCATTER": 1},
+    {"SWORD": 14, "CHALICE": 10, "RING": 7, "CROWN": 4, "CHEST": 1},
+    {"SWORD": 13, "CHALICE": 9, "RING": 6, "CROWN": 3, "WILD": 5, "CHEST": 1},
+    {"SWORD": 13, "CHALICE": 9, "RING": 6, "CROWN": 3, "WILD": 5, "CHEST": 1},
+    {"SWORD": 13, "CHALICE": 9, "RING": 6, "CROWN": 3, "WILD": 5, "CHEST": 1},
+    {"SWORD": 14, "CHALICE": 10, "RING": 7, "CROWN": 4, "CHEST": 1},
 ]
 
 
 def main() -> int:
-    base_reels = [build_strip(c, "SCATTER", "WILD", PREMIUM) for c in BASE_COUNTS]
-    free_reels = [build_strip(c, "SCATTER", "WILD", PREMIUM) for c in FREE_COUNTS]
+    base_reels = [build_strip(c, "CHEST", "WILD", PREMIUM) for c in BASE_COUNTS]
+    free_reels = [build_strip(c, "CHEST", "WILD", PREMIUM) for c in FREE_COUNTS]
 
     # Проверка: не более одного scatter в окне на барабан.
     for i, reel in enumerate(base_reels):
-        m = max_scatter_in_window(reel, "SCATTER")
+        m = max_scatter_in_window(reel, "CHEST")
         if m > 1:
             print(f"ВНИМАНИЕ: барабан {i} может показать {m} scatter в окне")
 
     cfg = GameConfig(
         name="Crown of Fortune",
-        version="1.0.0",
+        version="1.1.0",
         symbols=SYMBOLS,
         paytable=PAYTABLE,
         base_reels=base_reels,
         free_reels=free_reels,
         wild="WILD",
-        scatter="SCATTER",
+        scatter="CHEST",
         scatter_trigger=3,
-        free_spins_award={3: 10, 4: 15, 5: 25},
+        free_spins_award={3: 8, 4: 12, 5: 20},
         scatter_pays={3: 2, 4: 10, 5: 50},
         free_spin_multiplier=2,
         retrigger_enabled=True,
@@ -124,8 +136,11 @@ def main() -> int:
         max_win_cap=5000,
         meta={
             "grid": "5x3",
-            "volatility": "medium",
-            "description": "Классический слот 5x3 на 20 фиксированных линий",
+            # Волатильность выросла с переходом на бонус: 61% отдачи лежит
+            # во фриспинах, которые выпадают раз в ~294 спина. Сигма по
+            # симуляции 11.5 против 4.1 у прежней математики.
+            "volatility": "high",
+            "description": "Слот 5x3 на 20 линий: три сундука дают бонус на премиальных лентах",
         },
     )
     cfg.validate()

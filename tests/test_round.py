@@ -138,18 +138,19 @@ class TestLineEvaluation(unittest.TestCase):
         возвращает окно в формате window[reel][row]."""
         return [[rows[row][reel] for row in range(NUM_ROWS)] for reel in range(NUM_REELS)]
 
-    @staticmethod
-    def _single_line(symbols):
+    # Не staticmethod: имя символа-заполнителя берётся из конфигурации,
+    # чтобы переименование scatter не ломало тесты (T-211).
+    def _single_line(self, symbols):
         """
         Сетка, в которой платить может ТОЛЬКО центральная линия (линия 1).
 
-        Верхний и нижний ряды забиты SCATTER. Это единственный символ,
+        Верхний и нижний ряды забиты сундуками. Это единственный символ,
         отсутствующий в paytable, поэтому он не образует выигрышных серий
         и, попадая в любую другую линию, обрывает её на первом же барабане.
         Без такой изоляции проверка одной линии превращается в проверку
         всех двадцати — на чём эти тесты и упали в первой редакции.
         """
-        rows = [["SCATTER"] * NUM_REELS, list(symbols), ["SCATTER"] * NUM_REELS]
+        rows = [[self.cfg.scatter] * NUM_REELS, list(symbols), [self.cfg.scatter] * NUM_REELS]
         return [[rows[row][reel] for row in range(NUM_ROWS)] for reel in range(NUM_REELS)]
 
     def test_isolation_helper_really_isolates(self):
@@ -167,9 +168,14 @@ class TestLineEvaluation(unittest.TestCase):
         self.assertEqual(details, [])
 
     def test_five_of_a_kind_on_centre_line(self):
-        """Пять CROWN на линии 1 дают 3006 ставок на линию."""
+        """Пять CROWN на линии 1 оплачиваются по таблице выплат.
+
+        Сумма читается из конфигурации, а не зашивается: она меняется при
+        каждой перекалибровке математики, и зашитое число превращает
+        осмысленный тест в ложную тревогу (T-211).
+        """
         total, details = evaluate_lines(self.cfg, self._single_line(["CROWN"] * 5))
-        self.assertEqual(total, 3006)
+        self.assertEqual(total, self.cfg.paytable["CROWN"][5])
         self.assertEqual(len(details), 1)
         self.assertEqual(details[0]["line"], 1)
         self.assertEqual(details[0]["symbol"], "CROWN")
@@ -203,8 +209,9 @@ class TestLineEvaluation(unittest.TestCase):
         total, details = evaluate_lines(
             self.cfg, self._single_line(["WILD", "WILD", "WILD", "TEN", "TEN"])
         )
-        # Варианты: CROWN за 3 совпадения (150) или TEN за 5 (113).
-        self.assertEqual(total, 150)
+        # Варианты: три короны через wild или пять десяток. Берётся дороже.
+        self.assertGreater(self.cfg.paytable["CROWN"][3], self.cfg.paytable["TEN"][5])
+        self.assertEqual(total, self.cfg.paytable["CROWN"][3])
         self.assertEqual(details[0]["symbol"], "CROWN")
 
     def test_win_details_positions_cover_the_run(self):
@@ -214,15 +221,15 @@ class TestLineEvaluation(unittest.TestCase):
         self.assertEqual(details[0]["positions"], [[0, 1], [1, 1], [2, 1]])
 
     def test_scatter_does_not_pay_on_lines(self):
-        grid = [["SCATTER"] * NUM_ROWS for _ in range(NUM_REELS)]
+        grid = [[self.cfg.scatter] * NUM_ROWS for _ in range(NUM_REELS)]
         total, _ = evaluate_lines(self.cfg, grid)
         self.assertEqual(total, 0)
 
     def test_scatter_count_ignores_position(self):
         grid = self._grid(
             [
-                ["SCATTER", "J", "Q", "K", "SCATTER"],
-                ["TEN", "SCATTER", "K", "A", "TEN"],
+                [self.cfg.scatter, "J", "Q", "K", self.cfg.scatter],
+                ["TEN", self.cfg.scatter, "K", "A", "TEN"],
                 ["Q", "K", "A", "TEN", "J"],
             ]
         )

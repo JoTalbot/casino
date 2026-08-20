@@ -33,7 +33,7 @@ export const SYMBOL_THEMES: Record<string, SymbolTheme> = {
   RING: { fill: 0x33304a, accent: 0xf0b45a, glyph: "КОЛЬЦО" },
   CROWN: { fill: 0x3a2f22, accent: 0xffd257, glyph: "КОРОНА" },
   WILD: { fill: 0x3d1f4d, accent: 0xff5fd2, glyph: "WILD" },
-  SCATTER: { fill: 0x14332c, accent: 0x4dffa8, glyph: "SCATTER" },
+  CHEST: { fill: 0x33230f, accent: 0xffc978, glyph: "СУНДУК" },
 };
 
 const FALLBACK: SymbolTheme = { fill: 0x222222, accent: 0x888888, glyph: "?" };

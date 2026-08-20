@@ -196,6 +196,15 @@
       .chest-title { font-weight: 700; color: #ffd257; font-size: 15px; }
       .chest-desc { font-size: 12px; color: var(--text); text-align: center; min-height: 32px; }
       .chest-risk { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+      .bonus-facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 12px 0 4px; }
+      .bonus-facts div {
+        display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+        padding: 9px 12px; border-radius: 10px;
+        background: linear-gradient(180deg, rgba(60, 42, 12, .55), rgba(24, 18, 8, .55));
+        border: 1px solid rgba(255, 210, 87, .22);
+      }
+      .bonus-facts span { color: var(--muted); font-size: 12px; }
+      .bonus-facts b { color: #ffd257; }
       .bonus-note { margin-top: 14px; }
       .auto-wrap { display: flex; gap: 6px; align-items: center; }
       #auto-start.running {
@@ -374,7 +383,7 @@
               </select>
             </div>
             <label class="check"><input type="checkbox" id="turbo" /> Турбо</label>
-            <button id="bonus-open" class="bonus-btn">🎁 Бонус: <b id="bonus-label">обычный</b></button>
+            <button id="bonus-open" class="bonus-btn">🎁 Бонус</button>
             <div class="auto-wrap">
               <select id="auto-count" title="Автоспин">
                 <option value="0">Авто: выкл</option>
@@ -560,36 +569,24 @@
 
     <div id="bonus-modal" class="modal hidden">
       <div class="modal-box bonus-box">
-        <h3>Сундуки короны</h3>
+        <h3>Бонус «Сокровищница»</h3>
         <p class="bonus-lead">
-          Выбери форму бонусной серии. Денег в игре от этого не прибавляется и не убавляется —
-          выигрыш распределяется иначе: короче серия, дороже каждый спин.
+          Поймай <b>три сундука</b> на барабанах — и откроется бонусная серия.
+          В ней барабаны собраны только из премиальных символов: меч, кубок,
+          перстень, корона и wild. Ни одной карточной десятки.
         </p>
-        <div class="chests">
-          <button class="chest" data-tier="1">
-            <img src="/bonus/chest_closed.png" alt="" />
-            <span class="chest-title">Обычный</span>
-            <span class="chest-desc">Вся серия фриспинов, множитель ×2</span>
-            <span class="chest-risk">риск: низкий</span>
-          </button>
-          <button class="chest" data-tier="5">
-            <img src="/bonus/chest_closed.png" alt="" />
-            <span class="chest-title">Рискованный</span>
-            <span class="chest-desc">Спинов в 5 раз меньше, каждый в 5 раз дороже</span>
-            <span class="chest-risk">риск: средний</span>
-          </button>
-          <button class="chest" data-tier="25">
-            <img src="/bonus/chest_closed.png" alt="" />
-            <span class="chest-title">Всё и сразу</span>
-            <span class="chest-desc">Один спин на всю серию, множитель до ×25</span>
-            <span class="chest-risk">риск: высокий</span>
-          </button>
+        <div class="bonus-facts">
+          <div><span>3 сундука</span><b>8 фриспинов</b></div>
+          <div><span>4 сундука</span><b>12 фриспинов</b></div>
+          <div><span>5 сундуков</span><b>20 фриспинов</b></div>
+          <div><span>Множитель серии</span><b>×2</b></div>
         </div>
         <p class="note bonus-note">
-          Выбор сохраняется и применяется к следующим раундам. Тир участвует в
-          проверке раунда: без него результат не воспроизвести.
+          Сундуки платят и сами по себе, из любой позиции: 3 — двойная ставка,
+          4 — десятикратная, 5 — пятидесятикратная. Внутри серии сундуки
+          продлевают её.
         </p>
-        <div class="modal-actions"><button id="bonus-close">Закрыть</button></div>
+        <div class="modal-actions"><button id="bonus-close">Понятно</button></div>
       </div>
     </div>
 

@@ -20,6 +20,13 @@ import { describe, expect, it } from "vitest";
 import { toColumnTargets } from "./presentation.js";
 import type { SpinRecord } from "./api.js";
 
+/**
+ * Имя символа-триггера читается из конфигурации игры, а не зашивается.
+ * При переходе на бонус с сундуками (T-211) scatter переименован в CHEST,
+ * и зашитая строка превратила бы осмысленные тесты в ложные падения.
+ */
+const SCATTER_ID: string = JSON.parse(readFileSync("../config/game.json", "utf8")).scatter;
+
 interface FixtureCase {
   kind: string;
   nonce: number;
@@ -45,7 +52,7 @@ function harness() {
 }
 
 describe("сетка сервера на барабанах", () => {
-  it("каждый спин всех 26 фикстур садится символ в символ", async () => {
+  it("каждый спин всех фикстур садится символ в символ", async () => {
     const { reelSet, spinAndLand, destroy } = harness();
     try {
       for (const spin of allSpins) {
@@ -56,7 +63,10 @@ describe("сетка сервера на барабанах", () => {
     } finally {
       destroy();
     }
-    expect(allSpins.length).toBe(136);
+    // Число спинов в фикстурах зависит от математики: при смене награды
+    // за бонус (10/15/25 -> 8/12/20) серий стало короче. Проверяем, что
+    // фикстуры вообще прогнаны и не выродились, а не конкретное число.
+    expect(allSpins.length).toBeGreaterThanOrEqual(100);
   });
 
   it("число скаттеров на экране совпадает с серверным scatterCount", async () => {
@@ -64,7 +74,7 @@ describe("сетка сервера на барабанах", () => {
     try {
       for (const spin of allSpins) {
         await spinAndLand(toColumnTargets(spin.grid));
-        expect(countSymbol(reelSet, "SCATTER")).toBe(spin.scatterCount);
+        expect(countSymbol(reelSet, SCATTER_ID)).toBe(spin.scatterCount);
       }
     } finally {
       destroy();
@@ -79,7 +89,7 @@ describe("сетка сервера на барабанах", () => {
     try {
       for (const spin of triggers) {
         await spinAndLand(toColumnTargets(spin.grid));
-        expect(countSymbol(reelSet, "SCATTER")).toBeGreaterThanOrEqual(3);
+        expect(countSymbol(reelSet, SCATTER_ID)).toBeGreaterThanOrEqual(3);
       }
     } finally {
       destroy();

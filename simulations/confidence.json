@@ -1,237 +1,237 @@
 {
   "config": {
     "name": "Crown of Fortune",
-    "version": "1.0.0",
-    "hash": "5f9b9c35c7b483eb718d5bf59d48514aa3103b9fb53c20133ff1f9947ac1d70e"
+    "version": "1.1.0",
+    "hash": "a5852c7ee58d51f76046331f93d393ed05244d8b15d02d22ac02e57ddc8cd77e"
   },
-  "analyticRtp": 0.9597784185506371,
+  "analyticRtp": 0.9602190221627007,
   "sampleRounds": 5000000,
   "seed": 20260817,
-  "meanRtp": 0.96027991,
-  "sigma": 4.1259543770684495,
-  "volatilityIndex": 6.786591021757341,
-  "edge": 0.039720089999999986,
+  "meanRtp": 0.9562828,
+  "sigma": 11.61823452358829,
+  "volatilityIndex": 19.11029519489701,
+  "edge": 0.04371720000000001,
   "convergence": [
     {
       "tolerancePp": 5.0,
-      "spins90": 18424,
-      "spins95": 26159,
-      "spins99": 45180
+      "spins90": 146082,
+      "spins95": 207414,
+      "spins99": 358241
     },
     {
       "tolerancePp": 2.0,
-      "spins90": 115145,
-      "spins95": 163488,
-      "spins99": 282373
+      "spins90": 913009,
+      "spins95": 1296333,
+      "spins99": 2239002
     },
     {
       "tolerancePp": 1.0,
-      "spins90": 460579,
-      "spins95": 653951,
-      "spins99": 1129492
+      "spins90": 3652034,
+      "spins95": 5185331,
+      "spins99": 8956008
     },
     {
       "tolerancePp": 0.5,
-      "spins90": 1842313,
-      "spins95": 2615803,
-      "spins99": 4517967
+      "spins90": 14608136,
+      "spins95": 20741323,
+      "spins99": 35824030
     },
     {
       "tolerancePp": 0.2,
-      "spins90": 11514455,
-      "spins95": 16348769,
-      "spins99": 28237290
+      "spins90": 91300846,
+      "spins95": 129633268,
+      "spins99": 223900182
     },
     {
       "tolerancePp": 0.1,
-      "spins90": 46057818,
-      "spins95": 65395073,
-      "spins99": 112949160
+      "spins90": 365203383,
+      "spins95": 518533071,
+      "spins99": 895600726
     },
     {
       "tolerancePp": 0.05,
-      "spins90": 184231271,
-      "spins95": 261580290,
-      "spins99": 451796637
+      "spins90": 1460813530,
+      "spins95": 2074132283,
+      "spins99": 3582402903
     }
   ],
   "spread": [
     {
       "spins": 1000,
-      "normalHalfWidthPp": 25.57246026422287,
-      "empiricalP025": 0.7456974999999999,
-      "empiricalP50": 0.94705,
-      "empiricalP975": 1.2551999999999999,
-      "empiricalHalfWidthPp": 25.475125,
-      "skewRatio": 0.9961937465845221,
-      "tailRatio": 1.5304006654995586,
-      "outsideBand": 0.9667
+      "normalHalfWidthPp": 72.00924041869376,
+      "empiricalP025": 0.35169875,
+      "empiricalP50": 0.915775,
+      "empiricalP975": 1.7898137499999989,
+      "empiricalHalfWidthPp": 71.90574999999994,
+      "skewRatio": 0.9985628175204726,
+      "tailRatio": 1.5495046104139267,
+      "outsideBand": 0.9903
     },
     {
       "spins": 2000,
-      "normalHalfWidthPp": 18.08246006445552,
-      "empiricalP025": 0.798925,
-      "empiricalP50": 0.95245,
-      "empiricalP975": 1.164050625,
-      "empiricalHalfWidthPp": 18.25628125,
-      "skewRatio": 1.0096126956688907,
-      "tailRatio": 1.378281224556261,
-      "outsideBand": 0.9569
+      "normalHalfWidthPp": 50.91822220815078,
+      "empiricalP025": 0.5088412499999999,
+      "empiricalP50": 0.9333374999999999,
+      "empiricalP975": 1.5372999999999997,
+      "empiricalHalfWidthPp": 51.42293749999999,
+      "skewRatio": 1.0099122724628122,
+      "tailRatio": 1.4227746417076705,
+      "outsideBand": 0.9855
     },
     {
       "spins": 5000,
-      "normalHalfWidthPp": 11.436351900542913,
-      "empiricalP025": 0.85349,
-      "empiricalP50": 0.9577199999999999,
-      "empiricalP975": 1.08213025,
-      "empiricalHalfWidthPp": 11.432012500000004,
-      "skewRatio": 0.9996205607714203,
-      "tailRatio": 1.1936126834884413,
-      "outsideBand": 0.934
+      "normalHalfWidthPp": 32.20351131686493,
+      "empiricalP025": 0.6551485,
+      "empiricalP50": 0.9466100000000001,
+      "empiricalP975": 1.3019654999999994,
+      "empiricalHalfWidthPp": 32.34084999999997,
+      "skewRatio": 1.0042647114404295,
+      "tailRatio": 1.2192193480099407,
+      "outsideBand": 0.97495
     },
     {
       "spins": 10000,
-      "normalHalfWidthPp": 8.086721980909555,
-      "empiricalP025": 0.8835048750000001,
-      "empiricalP50": 0.9583849999999999,
-      "empiricalP975": 1.044950125,
-      "empiricalHalfWidthPp": 8.072262499999994,
-      "skewRatio": 0.9982119478147392,
-      "tailRatio": 1.1560494189880184,
-      "outsideBand": 0.903
+      "normalHalfWidthPp": 22.77132123017292,
+      "empiricalP025": 0.74159975,
+      "empiricalP50": 0.951715,
+      "empiricalP975": 1.19985725,
+      "empiricalHalfWidthPp": 22.912875,
+      "skewRatio": 1.0062163178146868,
+      "tailRatio": 1.1809816279399046,
+      "outsideBand": 0.96895
     },
     {
       "spins": 20000,
-      "normalHalfWidthPp": 5.718175950271457,
-      "empiricalP025": 0.90586975,
-      "empiricalP50": 0.9594912499999999,
-      "empiricalP975": 1.0183935625,
-      "empiricalHalfWidthPp": 5.626190625,
-      "skewRatio": 0.9839135196133497,
-      "tailRatio": 1.0984831177792536,
-      "outsideBand": 0.85765
+      "normalHalfWidthPp": 16.101755658432467,
+      "empiricalP025": 0.8003475625000002,
+      "empiricalP50": 0.9541912499999999,
+      "empiricalP975": 1.1193529375,
+      "empiricalHalfWidthPp": 15.95026874999999,
+      "skewRatio": 0.9905919011786057,
+      "tailRatio": 1.0735681793898777,
+      "outsideBand": 0.9512
     },
     {
       "spins": 50000,
-      "normalHalfWidthPp": 3.6164920128911042,
-      "empiricalP025": 0.924726725,
-      "empiricalP50": 0.9598089999999999,
-      "empiricalP975": 0.9967740999999999,
-      "empiricalHalfWidthPp": 3.6023687499999957,
-      "skewRatio": 0.9960947617633978,
-      "tailRatio": 1.0536688398913707,
-      "outsideBand": 0.7841
+      "normalHalfWidthPp": 10.183644441630157,
+      "empiricalP025": 0.855818625,
+      "empiricalP50": 0.9540264999999999,
+      "empiricalP975": 1.0583734999999994,
+      "empiricalHalfWidthPp": 10.127743749999969,
+      "skewRatio": 0.994510738080989,
+      "tailRatio": 1.0625115348438168,
+      "outsideBand": 0.92215
     },
     {
       "spins": 100000,
-      "normalHalfWidthPp": 2.5572460264222867,
-      "empiricalP025": 0.9351273875,
-      "empiricalP50": 0.9599802500000001,
-      "empiricalP975": 0.9853090125000001,
-      "empiricalHalfWidthPp": 2.5090812500000057,
-      "skewRatio": 0.98116537246529,
-      "tailRatio": 1.019148699671918,
-      "outsideBand": 0.70645
+      "normalHalfWidthPp": 7.200924041869376,
+      "empiricalP025": 0.8851834125000001,
+      "empiricalP50": 0.9549265,
+      "empiricalP975": 1.0277806750000003,
+      "empiricalHalfWidthPp": 7.129863125000008,
+      "skewRatio": 0.9901316947024871,
+      "tailRatio": 1.0446078258293388,
+      "outsideBand": 0.89135
     },
     {
       "spins": 200000,
-      "normalHalfWidthPp": 1.8082460064455521,
-      "empiricalP025": 0.9424491125,
-      "empiricalP50": 0.959921625,
-      "empiricalP975": 0.9781754062499999,
-      "empiricalHalfWidthPp": 1.7863146874999958,
-      "skewRatio": 0.9878714959870607,
-      "tailRatio": 1.0447141617440445,
-      "outsideBand": 0.5844
+      "normalHalfWidthPp": 5.091822220815079,
+      "empiricalP025": 0.90411241875,
+      "empiricalP50": 0.9544466250000001,
+      "empiricalP975": 1.0074854312500001,
+      "empiricalHalfWidthPp": 5.168650625000004,
+      "skewRatio": 1.0150885873176905,
+      "tailRatio": 1.053732842961042,
+      "outsideBand": 0.8508
     },
     {
       "spins": 500000,
-      "normalHalfWidthPp": 1.1436351900542914,
-      "empiricalP025": 0.948825685,
-      "empiricalP50": 0.9600048499999999,
-      "empiricalP975": 0.9715455349999998,
-      "empiricalHalfWidthPp": 1.1359924999999937,
-      "skewRatio": 0.9933171957974336,
-      "tailRatio": 1.0323387301287714,
-      "outsideBand": 0.39225
+      "normalHalfWidthPp": 3.2203511316864932,
+      "empiricalP025": 0.9227366974999999,
+      "empiricalP50": 0.9548513,
+      "empiricalP975": 0.9876501974999999,
+      "empiricalHalfWidthPp": 3.2456750000000034,
+      "skewRatio": 1.0078636978633595,
+      "tailRatio": 1.0213079081392924,
+      "outsideBand": 0.77255
     },
     {
       "spins": 1000000,
-      "normalHalfWidthPp": 0.8086721980909555,
-      "empiricalP025": 0.95188813125,
-      "empiricalP50": 0.960047125,
-      "empiricalP975": 0.9682190187499999,
-      "empiricalHalfWidthPp": 0.8165443749999945,
-      "skewRatio": 1.0097346946360009,
-      "tailRatio": 1.0015810773234117,
-      "outsideBand": 0.224
+      "normalHalfWidthPp": 2.2771321230172923,
+      "empiricalP025": 0.9323638575000001,
+      "empiricalP50": 0.955036075,
+      "empiricalP975": 0.9778570637499999,
+      "empiricalHalfWidthPp": 2.274660312499993,
+      "skewRatio": 0.9989145072030233,
+      "tailRatio": 1.006561830575241,
+      "outsideBand": 0.69765
     },
     {
       "spins": 5000000,
-      "normalHalfWidthPp": 0.36164920128911043,
-      "empiricalP025": 0.9564169842500002,
-      "empiricalP50": 0.9600211649999999,
-      "empiricalP975": 0.96371938675,
-      "empiricalHalfWidthPp": 0.36512012499999025,
-      "skewRatio": 1.0095974875611715,
-      "tailRatio": 1.026092198622514,
-      "outsideBand": 0.00655
+      "normalHalfWidthPp": 1.0183644441630157,
+      "empiricalP025": 0.94498139725,
+      "empiricalP50": 0.9551200199999998,
+      "empiricalP975": 0.9653781595,
+      "empiricalHalfWidthPp": 1.0198381125000044,
+      "skewRatio": 1.0014470932733712,
+      "tailRatio": 1.0117882628585158,
+      "outsideBand": 0.5217
     }
   ],
   "houseBankroll": [
     {
       "ruinProbability": 0.05,
-      "bankrollBets": 641.9653999504878
+      "bankrollBets": 4624.88503635495
     },
     {
       "ruinProbability": 0.01,
-      "bankrollBets": 986.8571855991077
+      "bankrollBets": 7109.574801147668
     },
     {
       "ruinProbability": 0.001,
-      "bankrollBets": 1480.2857783986615
+      "bankrollBets": 10664.3622017215
     },
     {
       "ruinProbability": 0.0001,
-      "bankrollBets": 1973.7143711982153
+      "bankrollBets": 14219.149602295336
     }
   ],
   "houseRuinMc": [
     {
-      "bankroll": 641.9653999504878,
+      "bankroll": 4624.88503635495,
       "horizon": 100000,
       "paths": 2000,
-      "ruinProbability": 0.0525,
-      "medianFinal": 3999.0000000000136,
-      "p05Final": 1856.9525000000096,
-      "p95Final": 6072.9475000000175
+      "ruinProbability": 0.0335,
+      "medianFinal": 4508.125000000004,
+      "p05Final": -1641.2674999999551,
+      "p95Final": 10530.632499999989
     },
     {
-      "bankroll": 986.8571855991077,
+      "bankroll": 7109.574801147668,
       "horizon": 100000,
       "paths": 2000,
-      "ruinProbability": 0.0155,
-      "medianFinal": 3991.3000000000166,
-      "p05Final": 1810.547500000008,
-      "p95Final": 6087.9125000000095
+      "ruinProbability": 0.003,
+      "medianFinal": 4316.824999999999,
+      "p05Final": -1732.2925000000314,
+      "p95Final": 10220.590000000013
     },
     {
-      "bankroll": 1480.2857783986615,
+      "bankroll": 10664.3622017215,
       "horizon": 100000,
       "paths": 2000,
-      "ruinProbability": 0.002,
-      "medianFinal": 3937.0250000000183,
-      "p05Final": 1725.3250000000085,
-      "p95Final": 6094.777500000022
+      "ruinProbability": 0.0,
+      "medianFinal": 4319.4,
+      "p05Final": -1921.5574999999683,
+      "p95Final": 10287.409999999942
     },
     {
-      "bankroll": 1973.7143711982153,
+      "bankroll": 14219.149602295336,
       "horizon": 100000,
       "paths": 2000,
-      "ruinProbability": 0.0005,
-      "medianFinal": 3953.6000000000117,
-      "p05Final": 1874.227500000008,
-      "p95Final": 5925.81250000001
+      "ruinProbability": 0.0,
+      "medianFinal": 4397.57500000003,
+      "p05Final": -2094.1299999999624,
+      "p95Final": 10552.902499999993
     }
   ],
   "playerSessions": [
@@ -239,73 +239,73 @@
       "bankroll": 50.0,
       "horizon": 500,
       "paths": 20000,
-      "bustProbability": 0.6489,
-      "medianSpinsSurvived": 294.5,
-      "aheadProbability": 0.2627,
-      "medianFinal": 0.79999999999999,
-      "p95Final": 185.60749999999993
+      "bustProbability": 0.86325,
+      "medianSpinsSurvived": 76.0,
+      "aheadProbability": 0.126,
+      "medianFinal": 0.6000000000000014,
+      "p95Final": 348.10499999999985
     },
     {
       "bankroll": 100.0,
       "horizon": 1000,
       "paths": 20000,
-      "bustProbability": 0.53835,
-      "medianSpinsSurvived": 892.0,
-      "aheadProbability": 0.29165,
-      "medianFinal": 0.9000000000000057,
-      "p95Final": 284.5000000000001
+      "bustProbability": 0.81175,
+      "medianSpinsSurvived": 165.0,
+      "aheadProbability": 0.1698,
+      "medianFinal": 0.6500000000000057,
+      "p95Final": 582.4124999999992
     },
     {
       "bankroll": 250.0,
       "horizon": 2000,
       "paths": 20000,
-      "bustProbability": 0.2697,
-      "medianSpinsSurvived": 2000.0,
-      "aheadProbability": 0.31025,
-      "medianFinal": 151.82500000000005,
-      "p95Final": 501.2025000000001
+      "bustProbability": 0.6797,
+      "medianSpinsSurvived": 934.0,
+      "aheadProbability": 0.2615,
+      "medianFinal": 0.7500000000001137,
+      "p95Final": 1032.0799999999992
     },
     {
       "bankroll": 500.0,
       "horizon": 5000,
       "paths": 20000,
-      "bustProbability": 0.22035,
-      "medianSpinsSurvived": 5000.0,
-      "aheadProbability": 0.2388,
-      "medianFinal": 283.92500000000035,
-      "p95Final": 804.4099999999994
+      "bustProbability": 0.63845,
+      "medianSpinsSurvived": 3015.0,
+      "aheadProbability": 0.274,
+      "medianFinal": 0.8000000000000114,
+      "p95Final": 1647.2549999999972
     },
     {
       "bankroll": 1000.0,
       "horizon": 10000,
       "paths": 20000,
-      "bustProbability": 0.09535,
-      "medianSpinsSurvived": 10000.0,
-      "aheadProbability": 0.1645,
-      "medianFinal": 589.3999999999992,
-      "p95Final": 1300.9099999999999
+      "bustProbability": 0.51635,
+      "medianSpinsSurvived": 9499.5,
+      "aheadProbability": 0.3101,
+      "medianFinal": 0.9999999999963052,
+      "p95Final": 2539.3324999999954
     }
   ],
   "checks": [
     {
-      "name": "Выборка сходится к аналитике (<= 0.2 п.п.)",
+      "name": "Выборка сходится к аналитике (<= 1.56 п.п. = 3 sigma/sqrt(n))",
       "passed": true,
-      "detail": "0.0501 п.п."
+      "detail": "0.3936 п.п. при sigma 11.62 и n 5 000 000"
     },
     {
       "name": "Бутстрап сходится к CLT на n >= 100k (откл. <= 10%)",
       "passed": true,
-      "detail": "макс. откл. 1.9%"
+      "detail": "макс. откл. 1.5%"
     },
     {
       "name": "Асимметрия хвостов убывает с горизонтом",
       "passed": true,
-      "detail": "1.53 -> 1.03"
+      "detail": "1.55 -> 1.01"
     },
     {
       "name": "MC-риск разорения не превышает формулу",
       "passed": true,
-      "detail": "5.25% vs 5.00%; 1.55% vs 1.00%; 0.20% vs 0.10%; 0.05% vs 0.01%"
+      "detail": "3.35% vs 5.00%; 0.30% vs 1.00%; 0.00% vs 0.10%; 0.00% vs 0.01%"
     }
   ],
   "allChecksPassed": true
