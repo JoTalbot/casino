@@ -87,9 +87,16 @@ export async function createGuestPlayer(
     );
     const playerId = playerRes.rows[0]!.id;
 
+    // T-184: кошелёк создаётся с НУЛЁМ. Баланс — производная от журнала
+    // проводок, его меняет только триггер apply_ledger_entry. Раньше здесь
+    // сразу проставлялся initialBalance, а следом шла проводка на ту же
+    // сумму — триггер поднимал баланс до 200 000, не сходился с
+    // balance_after=100 000 и рвал транзакцию. Демо-вход падал с 500 на
+    // любой настоящей БД; тесты этого не видели, потому что PG-тесты в CI
+    // пропускаются (см. T-182).
     const walletRes = await client.query<{ id: string; balance: string }>(
-      "INSERT INTO wallets (player_id, currency_code, balance) VALUES ($1, 'CHIP', $2) RETURNING id, balance",
-      [playerId, initialBalance.toString()],
+      "INSERT INTO wallets (player_id, currency_code, balance) VALUES ($1, 'CHIP', 0) RETURNING id, balance",
+      [playerId],
     );
     const walletId = walletRes.rows[0]!.id;
 
