@@ -51,6 +51,9 @@ export interface CabinetLayout {
   gap: number;
 }
 
+/** Префикс приложения — тот же, что у остальных ассетов (T-210). */
+const ASSET_BASE = import.meta.env?.BASE_URL ?? "/";
+
 const GOLD_LIGHT = "#ffe9a8";
 const GOLD = "#ffd257";
 const GOLD_DEEP = "#a8741a";
@@ -654,7 +657,7 @@ export class WinFx {
     // бонуса важнее, чем его иллюстрация.
     let chest: Sprite | undefined;
     try {
-      const texture = await Assets.load<Texture>("bonus/chest_closed.png");
+      const texture = await Assets.load<Texture>(`${ASSET_BASE}bonus/chest_closed.png`);
       chest = new Sprite(texture);
       chest.anchor.set(0.5);
       const size = bh * 0.42;
@@ -706,7 +709,7 @@ export class WinFx {
       gsapInstance.to(chest, { alpha: 1, duration: 0.25 });
       // Крышка «распахивается»: подменяем текстуру и добавляем встряску.
       setTimeout(() => {
-        void Assets.load<Texture>("bonus/chest_open.png")
+        void Assets.load<Texture>(`${ASSET_BASE}bonus/chest_open.png`)
           .then((open) => {
             if (chest) chest.texture = open;
             this.spawnSparks(gsapInstance, 34);

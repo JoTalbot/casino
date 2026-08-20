@@ -89,13 +89,20 @@ const ICON_FIT: Record<string, number> = {
 
 const icons = new Map<string, Texture>();
 
+/** Префикс, под которым отдаётся клиент: «/» или «/parts/casino/». */
+const ASSET_BASE = import.meta.env?.BASE_URL ?? "/";
+
 /** Грузит 3D-арты. Ошибки не фатальны: символ откатится на вектор. */
 async function loadIcons(): Promise<void> {
   if (icons.size > 0) return;
   await Promise.all(
     Object.entries(ICON_FILES).map(async ([id, file]) => {
       try {
-        const texture = await Assets.load<Texture>(`/symbols/${file}.png`);
+        // Путь обязан быть относительным префикса приложения: под
+        // /parts/casino/ абсолютный «/symbols/...» уходил в корень чужого
+        // домена, получал 302 от Cloudflare Access и молча откатывал
+        // символы на векторную отрисовку — в Telegram не было 3D (T-210).
+        const texture = await Assets.load<Texture>(`${ASSET_BASE}symbols/${file}.png`);
         icons.set(id, texture);
       } catch {
         // молча оставляем векторную фигуру
