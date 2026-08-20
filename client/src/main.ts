@@ -282,6 +282,13 @@ async function main(): Promise<void> {
 
   board.addChild(reelSet);
 
+  // Отладочный хук: включается только через ?debug=1. Нужен, чтобы замерять
+  // фазы анимации на живом стенде — без него причины «медленного спина»
+  // видны лишь по секундомеру (T-191).
+  if (new URLSearchParams(window.location.search).has("debug")) {
+    (window as unknown as { __casino?: unknown }).__casino = { app, reelSet, layout, winFx };
+  }
+
   const idle = toColumnTargets(
     Array.from({ length: REELS }, (_, reel) =>
       Array.from({ length: ROWS }, (_, row) => game.symbols[(reel + row * 2) % 9]),
