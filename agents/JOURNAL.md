@@ -1750,3 +1750,9 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 Задачи: T-124 … T-128
 Локи: `backend`
 
+
+### Сделано (смена H — делаю всё)
+
+**T-124…T-128 done:** leaderboard avatars, share, PWA offline, backup verification, ADR-024
+
+**SHIFT END** 09:00 UTC — смена H закрыта
