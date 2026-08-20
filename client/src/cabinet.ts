@@ -453,7 +453,7 @@ export class WinFx {
     const sh = bh * 0.46;
     scrim
       .roundRect(-sw / 2, -sh / 2, sw, sh, sh * 0.22)
-      .fill({ color: 0x0a0713, alpha: 0.82 })
+      .fill({ color: 0x07050f, alpha: 0.93 })
       .roundRect(-sw / 2, -sh / 2, sw, sh, sh * 0.22)
       .stroke({ width: 2.5, color: 0xffd257, alpha: 0.75 });
     this.banner.addChild(scrim);
