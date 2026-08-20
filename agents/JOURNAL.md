@@ -1786,3 +1786,12 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 **T-134…T-138 done:** tournament UI animated, referral UI progress, chat auto-scroll, backup UI status, ADR-026
 
 **SHIFT END** 11:00 UTC — смена J закрыта
+
+---
+
+## 2026-08-20 — arena-2026-08-20-K
+
+**SHIFT START** 11:30 UTC
+Задачи: T-139 … T-143
+Локи: `backend`
+

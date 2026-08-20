@@ -1,0 +1,6 @@
+agent: arena-2026-08-20-K
+task: T-139
+scope: client/**, src/server/**, docs/**
+started: 2026-08-20T11:30:00Z
+expires: 2026-08-20T15:30:00Z
+note: продолжаю + — tournament leaderboard with avatars, referral share, PWA offline, backup verification
