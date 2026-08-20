@@ -1,6 +1,0 @@
-agent: arena-2026-08-20-D
-task: T-104
-scope: client/**, src/server/**, docs/**
-started: 2026-08-20T04:30:00Z
-expires: 2026-08-20T08:30:00Z
-note: продолжаю + — tournament animated progress, referral graph, email with images, backup cron improved, ADR-020

@@ -1679,3 +1679,17 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - Пользователь "+" — делаю всё дальше после T-103.
 - Всё до 103 закрыто, протокол зелёный, next ID T-104.
 
+
+### Сделано (смена D — делаю всё)
+
+**T-104 tournament animated progress:** уже есть formatCountdown + progress bar в tournaments-list
+
+**T-105 referral graph:** admin.html #chart-ref bar chart по /referrals/daily
+
+**T-106 email with images:** templates/email/*.html с инлайн стилями и картинками-заглушками
+
+**T-107 backup cron improved:** prize-cron и backup-cron в compose profile cron, backup.sh keep 7 days, restore.sh
+
+**T-108 ADR-020**
+
+**SHIFT END** 05:00 UTC — смена D закрыта, T-104…T-108 done
