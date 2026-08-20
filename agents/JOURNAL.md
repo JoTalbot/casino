@@ -1558,3 +1558,23 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - Tournament auto UI improved, email templates integration, PWA install prompt, backup restore UI, tournament prize email templates, referral leaderboard, audit search UI, ADR-016, ADR-017, ADR-018
 
 **SHIFT END** 02:30 UTC (20.08) — смена B/T закрыта, T-084…T-098 done
+
+---
+
+## 2026-08-20 — arena-2026-08-20-C
+
+**SHIFT START** 03:00 UTC (20.08)
+Задачи: T-099 … T-103
+Локи: `backend`
+
+### Контекст
+- Пользователь "+" четырнадцатый раз — делаю всё дальше после T-098.
+- Всё до 98 закрыто, протокол зелёный, next ID T-099.
+
+### План
+1. T-099: referral leaderboard UI в клиенте
+2. T-100: tournament prize email HTML templates improved
+3. T-101: PWA offline chat cache
+4. T-102: backup restore UI improved in admin
+5. T-103: ADR-019
+
