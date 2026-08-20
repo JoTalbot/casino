@@ -81,6 +81,14 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   // Rate limiter для auth/demo (T-045) — 5 req/s per IP
   const authLimiter = new Map<string, number[]>();
 
+  // T-186: JSON.stringify не умеет BigInt и падает с TypeError, а Fastify
+  // превращает это в 500. Денежные величины в проекте — BigInt (ADR: деньги
+  // только целыми), поэтому отдаём их строками, как уже делает /wallet.
+  // Без этого 500 отдавали /admin/grant, /admin/rtp и /monitoring/rtp.
+  app.setReplySerializer((payload) =>
+    JSON.stringify(payload, (_key, value) => (typeof value === "bigint" ? value.toString() : value)),
+  );
+
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof z.ZodError) {
       return reply.status(400).send({ code: "VALIDATION_FAILED", message: error.issues });
