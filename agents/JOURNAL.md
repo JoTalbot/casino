@@ -1741,3 +1741,12 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 **T-119…T-123 done:** tournament leaderboard top с аватарами, referral share Web Share API, PWA offline chat cache, backup auto проверка, ADR-023
 
 **SHIFT END** 08:00 UTC — смена G закрыта
+
+---
+
+## 2026-08-20 — arena-2026-08-20-H
+
+**SHIFT START** 08:30 UTC
+Задачи: T-124 … T-128
+Локи: `backend`
+
