@@ -35,7 +35,7 @@ import { getLeaderboard } from "./leaderboard.js";
 import { exportPlayerData } from "./gdpr.js";
 import { listTournaments, getTournamentLeaderboard, updateTournamentScores } from "./tournaments.js";
 import { createReferral, getReferrals, getReferralProgress, getReferralLeaderboard } from "./referrals.js";
-import { subscribePush, getSubscriptions, sendPushToPlayer } from "./push.js";
+import { subscribePush, unsubscribePush, getSubscriptions } from "./push.js";
 import { checkAndUnlockAchievements, listAchievements } from "./achievements.js";
 import { canChat, postMessage, listMessages, deleteMessage } from "./chat.js";
 
@@ -980,14 +980,23 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     const playerId = (request.user as { sub: string }).sub;
     const { endpoint, keys } = request.body as { endpoint?: string; keys?: { p256dh: string; auth: string } };
     if (!endpoint || !keys) return reply.status(400).send({ code: "VALIDATION_FAILED", message: "need endpoint and keys" });
-    await subscribePush(playerId, { endpoint, keys });
+    await subscribePush(playerId, { endpoint, keys }, options.database);
+    return { ok: true };
+  });
+
+  // T-178: отписка — браузер вызывает при отзыве разрешения на уведомления
+  app.delete("/api/v1/push/subscribe", async (request, reply) => {
+    try { await request.jwtVerify(); } catch { return reply.status(401).send({ code: "UNAUTHENTICATED" }); }
+    const { endpoint } = (request.body ?? {}) as { endpoint?: string };
+    if (!endpoint) return reply.status(400).send({ code: "VALIDATION_FAILED", message: "need endpoint" });
+    await unsubscribePush(endpoint, options.database);
     return { ok: true };
   });
 
   app.get("/api/v1/push/subscriptions", async (request, reply) => {
     try { await request.jwtVerify(); } catch { return reply.status(401).send({ code: "UNAUTHENTICATED" }); }
     const playerId = (request.user as { sub: string }).sub;
-    const list = await getSubscriptions(playerId);
+    const list = await getSubscriptions(playerId, options.database);
     return { subscriptions: list };
   });
 

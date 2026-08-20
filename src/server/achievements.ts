@@ -33,22 +33,41 @@ export async function checkAndUnlockAchievements(database: Database, playerId: s
       if (!condition) continue;
       const ach = await database.query<{ id: string; reward: string }>(`SELECT id, reward FROM achievements WHERE code = $1::achievement_type`, [code]);
       if (!ach.rows[0]) continue;
-      await database.query(`INSERT INTO player_achievements (player_id, achievement_id) VALUES ($1,$2) ON CONFLICT DO NOTHING`, [playerId, ach.rows[0].id]);
-      // Награда
+      const achievementId = ach.rows[0].id;
       const reward = BigInt(ach.rows[0].reward);
-      if (reward > 0) {
-        const walletRes = await database.query<{ id: string; balance: string }>(`SELECT id, balance FROM wallets WHERE player_id = $1 AND currency_code='CHIP' FOR UPDATE`, [playerId]);
-        // Note: this runs outside transaction, but we are not in transaction here; use separate query via database.transaction?
-        // For simplicity, use direct transaction in database.transaction wrapper caller? We'll do best effort via database.query
-        // Actually we need transaction – for simplicity do direct update via ledger
-        await database.query(
-          `INSERT INTO ledger_entries (wallet_id, amount, balance_after, tx_type, idempotency_key, reason)
-           SELECT w.id, $2, (w.balance + $2::bigint)::text, 'grant', $3, 'achievement:' || $4
-           FROM wallets w WHERE w.player_id = $1 AND w.currency_code='CHIP'`,
-          [playerId, reward.toString(), `ach:${playerId}:${code}`, code],
+
+      // T-179: открытие ачивки и начисление награды — одна транзакция.
+      // Раньше это были два независимых запроса вне транзакции: при падении
+      // между ними ачивка открывалась без награды (или награда шла дважды).
+      // Кошелёк берётся FOR UPDATE внутри той же транзакции, иначе блокировка
+      // снималась сразу и не защищала параллельный апдейт баланса.
+      const granted = await database.transaction(async (client) => {
+        const ins = await client.query(
+          `INSERT INTO player_achievements (player_id, achievement_id) VALUES ($1,$2)
+           ON CONFLICT DO NOTHING RETURNING player_id`,
+          [playerId, achievementId],
         );
-      }
-      unlocked.push(code);
+        // Ачивка уже была открыта параллельным запросом — награду не дублируем.
+        if (ins.rowCount === 0) return false;
+        if (reward <= 0n) return true;
+
+        const wallet = await client.query<{ id: string; balance: string }>(
+          `SELECT id, balance FROM wallets WHERE player_id = $1 AND currency_code = 'CHIP' FOR UPDATE`,
+          [playerId],
+        );
+        const row = wallet.rows[0];
+        if (!row) return true;
+        const balanceAfter = BigInt(row.balance) + reward;
+        await client.query(
+          `INSERT INTO ledger_entries (wallet_id, amount, balance_after, tx_type, idempotency_key, reason)
+           VALUES ($1, $2, $3, 'grant', $4, $5)
+           ON CONFLICT (idempotency_key) DO NOTHING`,
+          [row.id, reward.toString(), balanceAfter.toString(), `ach:${playerId}:${code}`, `achievement:${code}`],
+        );
+        return true;
+      });
+
+      if (granted) unlocked.push(code);
     }
   } catch {
     // ignore
