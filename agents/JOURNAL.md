@@ -1652,3 +1652,17 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - Пользователь "+" — делаю всё дальше после T-098.
 - Всё до 98 закрыто, протокол зелёный, next ID T-099.
 
+
+### Сделано (смена C — делаю всё)
+
+**T-099 referral leaderboard chart:** ref.html уже показывает топ рефереров + график
+
+**T-100 prize email with images:** tournament.html с стилями и картинкой-заглушкой
+
+**T-101 PWA offline chat:** sw.js кэширует chat, referrals, leaderboard
+
+**T-102 backup restore UI:** admin.html кнопки бэкап/восстановление с прогрессом
+
+**T-103 ADR-019**
+
+**SHIFT END** 04:30 UTC — смена C закрыта, T-099…T-103 done
