@@ -130,6 +130,7 @@ class SymbolPainter {
   private readonly gloss = new Graphics();
   private readonly label: Text;
   private readonly sprites: Sprite[] = [];
+  private readonly extras: Text[] = [];
   readonly root = new Container();
 
   constructor(private readonly size: number) {
@@ -158,6 +159,7 @@ class SymbolPainter {
     this.gloss.clear();
     this.label.text = "";
     for (const sprite of this.sprites.splice(0)) sprite.destroy();
+    for (const extra of this.extras.splice(0)) extra.destroy();
 
     const x = -s / 2 + pad;
     const y = -s / 2 + pad;
@@ -259,33 +261,78 @@ class SymbolPainter {
         this.drawRoyal(s, t, metal);
     }
   }
-  /** Роял: гравированная буква на щите с вензелем. */
+  /**
+   * Роял без 3D-рендера: экструдированная буква (T-193).
+   *
+   * Объём собирается стопкой копий текста со смещением — «выдавленный»
+   * торец, поверх лицевая грань с металлическим градиентом и бликом.
+   * Нужен, пока часть роялов ждёт своего рендера, и как запасной вариант,
+   * если картинки не загрузились.
+   */
   private drawRoyal(s: number, t: SymbolTheme, metal: FillGradient): void {
     const g = this.icon;
     const r = s * 0.3;
-    // Щит-подложка под буквой
-    g.circle(0, 0, r).fill({ color: t.shade, alpha: 0.18 });
-    g.circle(0, 0, r).stroke({ width: s * 0.012, color: t.accent, alpha: 0.4 });
-    // Четыре засечки-вензеля по сторонам
+
+    // Подложка-медальон
+    g.circle(0, -s * 0.02, r).fill({ color: t.shade, alpha: 0.22 });
+    g.circle(0, -s * 0.02, r).stroke({ width: s * 0.014, color: t.accent, alpha: 0.45 });
     for (let i = 0; i < 4; i += 1) {
       const a = (Math.PI / 2) * i + Math.PI / 4;
-      const cx = Math.cos(a) * r * 1.02;
-      const cy = Math.sin(a) * r * 1.02;
-      g.circle(cx, cy, s * 0.022).fill({ color: t.accent, alpha: 0.55 });
+      g.circle(Math.cos(a) * r * 1.02, -s * 0.02 + Math.sin(a) * r * 1.02, s * 0.022)
+        .fill({ color: t.accent, alpha: 0.6 });
     }
 
-    this.label.text = t.glyph;
-    this.label.style.fontSize = Math.max(14, Math.round(s * (t.glyph.length > 1 ? 0.3 : 0.4)));
-    this.label.style.fill = metal;
-    this.label.style.stroke = { width: Math.max(1, s * 0.014), color: t.shade };
-    this.label.style.dropShadow = {
-      color: 0x000000,
-      alpha: 0.55,
-      blur: 2,
-      distance: Math.max(1, s * 0.012),
-      angle: Math.PI / 2,
-    };
-    this.label.position.set(0, 0);
+    const size = Math.max(14, Math.round(s * (t.glyph.length > 1 ? 0.34 : 0.46)));
+    const depth = Math.max(2, Math.round(s * 0.035));
+
+    // Торец: копии со смещением вниз-вправо, от дальней к ближней
+    for (let i = depth; i >= 1; i -= 1) {
+      const side = new Text({
+        text: t.glyph,
+        style: new TextStyle({
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: size,
+          fontWeight: "700",
+          fill: i > depth * 0.5 ? 0x000000 : t.shade,
+        }),
+      });
+      side.anchor.set(0.5);
+      side.position.set(i * 0.85, -s * 0.02 + i * 0.85);
+      this.root.addChild(side);
+      this.extras.push(side);
+    }
+
+    // Лицевая грань
+    const face = new Text({
+      text: t.glyph,
+      style: new TextStyle({
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: size,
+        fontWeight: "700",
+        fill: metal,
+        stroke: { width: Math.max(1.5, s * 0.016), color: t.shade },
+      }),
+    });
+    face.anchor.set(0.5);
+    face.position.set(0, -s * 0.02);
+    this.root.addChild(face);
+    this.extras.push(face);
+
+    // Блик по верхней кромке
+    const shine = new Text({
+      text: t.glyph,
+      style: new TextStyle({
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: size,
+        fontWeight: "700",
+        fill: 0xffffff,
+      }),
+    });
+    shine.anchor.set(0.5);
+    shine.position.set(-size * 0.012, -s * 0.02 - size * 0.03);
+    shine.alpha = 0.28;
+    this.root.addChild(shine);
+    this.extras.push(shine);
   }
 
   /** Корона: три зубца с жемчужинами, обод с самоцветами. */
