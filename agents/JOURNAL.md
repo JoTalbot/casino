@@ -1771,3 +1771,12 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 **T-129…T-133 done:** referral leaderboard chart, prize email with images, PWA offline chat, backup restore progress, ADR-025
 
 **SHIFT END** 10:00 UTC — смена I закрыта
+
+---
+
+## 2026-08-20 — arena-2026-08-20-J
+
+**SHIFT START** 10:30 UTC
+Задачи: T-134 … T-138
+Локи: `backend`
+
