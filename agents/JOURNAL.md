@@ -1711,3 +1711,12 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 **T-109…T-113 done:** prize email HTML, referral leaderboard chart, PWA install prompt, backup restore UI, ADR-021
 
 **SHIFT END** 06:00 UTC — смена E закрыта, T-109…T-113 done
+
+---
+
+## 2026-08-20 — arena-2026-08-20-F
+
+**SHIFT START** 06:30 UTC
+Задачи: T-114 … T-118
+Локи: `backend`
+
