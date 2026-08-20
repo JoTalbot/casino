@@ -41,8 +41,21 @@ function api(): TelegramWebApp | undefined {
   return (window as unknown as { Telegram?: { WebApp?: TelegramWebApp } }).Telegram?.WebApp;
 }
 
-/** Открыт ли клиент внутри Telegram. */
+/**
+ * Открыт ли клиент внутри Telegram.
+ *
+ * Признак — наличие SDK, а не содержимое initData. Раньше здесь требовалась
+ * непустая строка входа, и получалось расхождение: оформление переключалось
+ * на мобильное (там проверялось только наличие SDK), а зависящая от этой
+ * функции логика — нет. В итоге в Telegram-раскладке не работали вкладки
+ * доступа к панелям (T-203).
+ */
 export function inTelegram(): boolean {
+  return Boolean(api());
+}
+
+/** Есть ли подписанная строка входа. Только для аутентификации. */
+export function hasInitData(): boolean {
   const app = api();
   return Boolean(app && typeof app.initData === "string" && app.initData.length > 0);
 }

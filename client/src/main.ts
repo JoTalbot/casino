@@ -8,7 +8,7 @@ import { ReelSetBuilder, SpeedPresets } from "pixi-reels";
 import gsap from "gsap";
 
 import { api, apiUrl, type GameInfo, type RoundRecord, type SpinRecord } from "./api.js";
-import { haptic, inTelegram, setupMainButton, setupViewport } from "./telegram.js";
+import { hasInitData, haptic, inTelegram, setupMainButton, setupViewport } from "./telegram.js";
 import {
   anticipationReels,
   toColumnTargets,
@@ -717,7 +717,7 @@ async function main(): Promise<void> {
   });
 
   ui.spin.addEventListener("click", () => void playRound());
-  if (inTelegram()) log(`Telegram Mini App · ${api ? "вход по подписи" : ""}`.trim(), "info");
+  if (inTelegram()) log(hasInitData() ? "Telegram Mini App · вход по подписи" : "Telegram Mini App", "info");
   document.addEventListener("keydown", (event) => {
     if (event.code === "Space") {
       event.preventDefault();
