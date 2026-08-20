@@ -207,13 +207,13 @@ export function buildDrumShading(renderer: Renderer, layout: CabinetLayout): Con
       start: { x: 0.5, y: 0 },
       end: { x: 0.5, y: 1 },
       colorStops: [
-        { offset: 0, color: "rgba(0,0,0,0.62)" },
-        { offset: 0.16, color: "rgba(0,0,0,0.26)" },
-        { offset: 0.34, color: "rgba(0,0,0,0)" },
-        { offset: 0.5, color: "rgba(255,238,200,0.07)" },
-        { offset: 0.66, color: "rgba(0,0,0,0)" },
-        { offset: 0.84, color: "rgba(0,0,0,0.26)" },
-        { offset: 1, color: "rgba(0,0,0,0.62)" },
+        { offset: 0, color: "rgba(0,0,0,0.42)" },
+        { offset: 0.18, color: "rgba(0,0,0,0.12)" },
+        { offset: 0.36, color: "rgba(0,0,0,0)" },
+        { offset: 0.5, color: "rgba(255,238,200,0.08)" },
+        { offset: 0.64, color: "rgba(0,0,0,0)" },
+        { offset: 0.82, color: "rgba(0,0,0,0.12)" },
+        { offset: 1, color: "rgba(0,0,0,0.42)" },
       ],
       textureSpace: "local",
     }),
@@ -420,6 +420,64 @@ export function buildMarquee(layout: CabinetLayout, title: string): Container {
   return root;
 }
 
+/**
+ * Блик, пробегающий по золотой раме (T-193).
+ *
+ * Металл выглядит металлом, только когда по нему ходит свет. Полоса
+ * движется по диагонали и обрезается маской рамы — получается отражение,
+ * а не белая линия поверх сцены.
+ */
+export function buildFrameSheen(layout: CabinetLayout, ticker: Ticker): Container {
+  const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = layout;
+  const t = Math.max(10, Math.round(Math.min(bw, bh) * 0.035));
+  const root = new Container();
+  root.eventMode = "none";
+
+  const outer = { x: x - t, y: y - t, w: bw + t * 2, h: bh + t * 2 };
+
+  const sheen = new Graphics();
+  const width = t * 2.6;
+  sheen
+    .rect(-width / 2, -outer.h, width, outer.h * 3)
+    .fill(
+      new FillGradient({
+        type: "linear",
+        start: { x: 0, y: 0.5 },
+        end: { x: 1, y: 0.5 },
+        colorStops: [
+          { offset: 0, color: "rgba(255,255,255,0)" },
+          { offset: 0.5, color: "rgba(255,255,255,0.55)" },
+          { offset: 1, color: "rgba(255,255,255,0)" },
+        ],
+        textureSpace: "local",
+      }),
+    );
+  sheen.rotation = -0.35;
+  root.addChild(sheen);
+
+  // Маска — сама рамка: кольцо между внешним и внутренним прямоугольником.
+  const mask = new Graphics();
+  mask
+    .roundRect(outer.x, outer.y, outer.w, outer.h, t * 1.6)
+    .fill({ color: 0xffffff })
+    .roundRect(x, y, bw, bh, Math.min(bw, bh) * 0.045)
+    .cut();
+  root.addChild(mask);
+  root.mask = mask;
+
+  const travel = outer.w + width * 2;
+  let phase = 0;
+  ticker.add(() => {
+    // Пауза между проходами: непрерывно бегающий блик выглядит дёшево.
+    phase = (phase + ticker.deltaMS) % 5200;
+    const p = phase / 1400;
+    sheen.visible = p <= 1;
+    if (sheen.visible) sheen.position.set(outer.x - width + travel * p, outer.y + outer.h / 2);
+  });
+
+  return root;
+}
+
 /** Бегущие огни вывески: чередование через тикер, без gsap-таймлайнов. */
 export function animateMarquee(marquee: Container, ticker: Ticker): () => void {
   const bulbs = (marquee as Container & { bulbs?: Container }).bulbs;
@@ -565,28 +623,95 @@ export class WinFx {
     });
   }
 
+  /**
+   * Фонтан монет и искр (T-193).
+   *
+   * Объём делают три вещи: монета вращается вокруг вертикальной оси
+   * (сжимаем по X — получается вращающийся диск), летит по параболе с
+   * гравитацией, а не по прямой, и уменьшается по мере удаления.
+   */
   private spawnSparks(gsapInstance: typeof import("gsap").default, count: number): void {
     const { boardWidth: bw, boardHeight: bh, boardX: x, boardY: y } = this.layout;
-    for (let i = 0; i < count; i += 1) {
-      const spark = new Graphics();
-      const size = 3 + Math.random() * 5;
-      const gold = Math.random() > 0.4;
-      spark.circle(0, 0, size).fill({ color: gold ? 0xffd257 : 0xffffff, alpha: 0.95 });
-      spark.position.set(x + bw / 2, y + bh / 2);
-      this.sparks.addChild(spark);
+    const cx = x + bw / 2;
+    const cy = y + bh / 2;
 
-      const angle = Math.random() * Math.PI * 2;
-      const distance = bh * (0.25 + Math.random() * 0.55);
-      gsapInstance.to(spark, {
-        x: spark.x + Math.cos(angle) * distance,
-        y: spark.y + Math.sin(angle) * distance,
-        alpha: 0,
-        duration: 0.7 + Math.random() * 0.6,
-        ease: "power2.out",
-        onComplete: () => {
-          spark.destroy();
-        },
+    for (let i = 0; i < count; i += 1) {
+      const isCoin = Math.random() > 0.35;
+      const piece = new Graphics();
+      const r = isCoin ? 7 + Math.random() * 7 : 2 + Math.random() * 3;
+
+      if (isCoin) {
+        piece
+          .circle(0, 0, r)
+          .fill({ color: 0xffb524 })
+          .circle(0, 0, r * 0.78)
+          .fill({ color: 0xffe07a })
+          .circle(-r * 0.25, -r * 0.25, r * 0.28)
+          .fill({ color: 0xfff7d6, alpha: 0.9 });
+      } else {
+        piece.circle(0, 0, r).fill({ color: 0xfff3c4, alpha: 0.95 });
+      }
+
+      piece.position.set(cx, cy);
+      this.sparks.addChild(piece);
+
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.1;
+      const power = bh * (0.3 + Math.random() * 0.5);
+      const flight = 0.9 + Math.random() * 0.7;
+      const targetX = cx + Math.cos(angle) * power * 1.3;
+      const apexY = cy + Math.sin(angle) * power;
+
+      gsapInstance.to(piece, { x: targetX, duration: flight, ease: "none" });
+      // Парабола: вверх с замедлением, вниз с ускорением.
+      gsapInstance.to(piece, { y: apexY, duration: flight * 0.42, ease: "power2.out" });
+      gsapInstance.to(piece, {
+        y: cy + bh * 0.75,
+        duration: flight * 0.58,
+        delay: flight * 0.42,
+        ease: "power2.in",
+      });
+      gsapInstance.to(piece, { alpha: 0, duration: 0.35, delay: flight * 0.65 });
+      gsapInstance.to(piece.scale, {
+        x: isCoin ? 0.15 : 0.4,
+        duration: 0.28,
+        repeat: isCoin ? Math.ceil(flight / 0.28) : 0,
+        yoyo: true,
+        ease: "sine.inOut",
+      });
+      gsapInstance.to(piece, {
+        rotation: (Math.random() - 0.5) * 6,
+        duration: flight,
+        ease: "none",
+        onComplete: () => piece.destroy(),
       });
     }
+  }
+
+  /**
+   * Тряска «камеры» на мега-выигрыше: двигаем корневой контейнер сцены.
+   * Затухающая, короткая — иначе укачивает.
+   */
+  shake(gsapInstance: typeof import("gsap").default, stage: Container, strength = 10): void {
+    const base = { x: stage.x, y: stage.y };
+    const steps = 7;
+    const timeline: Array<Promise<void>> = [];
+    for (let i = 0; i < steps; i += 1) {
+      const damp = strength * (1 - i / steps);
+      timeline.push(
+        new Promise((resolve) => {
+          gsapInstance.to(stage, {
+            x: base.x + (Math.random() - 0.5) * damp * 2,
+            y: base.y + (Math.random() - 0.5) * damp * 2,
+            duration: 0.06,
+            delay: i * 0.06,
+            ease: "none",
+            onComplete: () => resolve(),
+          });
+        }),
+      );
+    }
+    void Promise.all(timeline).then(() => {
+      gsapInstance.to(stage, { x: base.x, y: base.y, duration: 0.12, ease: "power2.out" });
+    });
   }
 }

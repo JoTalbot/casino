@@ -16,7 +16,7 @@ import {
   winTier,
 } from "./presentation.js";
 import { ArtSymbol, SYMBOL_THEMES, initSymbolTextures } from "./artSymbols.js";
-import { WinFx, animateMarquee, buildBackdrop, buildDrumShading, buildFrame, buildMarquee, buildReelWindow, type CabinetLayout } from "./cabinet.js";
+import { WinFx, animateMarquee, buildBackdrop, buildDrumShading, buildFrame, buildFrameSheen, buildMarquee, buildReelWindow, type CabinetLayout } from "./cabinet.js";
 import { soundWin, soundSpin } from "./sound.js";
 
 const REELS = 5;
@@ -268,8 +268,28 @@ async function main(): Promise<void> {
   const frameLayer = buildFrame(app.renderer as never, layout);
   const marquee = buildMarquee(layout, game.name ?? "Crown of Fortune");
   const winFx = new WinFx(layout);
-  app.stage.addChild(frameLayer, marquee, winFx.view);
+  app.stage.addChild(frameLayer, buildFrameSheen(layout, app.ticker), marquee, winFx.view);
   animateMarquee(marquee, app.ticker);
+
+  // Параллакс: слои смещаются за курсором на несколько пикселей. Дёшево, но
+  // сцена перестаёт быть плоской картинкой — задник живёт отдельно от рамы.
+  const parallax = [
+    { layer: app.stage.children[0] as Container, depth: 6 },
+    { layer: app.stage.children[1] as Container, depth: 3 },
+    { layer: marquee, depth: -2 },
+  ];
+  const home = parallax.map(({ layer }) => ({ x: layer.x, y: layer.y }));
+  app.canvas.addEventListener("pointermove", (event: PointerEvent) => {
+    const rect = app.canvas.getBoundingClientRect();
+    const nx = (event.clientX - rect.left) / rect.width - 0.5;
+    const ny = (event.clientY - rect.top) / rect.height - 0.5;
+    parallax.forEach(({ layer, depth }, i) => {
+      layer.position.set(home[i].x - nx * depth * 2, home[i].y - ny * depth * 2);
+    });
+  });
+  app.canvas.addEventListener("pointerleave", () => {
+    parallax.forEach(({ layer }, i) => layer.position.set(home[i].x, home[i].y));
+  });
 
   const reelSet = new ReelSetBuilder()
     .reels(REELS)
@@ -399,6 +419,7 @@ async function main(): Promise<void> {
       setStatus(tier === "none" ? "Без выигрыша" : tier === "mega" ? `МЕГА: ${multiple.toFixed(2)}x` : tier === "big" ? `Крупный: ${multiple.toFixed(2)}x` : `Выигрыш ${multiple.toFixed(2)}x`);
       // Баннер поднимается только на крупных выигрышах: если праздновать
       // каждую мелочь, праздник перестаёт читаться (T-190).
+      if (tier === "mega") winFx.shake(gsap, app.stage, 12);
       if (tier === "mega" || tier === "big") {
         await winFx.celebrate(
           gsap,
