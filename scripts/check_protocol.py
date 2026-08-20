@@ -21,6 +21,8 @@
      файлы. Битая ссылка в документе для агентов дороже, чем в вебе:
      агент не откроет её глазами и не заметит подмены.
   5. STATE.md обновлялся не позже последнего коммита кода.
+  6. Смены не вырождаются в бумажные: серия коммитов, которые
+     трогают только agents/**, помечается предупреждением.
 
 Запуск:
     python3 scripts/check_protocol.py
@@ -335,6 +337,44 @@ def check_journal_append_only(rep: Report) -> None:
     rep.check("JOURNAL.md только дополняется", True)
 
 
+def check_paper_shifts(rep: Report) -> None:
+    """
+    Ловит «бумажные смены»: подряд идущие коммиты, которые трогают только
+    `agents/**`.
+
+    Реальный случай (аудит T-174): смены H…Q закрыли задачи T-104…T-173
+    и не изменили ни строчки кода — два десятка коммитов правили только
+    JOURNAL, TASKS и локи. Формально протокол соблюдён, фактически
+    проект стоял. Проверка делает такую подмену видимой.
+
+    Это предупреждение, а не ошибка: смена, посвящённая только исследованию
+    или планированию, законна. Но шесть таких подряд — сигнал.
+    """
+    log = _git(["log", "-40", "--format=%H"])
+    if not log:
+        rep.warn("git-история недоступна, бумажные смены не проверены")
+        rep.check("Нет серии коммитов без кода", True)
+        return
+
+    streak = 0
+    for sha in log.splitlines():
+        files = _git(["show", "--pretty=", "--name-only", sha])
+        names = [f for f in files.splitlines() if f.strip()]
+        if not names:
+            continue
+        if all(name.startswith("agents/") for name in names):
+            streak += 1
+        else:
+            break
+
+    if streak >= 6:
+        rep.warn(
+            f"последние {streak} коммитов подряд меняют только agents/** — "
+            "смены закрываются, а код не двигается (см. аудит T-174)"
+        )
+    rep.check("Нет серии коммитов без кода", True)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Проверка протокола агентов")
     ap.add_argument(
@@ -352,6 +392,7 @@ def main() -> int:
     check_markdown_links(rep)
     check_state_freshness(rep)
     check_journal_append_only(rep)
+    check_paper_shifts(rep)
 
     print("=" * 70)
     print("ПРОВЕРКА ПРОТОКОЛА АГЕНТОВ")

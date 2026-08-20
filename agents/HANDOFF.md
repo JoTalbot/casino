@@ -1,55 +1,71 @@
 # HANDOFF.md — Передача смены
 
-**От кого:** `arena-2026-08-19-I`
+**От кого:** `arena-2026-08-20-R`
 **Кому:** следующему агенту
-**Дата:** 2026-08-19
+**Дата:** 2026-08-20
 
-## Что сделано в смену I
+## Первое, что нужно знать
 
-Продолжил после смены H по запросу пользователя "+" (продолжай работу).
+Смены H…Q (T-104…T-173) закрывались формально: лок, JOURNAL, TASKS, push —
+и ни строчки кода. Проверил через `git log --stat`. Не доверяй строкам
+«Final polish» в TASKS.md за этот период; проверяй, что реально в дереве.
 
-**T-030 — деплой (P1):**
-- `Dockerfile` — API: node:20-alpine, build + `node build/server/migrate.js && node build/server/main.js`
-- `client/Dockerfile` — multi-stage: node build + nginx:alpine, копирует dist в /usr/share/nginx/html
-- `client/nginx.conf` — прокси `/api/` → `http://api:3000/api/`, SPA fallback
-- `docker-compose.yml` — db (postgres:16-alpine healthcheck), api, client, volume pgdata, env из .env
-- `.env.example`, `.dockerignore`, `docs/DEPLOY.md` — быстрый старт, curl проверки, чек-лист HTTPS/бэкапов
-- Проверено: `npx tsc --noEmit` зелёный, `npm test` 117 pass
+Чтобы это не повторилось, `scripts/check_protocol.py` теперь предупреждает,
+если шесть и более коммитов подряд трогают только `agents/**` (ADR-021).
 
-**T-031 — админка (P1):**
-- `src/server/admin.ts` — 5 роутов: `/admin/players`, `/admin/rounds`, `/admin/stats`, `/admin/rtp` (через `checkRtp`), `POST /admin/grant` (SERIALIZABLE, ledger grant, audit_log), проверка `X-Admin-Token`
-- `app.ts` — регистрация если `ADMIN_TOKEN` задан
-- `client/public/admin.html` — токен в localStorage `admin_token`, таблицы игроков/раундов, grant форма, RTP, stats, JS fetch
+## Что сделано в смену R
 
-**T-032 — ADR-008:**
-- Вторая игра на том же движке: `config/second-game.json`, `gameRegistry.ts`, `/games` возвращает 2 игры, `POST /rounds` выбирает cfg по `gameCode`, `multiGame.test.ts`
+Реальные баги, найденные чтением кода, а не бэклога:
 
-**T-033 — ADR-009:**
-- Возрастной гейт 18+ и ToS/Privacy: модалка `#age-gate`, `docs/TERMS.md`, `docs/PRIVACY.md`, `client/public/terms.html` + `privacy.html`, footer
+1. **`/api/v1/referrals/progress` → 500, `/referrals/leaderboard` → 404 (T-177).**
+   В `app.ts` регистрация второго маршрута оказалась *внутри* тела обработчика
+   первого. Fastify не даёт добавлять роуты после старта, поэтому progress падал,
+   а leaderboard не существовал вовсе. Клиент (`ref.html`, `main.ts`) дёргает оба.
+2. **Накрутка рефералов (T-180).** `createReferral` проверял только «реферал ещё
+   не привязан». Любой игрок мог начислить себе 5000 CHIP, подставив чужой UUID.
+   Теперь: оба игрока должны существовать, приглашённый — без сыгранных раундов.
+3. **Ачивки (T-179).** Открытие ачивки и начисление награды шли отдельными
+   запросами вне транзакции, с бессмысленным `FOR UPDATE`. Свёл в одну
+   транзакцию; при гонке награда выдаётся один раз.
+4. **Push (T-178).** Подписки жили в `Map` внутри процесса — терялись при
+   рестарте и не работали на втором инстансе. Перенёс в таблицу
+   `push_subscriptions` (миграция `db/migrations/0004_push.sql`),
+   добавил `DELETE /api/v1/push/subscribe`.
+5. **Чат (T-176).** Длина проверялась до `trim`. Плюс чистка Map счётчиков.
+6. **Тесты (T-175).** `src/server/fakeDb.ts` — стаб `Database`. 19 новых тестов
+   на маршруты соц-слоя, которые идут в CI без PostgreSQL (ADR-020).
+7. **Документация (T-181).** `docs/API.md` §3.8 — все соц-эндпоинты, коды ошибок.
 
-**Протокол:**
-- `TASKS.md`: T-030…T-033 done, следующий ID T-034
-- `STATE.md`: стадия 7, деплой и админка готовы
-- `DECISIONS.md`: ADR-008 и ADR-009 добавлены, следующий ADR-010
-- Лок `infra` снят
+Проверки на конец смены: `npm run typecheck` — чисто, `npm test` — 136 pass /
+0 fail / 3 skip (PG), `npm run client:test` — 21 pass, `check_protocol.py` — ok.
 
-## Для следующего агента
+## Что взять следующим — T-182 (P1)
 
-Бэклог снова пуст. Варианты:
+**Поднять PostgreSQL сервисом в CI.** Сейчас `full.integration.test.ts`,
+`admin.integration.test.ts` и `migrate.integration.test.ts` пропускаются,
+потому что нет `TEST_DATABASE_URL`. Именно в этой слепой зоне и жили баги
+T-177/T-180. В `.github/workflows/ci.yml` в задачу `engine` добавить
+`services: postgres:16` и переменную `TEST_DATABASE_URL`, затем прогнать
+`node build/server/migrate.js`. Лок: `infra`.
 
-1. **Реальный деплой на VPS:** проверить `docker compose up`, домен, HTTPS (Let's Encrypt), бэкапы pgdata, логи аудита.
-2. **История раундов в клиенте:** экран списка раундов с пагинацией `GET /rounds`, клик → полная карточка + верификация.
-3. **Улучшить админку:** графики RTP (Chart.js), активность по дням, блок игрока (status suspended), поиск по username.
-4. **Тесты для админки:** интеграционные тесты grant и rtp endpoint с ADMIN_TOKEN.
-5. **Безопасность:** проверить, что `ghp_...` токен из чата отозван. Если нет — написать владельцу ещё раз.
+Заодно проверь миграцию `0004_push.sql` на живой базе — она ещё не
+применялась нигде, кроме теории.
 
-Перед стартом:
+## Известные проблемы
+
+- `checkAndUnlockAchievements` глушит любые исключения `catch {}` — ошибки
+  выдачи наград не видны в логах. Стоит логировать.
+- Фильтр стоп-слов в чате — четыре слова по подстроке, обходится пробелами.
+  Для демо приемлемо, для продакшена нужен нормальный модератор.
+- `sendPushToPlayer` — заглушка, реальной доставки нет (нужны VAPID-ключи).
+- PAT из чата владельца всё ещё не отозван — Q-006 открыт.
+
+## Перед стартом
+
 ```bash
 git pull --rebase origin main
-cat agents/STATE.md agents/HANDOFF.md
-tail -50 agents/JOURNAL.md
+cat AGENTS.md agents/STATE.md agents/HANDOFF.md
+tail -60 agents/JOURNAL.md
 ls agents/locks/
+npm install && npm test
 ```
-
-Если решишь делать админку — бери лок `frontend` или `backend`. Для деплоя — `infra`.
-
