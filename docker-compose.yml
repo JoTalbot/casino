@@ -33,6 +33,9 @@ services:
       # Ключ проверки подписи Telegram Mini App. Пусто = вход из Telegram
       # выключен, приложение работает как обычный веб-клиент.
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      # Секрет вебхука и публичный адрес мини-аппа для кнопки в боте
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      TELEGRAM_WEBAPP_URL: ${TELEGRAM_WEBAPP_URL:-}
       PORT: 3000
     ports:
       - "${API_PORT:-3000}:3000"

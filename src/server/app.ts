@@ -38,7 +38,7 @@ import { createReferral, getReferrals, getReferralProgress, getReferralLeaderboa
 import { subscribePush, unsubscribePush, getSubscriptions } from "./push.js";
 import { checkAndUnlockAchievements, listAchievements } from "./achievements.js";
 import { canChat, postMessage, listMessages, deleteMessage } from "./chat.js";
-import { TelegramAuthError, linkTelegramPlayer, verifyInitData } from "./telegram.js";
+import { TelegramAuthError, linkTelegramPlayer, replyForUpdate, sendBotReply, verifyInitData } from "./telegram.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -188,6 +188,30 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       request.log.error(error);
       return reply.status(500).send({ code: "INTERNAL_ERROR" });
     }
+  });
+
+  // --- Вебхук бота Telegram (T-197) ---
+  //
+  // Секретный заголовок обязателен: адрес вебхука рано или поздно утекает
+  // в логи прокси, и без проверки кто угодно слал бы боту фальшивые
+  // обновления. Отвечаем 200 всегда, иначе Telegram будет ретраить.
+  app.post("/api/v1/telegram/webhook", async (request, reply) => {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+    if (!botToken) return reply.status(503).send({ ok: false });
+    if (secret && request.headers["x-telegram-bot-api-secret-token"] !== secret) {
+      request.log.warn("вебхук с неверным секретом");
+      return reply.status(401).send({ ok: false });
+    }
+
+    const webAppUrl = process.env.TELEGRAM_WEBAPP_URL ?? "";
+    try {
+      const answer = replyForUpdate(request.body as never, webAppUrl);
+      if (answer) await sendBotReply(botToken, answer);
+    } catch (error) {
+      request.log.error(error);
+    }
+    return { ok: true };
   });
 
   // --- Демо-вход: создаёт гостя, кошелёк CHIP 100k, seed pair, возвращает JWT ---

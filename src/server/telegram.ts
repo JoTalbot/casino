@@ -151,3 +151,83 @@ export async function linkTelegramPlayer(
     return { playerId, username, created: true };
   });
 }
+
+
+// --- Бот: обработка обновлений -------------------------------------------
+
+/** Минимальный кусок update, который нам интересен. */
+export interface TelegramUpdate {
+  message?: {
+    chat?: { id: number };
+    text?: string;
+    from?: { first_name?: string };
+  };
+}
+
+export interface BotReply {
+  chatId: number;
+  text: string;
+  webAppUrl?: string;
+}
+
+/**
+ * Что бот отвечает на сообщение. Вынесено отдельно от отправки, чтобы
+ * логику можно было проверить тестом без сети.
+ */
+export function replyForUpdate(update: TelegramUpdate, webAppUrl: string): BotReply | null {
+  const chatId = update.message?.chat?.id;
+  if (!chatId) return null;
+
+  const text = (update.message?.text ?? "").trim().toLowerCase();
+  const name = update.message?.from?.first_name;
+  const greeting = name ? `${name}, добро пожаловать в Crown of Fortune!` : "Добро пожаловать в Crown of Fortune!";
+
+  if (text.startsWith("/start") || text.startsWith("/play") || text.startsWith("/игра")) {
+    return {
+      chatId,
+      text:
+        `${greeting}\n\n` +
+        "Слот на виртуальных фишках: реальных денег нет, купить или вывести ничего нельзя. " +
+        "Каждый раунд считается на сервере и проверяется офлайн — честность доказуема.\n\n" +
+        "Жми кнопку ниже, стартовый баланс 100 000 фишек уже начислен.",
+      webAppUrl,
+    };
+  }
+
+  if (text.startsWith("/help") || text.startsWith("/помощь")) {
+    return {
+      chatId,
+      text:
+        "Команды:\n" +
+        "/start — открыть игру\n" +
+        "/help — эта справка\n\n" +
+        "18+. Игра на виртуальных фишках, без ставок на деньги.",
+      webAppUrl,
+    };
+  }
+
+  return {
+    chatId,
+    text: "Не понял команду. /start — открыть игру, /help — справка.",
+    webAppUrl,
+  };
+}
+
+/** Отправляет ответ через Bot API. Ошибки не роняют обработку update. */
+export async function sendBotReply(botToken: string, reply: BotReply): Promise<void> {
+  const body: Record<string, unknown> = {
+    chat_id: reply.chatId,
+    text: reply.text,
+    parse_mode: "HTML",
+  };
+  if (reply.webAppUrl) {
+    body.reply_markup = {
+      inline_keyboard: [[{ text: "🎰 Играть", web_app: { url: reply.webAppUrl } }]],
+    };
+  }
+  await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}

@@ -10,7 +10,7 @@ import { createHmac } from "node:crypto";
 import test from "node:test";
 import { buildApp } from "./app.js";
 import { createFakeDatabase } from "./fakeDb.js";
-import { TelegramAuthError, playerNameFor, verifyInitData } from "./telegram.js";
+import { TelegramAuthError, playerNameFor, replyForUpdate, verifyInitData } from "./telegram.js";
 
 const BOT_TOKEN = "123456:TEST-TOKEN-НЕ-НАСТОЯЩИЙ";
 
@@ -135,4 +135,23 @@ test("маршрут входа выдаёт JWT по валидной подп�
     await app.close();
     delete process.env.TELEGRAM_BOT_TOKEN;
   }
+});
+
+test("бот отвечает на /start кнопкой запуска игры", () => {
+  const url = "https://example.org/parts/casino/";
+  const start = replyForUpdate({ message: { chat: { id: 5 }, text: "/start", from: { first_name: "Иван" } } }, url);
+  assert.ok(start);
+  assert.equal(start!.chatId, 5);
+  assert.equal(start!.webAppUrl, url);
+  assert.match(start!.text, /Иван/);
+  assert.match(start!.text, /виртуальных фишках/);
+
+  const help = replyForUpdate({ message: { chat: { id: 5 }, text: "/help" } }, url);
+  assert.match(help!.text, /\/start/);
+
+  const other = replyForUpdate({ message: { chat: { id: 5 }, text: "привет" } }, url);
+  assert.match(other!.text, /Не понял/);
+
+  // Обновление без чата игнорируется, а не роняет обработчик
+  assert.equal(replyForUpdate({}, url), null);
 });
