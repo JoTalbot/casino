@@ -399,61 +399,20 @@ export class WinFx {
   private readonly flash = new Graphics();
   private readonly sparks = new Container();
   private readonly banner = new Container();
-  private readonly bannerTitle: Text;
-  private readonly bannerAmount: Text;
 
   constructor(private readonly layout: CabinetLayout) {
     const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = layout;
     this.flash.roundRect(x, y, bw, bh, Math.min(bw, bh) * 0.045).fill({ color: 0xffe9a8 });
     this.flash.alpha = 0;
 
-    // Две строки — двумя объектами, а не переносом внутри одного.
-    // Многострочный Text со stroke и dropShadow в этой связке Pixi/софтверного
-    // рендера молча не отрисовывался: баннер «был», но его не было видно (T-191).
-    this.bannerTitle = new Text({
-      text: "",
-      style: new TextStyle({
-        fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: Math.round(bh * 0.1),
-        fontWeight: "700",
-        letterSpacing: 2,
-        align: "center",
-        fill: 0xfff3cf,
-        stroke: { width: 5, color: 0x2a1600 },
-        dropShadow: { color: 0x000000, alpha: 0.7, blur: 6, distance: 3, angle: Math.PI / 2 },
-      }),
-    });
-    this.bannerTitle.anchor.set(0.5);
-    this.bannerTitle.position.set(0, -bh * 0.1);
-
-    this.bannerAmount = new Text({
-      text: "",
-      style: new TextStyle({
-        fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: Math.round(bh * 0.17),
-        fontWeight: "700",
-        align: "center",
-        fill: 0xffd257,
-        stroke: { width: 6, color: 0x2a1600 },
-        dropShadow: { color: 0xff9f3c, alpha: 0.55, blur: 12, distance: 0, angle: 0 },
-      }),
-    });
-    this.bannerAmount.anchor.set(0.5);
-    this.bannerAmount.position.set(0, bh * 0.08);
-
-    this.banner.addChild(this.bannerTitle, this.bannerAmount);
+    // Содержимое баннера создаётся в момент показа, а не здесь.
+    // Text, созданный с пустой строкой и наполненный позже, у Pixi v8
+    // остаётся вне отрисовки: объект в графе сцены выглядит правильно
+    // (alpha 1, границы посчитаны), но пикселей не даёт. Именно так молча
+    // пропадал баннер крупного выигрыша (T-191). Крупный выигрыш — событие
+    // редкое, пара объектов на показ ничего не стоит.
     this.banner.position.set(x + bw / 2, y + bh / 2);
 
-    // В сцене живёт только контейнер искр. Вспышка и баннер добавляются на
-    // время анимации и снимаются после.
-    //
-    // Почему не visible=false: объект, скрытый до того, как сцена впервые
-    // отрисовалась, у Pixi v8 остаётся вне группы отрисовки — вернуть его
-    // одним `visible = true` не получается, он просто не появляется на
-    // экране, хотя в графе сцены выглядит нормально (alpha 1, границы на
-    // месте). Ровно так пропадал баннер крупного выигрыша (T-191).
-    // Управление составом детей — явное и предсказуемое, и заодно даёт ту же
-    // экономию: чего нет в дереве, то не растеризуется.
     this.view.addChild(this.sparks);
     this.view.eventMode = "none";
   }
@@ -485,12 +444,46 @@ export class WinFx {
     amount: string,
     holdMs = 1500,
   ): Promise<void> {
-    this.bannerTitle.text = title;
-    this.bannerAmount.text = amount;
+    const { boardHeight: bh } = this.layout;
+    this.banner.removeChildren().forEach((child) => child.destroy());
+
+    const titleText = new Text({
+      text: title,
+      style: new TextStyle({
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: Math.round(bh * 0.1),
+        fontWeight: "700",
+        letterSpacing: 2,
+        align: "center",
+        fill: 0xfff3cf,
+        stroke: { width: 5, color: 0x2a1600 },
+        dropShadow: { color: 0x000000, alpha: 0.7, blur: 6, distance: 3, angle: Math.PI / 2 },
+      }),
+    });
+    titleText.anchor.set(0.5);
+    titleText.position.set(0, -bh * 0.1);
+
+    const amountText = new Text({
+      text: amount,
+      style: new TextStyle({
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: Math.round(bh * 0.17),
+        fontWeight: "700",
+        align: "center",
+        fill: 0xffd257,
+        stroke: { width: 6, color: 0x2a1600 },
+        dropShadow: { color: 0xff9f3c, alpha: 0.55, blur: 12, distance: 0, angle: 0 },
+      }),
+    });
+    amountText.anchor.set(0.5);
+    amountText.position.set(0, bh * 0.08);
+
+    this.banner.addChild(titleText, amountText);
     this.banner.scale.set(0.3);
     this.banner.alpha = 0;
     this.view.addChildAt(this.flash, 0);
     this.view.addChild(this.banner);
+
     this.spawnSparks(gsapInstance, 28);
     gsapInstance.to(this.banner, { alpha: 1, duration: 0.25, ease: "power2.out" });
     gsapInstance.to(this.banner.scale, { x: 1, y: 1, duration: 0.5, ease: "back.out(2)" });
