@@ -41,6 +41,14 @@ const ui = {
   bonusLabel: document.getElementById("bonus-label") as HTMLElement,
   bonusModal: document.getElementById("bonus-modal") as HTMLElement,
   bonusClose: document.getElementById("bonus-close") as HTMLButtonElement,
+  autoCount: document.getElementById("auto-count") as HTMLSelectElement,
+  autoStart: document.getElementById("auto-start") as HTMLButtonElement,
+  autoModal: document.getElementById("auto-modal") as HTMLElement,
+  autoSettingsClose: document.getElementById("auto-settings-close") as HTMLButtonElement,
+  autoStopBonus: document.getElementById("auto-stop-bonus") as HTMLInputElement,
+  autoStopBigWin: document.getElementById("auto-stop-bigwin") as HTMLInputElement,
+  autoStopBalance: document.getElementById("auto-stop-balance") as HTMLInputElement,
+  autoStopProfit: document.getElementById("auto-stop-profit") as HTMLInputElement,
   win: document.getElementById("win") as HTMLElement,
   status: document.getElementById("status") as HTMLElement,
   gameName: document.getElementById("game-name") as HTMLElement,
@@ -400,8 +408,8 @@ async function main(): Promise<void> {
     }
   }
 
-  async function playRound(): Promise<void> {
-    if (busy) return;
+  async function playRound(): Promise<RoundRecord | null> {
+    if (busy) return null;
     busy = true;
     ui.spin.disabled = true;
     mainButton?.setBusy(true);
@@ -446,13 +454,18 @@ async function main(): Promise<void> {
         ui.realityText.textContent = round.realityCheck.message;
         ui.realityModal.classList.remove("hidden");
         log(`Reality check: ${round.realityCheck.message}`, "free");
+        // Напоминание о времени в игре обязано останавливать автоспин:
+        // иначе окно висит, а серия крутится за спиной игрока.
+        stopAuto("напоминание о времени");
       }
 
       await refreshHistory().catch(() => {});
+      return round;
     } catch (error) {
       const message = (error as Error).message;
       setStatus(`Ошибка: ${message}`);
       log(message, "error");
+      return null;
     } finally {
       busy = false;
       ui.spin.disabled = false;
@@ -521,6 +534,101 @@ async function main(): Promise<void> {
   // В Telegram спин переезжает на нативную главную кнопку: она крупная,
   // всегда внизу экрана и не уезжает при скролле.
   const mainButton = setupMainButton(() => void playRound());
+
+  // --- Автоспин (T-199) ---
+  //
+  // Серия обычных раундов, а не «пакетный спин» на сервере: пакет ломает
+  // лимиты ответственной игры и reality check (см. docs/API.md §6).
+  // Каждый спин остаётся отдельным раундом со своим nonce и проверкой.
+  const autoState = {
+    left: 0,
+    profit: 0,
+    startBalance: 0,
+    running: false,
+  };
+
+  function parseLimit(input: HTMLInputElement): number | null {
+    const value = Number(input.value.replace(/[^0-9]/g, ""));
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  function renderAutoButton(): void {
+    ui.autoStart.classList.toggle("running", autoState.running);
+    ui.autoStart.textContent = autoState.running ? `■ Стоп (${autoState.left})` : "▶ Авто";
+  }
+
+  function stopAuto(reason?: string): void {
+    if (!autoState.running) return;
+    autoState.running = false;
+    autoState.left = 0;
+    renderAutoButton();
+    if (reason) log(`Автоспин остановлен: ${reason}`, "info");
+  }
+
+  /** Причина остановки после раунда или null, если можно продолжать. */
+  function autoStopReason(round: RoundRecord, balance: number): string | null {
+    if (ui.autoStopBonus.checked && round.spins.some((s) => s.free)) return "выпал бонус";
+    if (ui.autoStopBigWin.checked && winMultiple(round.totalWin, round.totalBet) >= 20) {
+      return `крупный выигрыш ${winMultiple(round.totalWin, round.totalBet).toFixed(1)}×`;
+    }
+    const floor = parseLimit(ui.autoStopBalance);
+    if (floor !== null && balance < floor) return `баланс ниже ${fmt(floor)}`;
+    const target = parseLimit(ui.autoStopProfit);
+    if (target !== null && autoState.profit >= target) return `набрано +${fmt(autoState.profit)}`;
+    return null;
+  }
+
+  async function runAuto(): Promise<void> {
+    while (autoState.running && autoState.left > 0) {
+      autoState.left -= 1;
+      renderAutoButton();
+      const before = Number(String(ui.balance.textContent ?? "0").replace(/\D/g, ""));
+      const round = await playRound();
+      if (!round) {
+        stopAuto("ошибка раунда");
+        return;
+      }
+      const after = Number(String(ui.balance.textContent ?? "0").replace(/\D/g, ""));
+      autoState.profit += after - before;
+
+      const reason = autoStopReason(round, after);
+      if (reason) {
+        stopAuto(reason);
+        return;
+      }
+      // Пауза между спинами: без неё серия выглядит как один непрерывный
+      // рывок, и игрок не успевает прочитать результат.
+      await sleep(ui.turbo.checked ? 180 : 420);
+    }
+    if (autoState.left <= 0) stopAuto("серия закончилась");
+  }
+
+  ui.autoStart.addEventListener("click", () => {
+    if (autoState.running) {
+      stopAuto("остановлено вручную");
+      return;
+    }
+    const count = Number(ui.autoCount.value);
+    if (!count) {
+      ui.autoModal.classList.remove("hidden");
+      return;
+    }
+    autoState.running = true;
+    autoState.left = count;
+    autoState.profit = 0;
+    autoState.startBalance = Number(String(ui.balance.textContent ?? "0").replace(/\D/g, ""));
+    renderAutoButton();
+    log(`Автоспин: ${count} спинов`, "info");
+    void runAuto();
+  });
+
+  ui.autoCount.addEventListener("change", () => {
+    if (Number(ui.autoCount.value) > 0) ui.autoModal.classList.remove("hidden");
+  });
+  ui.autoSettingsClose.addEventListener("click", () => ui.autoModal.classList.add("hidden"));
+  ui.autoModal.addEventListener("click", (e) => {
+    if (e.target === ui.autoModal) ui.autoModal.classList.add("hidden");
+  });
 
   ui.spin.addEventListener("click", () => void playRound());
   if (inTelegram()) log(`Telegram Mini App · ${api ? "вход по подписи" : ""}`.trim(), "info");
