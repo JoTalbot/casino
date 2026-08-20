@@ -511,9 +511,10 @@ export class ArtSymbol extends ReelSymbol {
     this.halo.anchor.set(0.5);
     this.sprite.anchor.set(0.5);
     this.halo.alpha = 0;
-    // Спрайт с alpha 0 всё равно попадает в рендер: держим его скрытым.
-    this.halo.visible = false;
-    this.art.addChild(this.halo, this.sprite);
+    // Ореол добавляется в сцену только на время выигрышной анимации.
+    // Скрывать его через visible нельзя: Pixi v8 не возвращает в отрисовку
+    // объект, спрятанный до первого кадра (см. комментарий в cabinet.ts).
+    this.art.addChild(this.sprite);
     (this.view as Container).addChild(this.art);
   }
 
@@ -533,7 +534,7 @@ export class ArtSymbol extends ReelSymbol {
     this.art.scale.set(1);
     this.art.rotation = 0;
     this.halo.alpha = 0;
-    this.halo.visible = false;
+    this.halo.removeFromParent();
   }
 
   /**
@@ -542,7 +543,7 @@ export class ArtSymbol extends ReelSymbol {
    */
   async playWin(): Promise<void> {
     const { art, halo } = this;
-    halo.visible = true;
+    this.art.addChildAt(halo, 0);
     this.gsap.to(halo, {
       alpha: 0.9,
       duration: 0.18,
@@ -550,7 +551,7 @@ export class ArtSymbol extends ReelSymbol {
       repeat: 3,
       ease: "sine.inOut",
       onComplete: () => {
-        halo.visible = false;
+        halo.removeFromParent();
       },
     });
     this.gsap.fromTo(art, { rotation: -0.05 }, { rotation: 0.05, duration: 0.14, yoyo: true, repeat: 3, ease: "sine.inOut" });
@@ -571,7 +572,7 @@ export class ArtSymbol extends ReelSymbol {
     this.art.scale.set(1);
     this.art.rotation = 0;
     this.halo.alpha = 0;
-    this.halo.visible = false;
+    this.halo.removeFromParent();
   }
 
   resize(width: number, height: number): void {

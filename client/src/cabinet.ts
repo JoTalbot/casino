@@ -406,8 +406,6 @@ export class WinFx {
     const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = layout;
     this.flash.roundRect(x, y, bw, bh, Math.min(bw, bh) * 0.045).fill({ color: 0xffe9a8 });
     this.flash.alpha = 0;
-    // Прозрачный слой всё равно растеризуется: пока он не нужен — он скрыт.
-    this.flash.visible = false;
 
     // Две строки — двумя объектами, а не переносом внутри одного.
     // Многострочный Text со stroke и dropShadow в этой связке Pixi/софтверного
@@ -445,9 +443,18 @@ export class WinFx {
 
     this.banner.addChild(this.bannerTitle, this.bannerAmount);
     this.banner.position.set(x + bw / 2, y + bh / 2);
-    this.banner.visible = false;
 
-    this.view.addChild(this.flash, this.sparks, this.banner);
+    // В сцене живёт только контейнер искр. Вспышка и баннер добавляются на
+    // время анимации и снимаются после.
+    //
+    // Почему не visible=false: объект, скрытый до того, как сцена впервые
+    // отрисовалась, у Pixi v8 остаётся вне группы отрисовки — вернуть его
+    // одним `visible = true` не получается, он просто не появляется на
+    // экране, хотя в графе сцены выглядит нормально (alpha 1, границы на
+    // месте). Ровно так пропадал баннер крупного выигрыша (T-191).
+    // Управление составом детей — явное и предсказуемое, и заодно даёт ту же
+    // экономию: чего нет в дереве, то не растеризуется.
+    this.view.addChild(this.sparks);
     this.view.eventMode = "none";
   }
 
@@ -455,7 +462,7 @@ export class WinFx {
   pulse(gsapInstance: typeof import("gsap").default, strength = 0.18): void {
     gsapInstance.killTweensOf(this.flash);
     this.flash.alpha = 0;
-    this.flash.visible = true;
+    this.view.addChildAt(this.flash, 0);
     gsapInstance.to(this.flash, {
       alpha: strength,
       duration: 0.12,
@@ -463,7 +470,7 @@ export class WinFx {
       repeat: 1,
       ease: "sine.out",
       onComplete: () => {
-        this.flash.visible = false;
+        this.flash.removeFromParent();
       },
     });
   }
@@ -480,11 +487,10 @@ export class WinFx {
   ): Promise<void> {
     this.bannerTitle.text = title;
     this.bannerAmount.text = amount;
-    this.banner.visible = true;
     this.banner.scale.set(0.3);
     this.banner.alpha = 0;
-
-    this.flash.visible = true;
+    this.view.addChildAt(this.flash, 0);
+    this.view.addChild(this.banner);
     this.spawnSparks(gsapInstance, 28);
     gsapInstance.to(this.banner, { alpha: 1, duration: 0.25, ease: "power2.out" });
     gsapInstance.to(this.banner.scale, { x: 1, y: 1, duration: 0.5, ease: "back.out(2)" });
@@ -498,8 +504,8 @@ export class WinFx {
         duration: 0.3,
         ease: "power2.in",
         onComplete: () => {
-          this.banner.visible = false;
-          this.flash.visible = false;
+          this.banner.removeFromParent();
+          this.flash.removeFromParent();
           this.flash.alpha = 0;
           resolve();
         },
