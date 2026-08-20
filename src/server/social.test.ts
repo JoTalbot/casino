@@ -260,7 +260,23 @@ test("ачивки: список отдаётся с датой открытия
 });
 
 test("push: подписка требует endpoint и keys, дедуплицируется", async () => {
-  const database = createFakeDatabase();
+  // Подписки с T-178 живут в таблице push_subscriptions — моделируем её в стабе.
+  const rows: Array<{ endpoint: string; p256dh: string; auth: string; created_at: string }> = [];
+  const database = createFakeDatabase({
+    routes: [
+      [
+        "INSERT INTO push_subscriptions",
+        (values) => {
+          const [, endpoint, p256dh, auth] = values as string[];
+          if (!rows.some((r) => r.endpoint === endpoint)) {
+            rows.push({ endpoint, p256dh, auth, created_at: "2026-08-20T00:00:00Z" });
+          }
+          return [];
+        },
+      ],
+      ["FROM push_subscriptions", () => rows],
+    ],
+  });
   const app = await buildApp({ jwtSecret: JWT_SECRET, database });
   try {
     const headers = authHeader(app as never, "push-player-1");
