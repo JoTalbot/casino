@@ -15,6 +15,12 @@ function containsBadWord(text: string): boolean {
 
 export function canChat(playerId: string): { allowed: boolean; retryAfterMs?: number } {
   const now = Date.now();
+  // T-176: чистим протухшие записи, иначе Map растёт по числу игроков без границы.
+  if (recent.size > 1000) {
+    for (const [id, stamps] of recent) {
+      if (!stamps.some((t) => t > now - 60_000)) recent.delete(id);
+    }
+  }
   const arr = recent.get(playerId) ?? [];
   const recentFiltered = arr.filter((t) => t > now - 60_000);
   if (recentFiltered.length >= RATE_LIMIT) {
@@ -26,10 +32,18 @@ export function canChat(playerId: string): { allowed: boolean; retryAfterMs?: nu
   return { allowed: true };
 }
 
+/** Сброс счётчиков — только для тестов. */
+export function resetChatLimits(): void {
+  recent.clear();
+}
+
 export async function postMessage(database: Database, playerId: string, username: string, message: string) {
-  if (!message || message.length > MAX_LEN) throw new Error("Сообщение 1…500 символов");
-  const trimmed = message.trim();
+  // T-176: длину проверяем ПОСЛЕ trim, иначе сообщение из 500 символов
+  // с пробелами по краям отклонялось, а строка из одних пробелов
+  // сначала проходила проверку длины.
+  const trimmed = (message ?? "").trim();
   if (!trimmed) throw new Error("Пустое сообщение");
+  if (trimmed.length > MAX_LEN) throw new Error(`Сообщение не длиннее ${MAX_LEN} символов`);
   if (containsBadWord(trimmed)) throw new Error("Сообщение содержит запрещённые слова");
 
   const res = await database.query<{ id: string; created_at: string }>(

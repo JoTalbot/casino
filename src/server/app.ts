@@ -34,7 +34,7 @@ import { claimDailyBonus } from "./bonus.js";
 import { getLeaderboard } from "./leaderboard.js";
 import { exportPlayerData } from "./gdpr.js";
 import { listTournaments, getTournamentLeaderboard, updateTournamentScores } from "./tournaments.js";
-import { createReferral, getReferrals, getReferralProgress } from "./referrals.js";
+import { createReferral, getReferrals, getReferralProgress, getReferralLeaderboard } from "./referrals.js";
 import { subscribePush, getSubscriptions, sendPushToPlayer } from "./push.js";
 import { checkAndUnlockAchievements, listAchievements } from "./achievements.js";
 import { canChat, postMessage, listMessages, deleteMessage } from "./chat.js";
@@ -891,19 +891,26 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     return { referrals: list, inviteCode: playerId, inviteLink: `/api/v1/referrals?code=${playerId}` };
   });
 
-  // T-070 referral progress
-  app.get("/api/v1/referrals/progress", async (request, reply) => {
   // T-099 referral leaderboard top referrers
+  // ВАЖНО: маршрут публичный и регистрируется на уровне сборки приложения.
+  // Раньше (T-174) он был по ошибке вложен внутрь обработчика /referrals/progress —
+  // из-за этого сам маршрут не существовал (404), а /referrals/progress падал
+  // с 500 при попытке зарегистрировать роут после старта Fastify.
   app.get("/api/v1/referrals/leaderboard", async (request, reply) => {
     if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
     const { limit } = request.query as { limit?: string };
     const lim = limit ? parseInt(limit, 10) : 20;
     try {
-      const { getReferralLeaderboard } = await import("./referrals.js");
       const board = await getReferralLeaderboard(options.database, lim);
       return { leaderboard: board };
-    } catch (e) { request.log.error(e); return reply.status(500).send({ code: "INTERNAL_ERROR" }); }
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
   });
+
+  // T-070 referral progress
+  app.get("/api/v1/referrals/progress", async (request, reply) => {
     try {
       await request.jwtVerify();
     } catch {
@@ -911,8 +918,13 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     }
     if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
     const playerId = (request.user as { sub: string }).sub;
-    const prog = await getReferralProgress(options.database, playerId);
-    return prog;
+    try {
+      const prog = await getReferralProgress(options.database, playerId);
+      return prog;
+    } catch (e) {
+      request.log.error(e);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
   });
 
   // --- Achievements (T-060) ---
