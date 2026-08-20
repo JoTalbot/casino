@@ -394,3 +394,36 @@ test("соц-маршруты отвечают 503, если БД не подк�
     await app.close();
   }
 });
+
+test("бонус-тир проходит валидацию и попадает в проверку раунда", async () => {
+  const app = await buildApp({ jwtSecret: JWT_SECRET });
+  try {
+    // Проверка раунда с тиром — публичный маршрут, БД не нужна
+    const ok = await app.inject({
+      method: "POST",
+      url: "/api/v1/verify",
+      payload: { serverSeed: "c".repeat(64), clientSeed: "bonus", nonce: 3, bonusTier: 5 },
+    });
+    assert.equal(ok.statusCode, 200, ok.body);
+    assert.equal(ok.json().valid, true);
+    assert.equal(ok.json().round.bonusTier, 5);
+
+    // Тир вне списка отклоняется, а не молча приводится к единице
+    const bad = await app.inject({
+      method: "POST",
+      url: "/api/v1/verify",
+      payload: { serverSeed: "c".repeat(64), clientSeed: "bonus", nonce: 3, bonusTier: 7 },
+    });
+    assert.equal(bad.statusCode, 400);
+
+    // Тир по умолчанию — обычная серия
+    const plain = await app.inject({
+      method: "POST",
+      url: "/api/v1/verify",
+      payload: { serverSeed: "c".repeat(64), clientSeed: "bonus", nonce: 3 },
+    });
+    assert.equal(plain.json().round.bonusTier, 1);
+  } finally {
+    await app.close();
+  }
+});

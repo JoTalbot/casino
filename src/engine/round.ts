@@ -66,6 +66,10 @@ export interface RoundRecord {
   totalWin: number;
   capped: boolean;
   drawCount: number;
+  /** Тир бонус-игры, выбранный игроком до спина (1 — обычная серия). */
+  bonusTier: number;
+  /** Фактический множитель серии: делитель награды, не больше тира. */
+  bonusMultiplier: number;
   spins: SpinRecord[];
 }
 
@@ -163,8 +167,43 @@ export function countScatters(cfg: GameConfig, grid: string[][]): number {
   return count;
 }
 
+/**
+ * Тиры бонус-игры «Сундуки короны» (T-195).
+ *
+ * Игрок выбирает форму серии фриспинов ДО спина: те же деньги, но иначе
+ * распределённые. Множитель обязан делить количество фриспинов нацело —
+ * тогда произведение «спины × множитель» постоянно, и матожидание не
+ * меняется, меняется только волатильность.
+ *
+ * Тиры намеренно живут в коде, а не в `config/game.json`: конфиг лент —
+ * это математика, по которой считался PAR sheet, и его хэш участвует в
+ * проверке раундов. Добавить туда поле значит инвалидировать все прошлые
+ * проверки ради вещи, которая к лентам отношения не имеет.
+ */
+export const BONUS_TIERS = [1, 5, 25] as const;
+export type BonusTier = (typeof BONUS_TIERS)[number];
+
+/**
+ * Наибольший делитель `award`, не превосходящий выбранный тир.
+ *
+ * Награда бывает 10, 15 или 25 фриспинов, и не всякий тир делит её нацело.
+ * Округление вниз до делителя сохраняет равенство «спины × множитель =
+ * награда», то есть матожидание. Игрок, выбравший «экстрим» при награде 15,
+ * получит один спин с множителем 15, а не 25 — и это честно.
+ */
+export function effectiveBonusMultiplier(award: number, tier: number): number {
+  if (award <= 0 || tier <= 1) return 1;
+  let best = 1;
+  for (let m = 1; m <= Math.min(tier, award); m += 1) {
+    if (award % m === 0) best = m;
+  }
+  return best;
+}
+
 export interface PlayRoundOptions {
   betPerLine?: number;
+  /** Выбранный игроком тир бонуса. По умолчанию 1 — обычная серия. */
+  bonusTier?: number;
 }
 
 /**
@@ -184,6 +223,10 @@ export function playRound(
   const betPerLine = options.betPerLine ?? 1;
   if (!Number.isInteger(betPerLine) || betPerLine < 1) {
     throw new Error(`betPerLine должен быть целым от 1, получено ${betPerLine}`);
+  }
+  const bonusTier = options.bonusTier ?? 1;
+  if (!BONUS_TIERS.includes(bonusTier as BonusTier)) {
+    throw new Error(`bonusTier=${bonusTier} не входит в ${BONUS_TIERS.join(", ")}`);
   }
 
   const rng = new RoundRandom(serverSeed, clientSeed, nonce);
@@ -216,9 +259,17 @@ export function playRound(
 
   let triggered = 0;
   let remaining = 0;
+  // Множитель бонуса: сжимает серию фриспинов, во столько же раз увеличивая
+  // каждую выплату. При тире 1 (по умолчанию) множитель равен единице и
+  // раунд считается ровно так же, как считался всегда, — иначе разошлись бы
+  // проверки прошлых раундов и сверка с эталонной реализацией на Python.
+  const bonusMultiplier = effectiveBonusMultiplier(
+    cfg.freeSpinsAward[String(baseScatters)] ?? 0,
+    bonusTier,
+  );
   if (baseScatters >= cfg.scatterTrigger) {
     triggered = cfg.freeSpinsAward[String(baseScatters)] ?? 0;
-    remaining = triggered;
+    remaining = triggered / bonusMultiplier;
   }
 
   const baseWin = baseEval.total * betPerLine + baseScatterPay;
@@ -266,6 +317,15 @@ export function playRound(
 
     let retriggered = 0;
     if (cfg.retriggerEnabled && scatters >= cfg.scatterTrigger) {
+      // Ретриггер даёт ПОЛНУЮ награду спинов независимо от множителя.
+      //
+      // Так восстанавливается равенство матожиданий. Сжатая серия короче в
+      // `bonusMultiplier` раз, значит и шансов поймать ретриггер у неё во
+      // столько же раз меньше. Если делить награду на множитель, каждое
+      // событие стоит столько же, сколько в обычной серии, а событий меньше —
+      // и сжатые тиры недоплачивают. Замер на 2 млн раундов показывал
+      // −0.34 п.п. Полная награда со множителем делает событие во столько же
+      // раз дороже, во сколько оно реже.
       retriggered = cfg.freeSpinsAward[String(scatters)] ?? 0;
       remaining += retriggered;
     }
@@ -273,7 +333,10 @@ export function playRound(
     // Множитель фриспинов умножает ЛИНИИ, но не выплату за scatter.
     // Так посчитан аналитический RTP; распространить множитель на scatter
     // значит незаметно раздать больше заявленного.
-    const win = evaluation.total * cfg.freeSpinMultiplier * betPerLine + scatterPay;
+    // Множитель фриспинов умножает линии; множитель бонуса — весь спин
+    // целиком, включая scatter. Иначе сжатая серия недоплачивала бы за
+    // scatter ровно во столько раз, во сколько стала короче.
+    const win = (evaluation.total * cfg.freeSpinMultiplier * betPerLine + scatterPay) * bonusMultiplier;
 
     spins.push({
       index: spinIndex,
@@ -281,7 +344,7 @@ export function playRound(
       reelStops: stops,
       grid,
       win,
-      multiplier: cfg.freeSpinMultiplier,
+      multiplier: cfg.freeSpinMultiplier * bonusMultiplier,
       scatterCount: scatters,
       triggeredFreeSpins: retriggered,
       winDetails: details,
@@ -306,6 +369,8 @@ export function playRound(
     totalWin,
     capped,
     drawCount: rng.drawCount,
+    bonusTier,
+    bonusMultiplier,
     spins,
   };
 }

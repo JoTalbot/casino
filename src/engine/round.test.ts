@@ -20,12 +20,18 @@ import { test, describe } from "node:test";
 import { loadConfig, parseConfig, ConfigError, configHash } from "./config.js";
 import { NUM_REELS, NUM_ROWS, PAYLINES, NUM_LINES } from "./paylines.js";
 import {
+  BONUS_TIERS,
   MAX_FREE_SPINS,
   countScatters,
+  effectiveBonusMultiplier,
   evaluateLines,
   playRound,
   windowFromStops,
 } from "./round.js";
+
+// Сиды для бонус-тестов: любые фиксированные, важна воспроизводимость.
+const SERVER_SEED = "b".repeat(64);
+const CLIENT_SEED = "bonus-tests";
 import { hashServerSeed } from "./rng.js";
 
 const { config: cfg, hash: cfgHash, raw: cfgRaw } = loadConfig("config/game.json");
@@ -390,4 +396,64 @@ describe("приёмка: сверка с эталоном на Python", () => {
       assert.ok(kinds.has(required), `нет фикстуры вида ${required}`);
     }
   });
+});
+
+// --- Бонус-игра «Сундуки короны» (T-195) ---
+
+test("тир 1 считается ровно так же, как раунд без бонуса", () => {
+  const cfg = loadConfig().config;
+  for (let nonce = 0; nonce < 60; nonce += 1) {
+    const plain = playRound(cfg, SERVER_SEED, CLIENT_SEED, nonce, { betPerLine: 10 });
+    const tier1 = playRound(cfg, SERVER_SEED, CLIENT_SEED, nonce, { betPerLine: 10, bonusTier: 1 });
+    assert.equal(tier1.totalWin, plain.totalWin, `nonce=${nonce}`);
+    assert.equal(tier1.drawCount, plain.drawCount, `nonce=${nonce}`);
+    assert.deepEqual(tier1.spins, plain.spins, `nonce=${nonce}`);
+  }
+});
+
+test("множитель бонуса — делитель награды и не превышает тир", () => {
+  // Награды в конфиге: 10, 15, 25 фриспинов
+  assert.equal(effectiveBonusMultiplier(10, 5), 5);
+  assert.equal(effectiveBonusMultiplier(15, 5), 5);
+  assert.equal(effectiveBonusMultiplier(25, 5), 5);
+  assert.equal(effectiveBonusMultiplier(10, 25), 10);
+  assert.equal(effectiveBonusMultiplier(15, 25), 15);
+  assert.equal(effectiveBonusMultiplier(25, 25), 25);
+  // Тир 1 и отсутствие награды не дают множителя
+  assert.equal(effectiveBonusMultiplier(10, 1), 1);
+  assert.equal(effectiveBonusMultiplier(0, 25), 1);
+  // Множитель всегда делит награду нацело — на этом держится равенство EV
+  for (const award of [10, 15, 25]) {
+    for (const tier of BONUS_TIERS) {
+      const m = effectiveBonusMultiplier(award, tier);
+      assert.equal(award % m, 0, `award=${award} tier=${tier} m=${m}`);
+      assert.ok(m <= Math.max(tier, 1));
+    }
+  }
+});
+
+test("сжатая серия короче ровно во столько раз, во сколько дороже спин", () => {
+  const cfg = loadConfig().config;
+  // Ищем nonce с триггером фриспинов
+  let found = 0;
+  for (let nonce = 0; nonce < 4000 && found < 5; nonce += 1) {
+    const plain = playRound(cfg, SERVER_SEED, CLIENT_SEED, nonce, { betPerLine: 10 });
+    const freeSpins = plain.spins.filter((s) => s.free).length;
+    if (freeSpins === 0) continue;
+    found += 1;
+
+    const boosted = playRound(cfg, SERVER_SEED, CLIENT_SEED, nonce, { betPerLine: 10, bonusTier: 5 });
+    assert.equal(boosted.spins[0].grid.join(), plain.spins[0].grid.join(), "базовый спин обязан совпасть");
+    assert.equal(boosted.bonusMultiplier > 1, true, `nonce=${nonce}`);
+
+    const boostedFree = boosted.spins.filter((s) => s.free).length;
+    assert.ok(boostedFree < freeSpins, `сжатая серия должна быть короче (nonce=${nonce})`);
+  }
+  assert.ok(found > 0, "не нашли ни одного триггера фриспинов");
+});
+
+test("неизвестный тир бонуса отклоняется", () => {
+  const cfg = loadConfig().config;
+  assert.throws(() => playRound(cfg, SERVER_SEED, CLIENT_SEED, 0, { bonusTier: 3 }), /bonusTier/);
+  assert.throws(() => playRound(cfg, SERVER_SEED, CLIENT_SEED, 0, { bonusTier: 0 }), /bonusTier/);
 });

@@ -44,6 +44,7 @@ interface SeedRow {
   next_nonce: string;
 }
 interface ExistingRow {
+  bonus_tier?: number | string;
   id: string;
   bet_per_line: string;
   lines: number;
@@ -140,13 +141,14 @@ export async function settleRound(
   betPerLine: number,
   lines: number,
   gameCode = "crown-of-fortune",
+  bonusTier = 1,
 ): Promise<SavedRound> {
   const totalBet = BigInt(betPerLine) * BigInt(lines);
 
   return database.transaction(async (client) => {
     // Идемпотентность — проверяем первой, до проверки лимитов, чтобы повтор не считался новой ставкой
     const existing = await client.query<ExistingRow>(
-      "SELECT r.id, r.bet_per_line, r.lines, r.total_win, r.status, r.nonce, s.server_seed, s.client_seed FROM rounds r JOIN seed_pairs s ON s.id=r.seed_pair_id WHERE r.player_id=$1 AND r.external_id=$2 FOR UPDATE",
+      "SELECT r.id, r.bet_per_line, r.lines, r.total_win, r.status, r.nonce, r.bonus_tier, s.server_seed, s.client_seed FROM rounds r JOIN seed_pairs s ON s.id=r.seed_pair_id WHERE r.player_id=$1 AND r.external_id=$2 FOR UPDATE",
       [playerId, externalId],
     );
     if (existing.rows[0]) {
@@ -158,7 +160,12 @@ export async function settleRound(
         [playerId],
       );
       if (!currentWallet.rows[0]) throw new RoundServiceError("INSUFFICIENT_FUNDS", "Кошелёк не найден.");
-      const record = playRound(cfg.config, row.server_seed, row.client_seed, Number(row.nonce), { betPerLine });
+      // Повтор по идемпотентному ключу обязан вернуть ТОТ ЖЕ раунд, поэтому
+      // тир берётся из записи, а не из нового запроса.
+      const record = playRound(cfg.config, row.server_seed, row.client_seed, Number(row.nonce), {
+        betPerLine,
+        bonusTier: Number(row.bonus_tier ?? 1),
+      });
       return { roundId: row.id, record, balance: BigInt(currentWallet.rows[0].balance), idempotent: true };
     }
 
@@ -241,11 +248,14 @@ export async function settleRound(
     if (!seed.rows[0]) throw new RoundServiceError("SEED_NOT_FOUND", "Активная пара сидов не найдена.");
     const seedRow = seed.rows[0];
     const nonce = Number(seedRow.next_nonce);
-    const record = playRound(effectiveCfg.config, seedRow.server_seed, seedRow.client_seed, nonce, { betPerLine });
+    const record = playRound(effectiveCfg.config, seedRow.server_seed, seedRow.client_seed, nonce, {
+      betPerLine,
+      bonusTier,
+    });
 
     const round = await client.query<{ id: string }>(
-      `INSERT INTO rounds (external_id, player_id, game_id, game_config_id, config_hash, wallet_id, currency_code, seed_pair_id, nonce, draw_count, bet_per_line, lines, total_bet, total_win, status, settled_at)
-       VALUES ($1,$2,$3,$4,$5,$6,'CHIP',$7,$8,$9,$10,$11,$12,$13,'settled',now()) RETURNING id`,
+      `INSERT INTO rounds (external_id, player_id, game_id, game_config_id, config_hash, wallet_id, currency_code, seed_pair_id, nonce, draw_count, bet_per_line, lines, total_bet, total_win, bonus_tier, status, settled_at)
+       VALUES ($1,$2,$3,$4,$5,$6,'CHIP',$7,$8,$9,$10,$11,$12,$13,$14,'settled',now()) RETURNING id`,
       [
         externalId,
         playerId,
@@ -260,6 +270,7 @@ export async function settleRound(
         lines,
         totalBet.toString(),
         record.totalWin,
+        record.bonusTier,
       ],
     );
     const roundId = round.rows[0]!.id;

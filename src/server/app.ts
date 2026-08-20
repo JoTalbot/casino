@@ -50,12 +50,17 @@ const roundBody = z.object({
   gameCode: z.enum(gameCodes).optional().default("crown-of-fortune"),
   betPerLine: z.number().int().positive().max(100),
   lines: z.number().int().positive().optional().default(20),
+  // Бонус-игра «Сундуки короны» (T-195): форма серии фриспинов.
+  // Матожидание у тиров одинаковое, отличается волатильность.
+  bonusTier: z.union([z.literal(1), z.literal(5), z.literal(25)]).optional().default(1),
 });
 
 const verifyBody = z.object({
   serverSeed: sha256,
   clientSeed: z.string().min(1).max(256).refine((seed) => !seed.includes(":")),
   nonce: z.number().int().nonnegative(),
+  // Без тира сторонний верификатор не воспроизведёт серию фриспинов.
+  bonusTier: z.union([z.literal(1), z.literal(5), z.literal(25)]).optional().default(1),
   gameCode: z.enum(gameCodes).optional(),
   configHash: sha256.optional(),
 });
@@ -134,7 +139,9 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     if (body.configHash && body.configHash !== cfgEntry.loaded.hash) {
       return { valid: false, code: "CONFIG_HASH_MISMATCH", configHash: cfgEntry.loaded.hash };
     }
-    const round = playRound(cfgEntry.loaded.config, body.serverSeed, body.clientSeed, body.nonce);
+    const round = playRound(cfgEntry.loaded.config, body.serverSeed, body.clientSeed, body.nonce, {
+      bonusTier: body.bonusTier,
+    });
     return { valid: true, configHash: cfgEntry.loaded.hash, round };
   });
 
@@ -404,7 +411,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       idempotencyKey = randomUUID();
     }
 
-    let parsed: { gameCode: string; betPerLine: number; lines: number };
+    let parsed: { gameCode: string; betPerLine: number; lines: number; bonusTier: number };
     try {
       // Поддержка legacy тела { betPerLine } без gameCode/lines
       const raw = request.body as Record<string, unknown>;
@@ -413,6 +420,8 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
           gameCode: "crown-of-fortune",
           betPerLine: raw.betPerLine as number,
           lines: (raw.lines as number) ?? 20,
+          // Старое тело бонуса не знает — обычная серия фриспинов
+          bonusTier: 1,
         };
       } else {
         parsed = roundBody.parse(request.body);
@@ -436,7 +445,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       const gameEntry = getGameEntry(parsed.gameCode);
       if (!gameEntry) return reply.status(404).send({ code: "NOT_FOUND", message: "Игра не найдена" });
       const cfg = gameEntry.loaded;
-      const settled = await settleRound(options.database as Database, cfg, playerId, idempotencyKey as string, parsed.betPerLine, parsed.lines, parsed.gameCode);
+      const settled = await settleRound(options.database as Database, cfg, playerId, idempotencyKey as string, parsed.betPerLine, parsed.lines, parsed.gameCode, parsed.bonusTier);
 
       // Reality check (T-039) — проверяем после раунда, отдаём вместе с ответом
       let realityCheck: { message: string; minutesPlayed: number } | null = null;
@@ -489,6 +498,12 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
           clientSeed: settled.record.clientSeed,
           nonce: settled.record.nonce,
           drawCount: settled.record.drawCount,
+          // Без тира раунд не переиграть офлайн: серия фриспинов зависит от него.
+          bonusTier: settled.record.bonusTier,
+        },
+        bonus: {
+          tier: settled.record.bonusTier,
+          multiplier: settled.record.bonusMultiplier,
         },
         spins: settled.record.spins.map((s) => ({
           index: s.index,
