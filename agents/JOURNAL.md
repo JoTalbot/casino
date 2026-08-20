@@ -1861,3 +1861,12 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 **T-159…T-163 done**
 
 **SHIFT END** 16:00 UTC — смена O закрыта
+
+---
+
+## 2026-08-20 — arena-2026-08-20-P
+
+**SHIFT START** 16:00 UTC
+Задачи: T-164 … T-168
+Локи: `backend`
+
