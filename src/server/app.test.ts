@@ -46,3 +46,50 @@ test("проверка отклоняет неверную форму входа
     await app.close();
   }
 });
+
+test("пустое тело при content-type json не превращается в 500 (T-189)", async () => {
+  // Именно на этом ложился весь клиент: браузер шлёт POST /auth/demo
+  // с заголовком application/json и без тела, Fastify отвечал ошибкой
+  // парсера, а обработчик превращал её в 500 — токен не выдавался,
+  // и спин был невозможен.
+  const app = await buildApp({ jwtSecret: "тестовый-секрет-достаточной-длины" });
+  try {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/auth/demo",
+      headers: { "content-type": "application/json" },
+      payload: "",
+    });
+    assert.notEqual(res.statusCode, 500, res.body);
+    // БД в этом тесте не подключена, поэтому ожидаем честный 503
+    assert.equal(res.statusCode, 503);
+    assert.equal(res.json().code, "DATABASE_UNAVAILABLE");
+  } finally {
+    await app.close();
+  }
+});
+
+test("битый JSON отдаёт 400, а не 500 (T-189)", async () => {
+  const app = await buildApp({ jwtSecret: "тестовый-секрет-достаточной-длины" });
+  try {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/verify",
+      headers: { "content-type": "application/json" },
+      payload: "{это не json",
+    });
+    assert.equal(res.statusCode, 400, res.body);
+  } finally {
+    await app.close();
+  }
+});
+
+test("клиентские ошибки Fastify сохраняют свой код состояния (T-189)", async () => {
+  const app = await buildApp({ jwtSecret: "тестовый-секрет-достаточной-длины" });
+  try {
+    const res = await app.inject({ method: "GET", url: "/api/v1/не-существует" });
+    assert.equal(res.statusCode, 404, res.body);
+  } finally {
+    await app.close();
+  }
+});

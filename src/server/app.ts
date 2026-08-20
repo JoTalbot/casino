@@ -89,9 +89,36 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     JSON.stringify(payload, (_key, value) => (typeof value === "bigint" ? value.toString() : value)),
   );
 
-  app.setErrorHandler((error, _request, reply) => {
+  // T-189: пустое тело при content-type: application/json — норма для запросов
+  // вида POST /auth/demo, у которых нет параметров. Штатный парсер Fastify
+  // отвечает на них ошибкой, поэтому пустое тело трактуем как {}.
+  app.addContentTypeParser("application/json", { parseAs: "string" }, (_req, body, done) => {
+    const raw = typeof body === "string" ? body.trim() : "";
+    if (raw === "") return done(null, {});
+    try {
+      done(null, JSON.parse(raw));
+    } catch {
+      const error = new Error("Тело запроса не является корректным JSON.") as Error & { statusCode: number };
+      error.statusCode = 400;
+      done(error, undefined);
+    }
+  });
+
+  app.setErrorHandler((error, request, reply) => {
     if (error instanceof z.ZodError) {
       return reply.status(400).send({ code: "VALIDATION_FAILED", message: error.issues });
+    }
+    // T-189: клиентские ошибки нельзя превращать в 500 — иначе браузер видит
+    // «внутреннюю ошибку сервера» там, где не так составлен запрос, и
+    // отладка уходит в лог сервера вместо ответа. Именно на этом молча
+    // ложился демо-вход: 400 от парсера тела отдавался как 500.
+    const status = (error as { statusCode?: number }).statusCode;
+    if (typeof status === "number" && status >= 400 && status < 500) {
+      request.log.info({ err: error }, "клиентская ошибка запроса");
+      return reply.status(status).send({
+        code: (error as { code?: string }).code ?? "BAD_REQUEST",
+        message: (error as Error).message,
+      });
     }
     app.log.error(error);
     return reply.status(500).send({ code: "INTERNAL_ERROR", message: "Внутренняя ошибка сервера." });

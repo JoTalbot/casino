@@ -120,10 +120,20 @@ function clearStoredToken(): void {
   }
 }
 
+/**
+ * Заголовки запроса. content-type проставляется ТОЛЬКО когда есть тело:
+ * заявленный `application/json` с пустым телом — ошибка протокола, на
+ * которой раньше падал демо-вход, а с ним и весь клиент (T-189).
+ */
+function jsonHeaders(init?: RequestInit): Record<string, string> {
+  const base = (init?.headers as Record<string, string>) ?? {};
+  return init?.body != null ? { "content-type": "application/json", ...base } : { ...base };
+}
+
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<{ status: number; body: T; rawText: string }> {
   const resp = await fetch(path, {
     ...init,
-    headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
+    headers: jsonHeaders(init),
   });
   const text = await resp.text();
   let body: unknown;
@@ -156,10 +166,7 @@ async function ensureAuth(): Promise<string | null> {
 
 async function request<T>(path: string, init?: RequestInit, retryAuth = true): Promise<T> {
   const token = getStoredToken();
-  const headers: Record<string, string> = {
-    "content-type": "application/json",
-    ...((init?.headers as Record<string, string>) ?? {}),
-  };
+  const headers: Record<string, string> = jsonHeaders(init);
   if (token) headers["authorization"] = `Bearer ${token}`;
 
   const response = await fetch(path, { ...init, headers });
