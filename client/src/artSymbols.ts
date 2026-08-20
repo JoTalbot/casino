@@ -17,7 +17,7 @@
  * а «дорогие» символы отличаются теплом подложки и силой свечения.
  */
 
-import { Container, FillGradient, Graphics, Sprite, Text, TextStyle, Texture } from "pixi.js";
+import { Assets, Container, FillGradient, Graphics, Sprite, Text, TextStyle, Texture } from "pixi.js";
 import type { Renderer } from "pixi.js";
 import { ReelSymbol } from "pixi-reels";
 
@@ -52,6 +52,58 @@ export const SYMBOL_THEMES: Record<string, SymbolTheme> = {
 
 const FALLBACK: SymbolTheme = { accent: 0x8899aa, shade: 0x44515f, glyph: "?", rank: "low", shape: "royal" };
 
+/**
+ * 3D-рендеры символов (T-193).
+ *
+ * Файлы лежат в `public/symbols/` и отдаются с того же origin — внешних
+ * запросов нет. Если файл не загрузился (офлайн, урезанная сборка,
+ * символ без арта), рисуется векторная фигура: игра не должна ломаться
+ * из-за картинки.
+ */
+const ICON_FILES: Record<string, string> = {
+  CROWN: "crown",
+  RING: "ring",
+  CHALICE: "chalice",
+  SWORD: "sword",
+  WILD: "wild",
+  SCATTER: "scatter",
+  A: "A",
+  K: "K",
+  Q: "Q",
+  J: "J",
+};
+
+/** Доля ячейки, которую занимает 3D-объект. */
+const ICON_FIT: Record<string, number> = {
+  CROWN: 0.78,
+  RING: 0.74,
+  CHALICE: 0.76,
+  SWORD: 0.82,
+  WILD: 0.8,
+  SCATTER: 0.74,
+  A: 0.66,
+  K: 0.66,
+  Q: 0.66,
+  J: 0.62,
+};
+
+const icons = new Map<string, Texture>();
+
+/** Грузит 3D-арты. Ошибки не фатальны: символ откатится на вектор. */
+async function loadIcons(): Promise<void> {
+  if (icons.size > 0) return;
+  await Promise.all(
+    Object.entries(ICON_FILES).map(async ([id, file]) => {
+      try {
+        const texture = await Assets.load<Texture>(`/symbols/${file}.png`);
+        icons.set(id, texture);
+      } catch {
+        // молча оставляем векторную фигуру
+      }
+    }),
+  );
+}
+
 /** Подложки по рангу: чем дороже символ, тем теплее и светлее плашка. */
 const PLATE: Record<SymbolRank, { top: string; bottom: string; rim: number }> = {
   low: { top: "#2c3b5c", bottom: "#141d32", rim: 0x53709f },
@@ -77,6 +129,7 @@ class SymbolPainter {
   private readonly icon = new Graphics();
   private readonly gloss = new Graphics();
   private readonly label: Text;
+  private readonly sprites: Sprite[] = [];
   readonly root = new Container();
 
   constructor(private readonly size: number) {
@@ -94,7 +147,7 @@ class SymbolPainter {
     this.root.addChild(this.plate, this.icon, this.label, this.gloss);
   }
 
-  paint(theme: SymbolTheme): Container {
+  paint(theme: SymbolTheme, symbolId: string): Container {
     const s = this.size;
     const pad = Math.max(3, Math.round(s * 0.045));
     const radius = Math.round(s * 0.16);
@@ -104,6 +157,7 @@ class SymbolPainter {
     this.icon.clear();
     this.gloss.clear();
     this.label.text = "";
+    for (const sprite of this.sprites.splice(0)) sprite.destroy();
 
     const x = -s / 2 + pad;
     const y = -s / 2 + pad;
@@ -133,9 +187,25 @@ class SymbolPainter {
       .roundRect(x + pw * 0.08, y + ph * 0.1, pw * 0.84, ph * 0.8, radius * 0.9)
       .stroke({ width: Math.max(2, s * 0.03), color: theme.accent, alpha: glowAlpha, alignment: 0 });
 
-    // Мягкая тень под иконкой отделяет её от плашки.
-    this.icon.ellipse(0, s * 0.36, s * 0.26, s * 0.05).fill({ color: 0x000000, alpha: 0.35 });
-    this.drawIcon(s * 1.22, theme);
+    // Контактная тень под объектом — он должен «стоять» на плашке, а не парить.
+    this.icon.ellipse(0, s * 0.34, s * 0.27, s * 0.055).fill({ color: 0x000000, alpha: 0.45 });
+    this.icon.ellipse(0, s * 0.34, s * 0.18, s * 0.035).fill({ color: 0x000000, alpha: 0.35 });
+
+    const texture = icons.get(symbolId);
+    if (texture) {
+      // 3D-рендер: вписываем в ячейку и сажаем чуть выше центра, чтобы
+      // осталось место под контактную тень.
+      const fit = (ICON_FIT[symbolId] ?? 0.72) * s;
+      const sprite = new Sprite(texture);
+      sprite.anchor.set(0.5);
+      const scale = fit / Math.max(texture.width, texture.height);
+      sprite.scale.set(scale);
+      sprite.position.set(0, -s * 0.02);
+      this.root.addChildAt(sprite, this.root.getChildIndex(this.icon) + 1);
+      this.sprites.push(sprite);
+    } else {
+      this.drawIcon(s * 1.22, theme);
+    }
 
     this.gloss
       .moveTo(x + pw * 0.06, y + ph * 0.62)
@@ -444,9 +514,10 @@ let bakedSize = 0;
  * Вызывать до сборки барабанов. Повторный вызов с тем же размером — no-op,
  * со другим размером — перезапекание (например, при смене раскладки).
  */
-export function initSymbolTextures(renderer: Renderer, cellSize: number): void {
+export async function initSymbolTextures(renderer: Renderer, cellSize: number): Promise<void> {
   if (textures && bakedSize === cellSize) return;
   destroySymbolTextures();
+  await loadIcons();
 
   const size = Math.round(cellSize);
   const painter = new SymbolPainter(size);
@@ -456,7 +527,7 @@ export function initSymbolTextures(renderer: Renderer, cellSize: number): void {
   const resolution = 2;
 
   for (const [id, theme] of Object.entries(SYMBOL_THEMES)) {
-    const art = painter.paint(theme);
+    const art = painter.paint(theme, id);
     const texture = renderer.generateTexture({ target: art, resolution });
     baked.set(id, texture);
   }

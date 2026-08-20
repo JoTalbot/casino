@@ -187,6 +187,54 @@ export function buildReelWindow(renderer: Renderer, layout: CabinetLayout): Cont
   return bake(renderer, root);
 }
 
+/**
+ * Объём барабанов (T-193).
+ *
+ * Настоящий барабан — цилиндр: верх и низ уходят от зрителя в тень, по
+ * середине идёт блик. Слой кладётся ПОВЕРХ символов, поэтому дальние ряды
+ * притемняются, а центральный ряд подсвечивается — плоская сетка начинает
+ * читаться как вращающийся вал.
+ */
+export function buildDrumShading(renderer: Renderer, layout: CabinetLayout): Container {
+  const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = layout;
+  const root = new Container();
+  const radius = Math.min(bw, bh) * 0.045;
+
+  const shade = new Graphics();
+  shade.roundRect(x, y, bw, bh, radius).fill(
+    new FillGradient({
+      type: "linear",
+      start: { x: 0.5, y: 0 },
+      end: { x: 0.5, y: 1 },
+      colorStops: [
+        { offset: 0, color: "rgba(0,0,0,0.62)" },
+        { offset: 0.16, color: "rgba(0,0,0,0.26)" },
+        { offset: 0.34, color: "rgba(0,0,0,0)" },
+        { offset: 0.5, color: "rgba(255,238,200,0.07)" },
+        { offset: 0.66, color: "rgba(0,0,0,0)" },
+        { offset: 0.84, color: "rgba(0,0,0,0.26)" },
+        { offset: 1, color: "rgba(0,0,0,0.62)" },
+      ],
+      textureSpace: "local",
+    }),
+  );
+  root.addChild(shade);
+
+  // Стеклянный блик по диагонали — «за стеклом», поверх всего.
+  const glass = new Graphics();
+  glass
+    .moveTo(x, y + bh * 0.72)
+    .lineTo(x + bw * 0.38, y)
+    .lineTo(x + bw * 0.56, y)
+    .lineTo(x + bw * 0.12, y + bh)
+    .lineTo(x, y + bh)
+    .closePath()
+    .fill({ color: 0xffffff, alpha: 0.035 });
+  root.addChild(glass);
+
+  return bake(renderer, root);
+}
+
 /** Золотая рама с фаской, орнаментом углов и заклёпками. */
 export function buildFrame(renderer: Renderer, layout: CabinetLayout): Container {
   const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = layout;

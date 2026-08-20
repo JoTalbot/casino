@@ -16,7 +16,7 @@ import {
   winTier,
 } from "./presentation.js";
 import { ArtSymbol, SYMBOL_THEMES, initSymbolTextures } from "./artSymbols.js";
-import { WinFx, animateMarquee, buildBackdrop, buildFrame, buildMarquee, buildReelWindow, type CabinetLayout } from "./cabinet.js";
+import { WinFx, animateMarquee, buildBackdrop, buildDrumShading, buildFrame, buildMarquee, buildReelWindow, type CabinetLayout } from "./cabinet.js";
 import { soundWin, soundSpin } from "./sound.js";
 
 const REELS = 5;
@@ -253,7 +253,7 @@ async function main(): Promise<void> {
   // Порядок слоёв: задник → окно → барабаны → рама → вывеска → эффекты.
   // Символы и статичные слои запекаются в текстуры до первого кадра:
   // во время игры сцена не должна ничего рисовать заново (T-191).
-  initSymbolTextures(app.renderer as never, CELL);
+  await initSymbolTextures(app.renderer as never, CELL);
 
   app.stage.addChild(buildBackdrop(app.renderer as never, layout));
   app.stage.addChild(buildReelWindow(app.renderer as never, layout));
@@ -261,6 +261,9 @@ async function main(): Promise<void> {
   const board = new Container();
   board.position.set(layout.boardX, layout.boardY);
   app.stage.addChild(board);
+
+  // Слой объёма барабанов ложится поверх символов, но под раму.
+  app.stage.addChild(buildDrumShading(app.renderer as never, layout));
 
   const frameLayer = buildFrame(app.renderer as never, layout);
   const marquee = buildMarquee(layout, game.name ?? "Crown of Fortune");
