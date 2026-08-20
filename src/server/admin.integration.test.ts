@@ -7,6 +7,13 @@ import { runMigrations } from "./migrate.js";
 const databaseUrl = process.env.TEST_DATABASE_URL;
 const ADMIN = "test-admin-secret";
 
+/**
+ * ВАЖНО: интеграционные тесты делят одну базу и начинают с TRUNCATE.
+ * Запускать их параллельно нельзя — один тест вычистит данные другого прямо
+ * посреди проверки. Именно так CI падал через раз на «админка: stats…».
+ * Последовательный прогон обеспечивается флагом `--test-concurrency=1`
+ * в npm-скрипте `test` (T-201).
+ */
 test("админка: stats, players, grant, rtp, daily", { skip: !databaseUrl }, async () => {
   process.env.ADMIN_TOKEN = ADMIN;
   const dbUrl = databaseUrl!;

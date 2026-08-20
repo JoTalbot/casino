@@ -6,6 +6,13 @@ import { runMigrations } from "./migrate.js";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
 
+/**
+ * ВАЖНО: интеграционные тесты делят одну базу и начинают с TRUNCATE.
+ * Запускать их параллельно нельзя — один тест вычистит данные другого прямо
+ * посреди проверки. Именно так CI падал через раз на «админка: stats…».
+ * Последовательный прогон обеспечивается флагом `--test-concurrency=1`
+ * в npm-скрипте `test` (T-201).
+ */
 test("полный сценарий: demo-auth, seeds, раунд, идемпотентность, история", { skip: !databaseUrl }, async () => {
   const dbUrl = databaseUrl!;
   await runMigrations(dbUrl);

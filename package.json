@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test build/engine/*.test.js build/server/*.test.js",
+    "test": "npm run build && node --test --test-concurrency=1 build/engine/*.test.js build/server/*.test.js",
     "dev:server": "npm run build && node build/server/devServer.js",
     "dev:client": "npm --prefix client run dev",
     "client:install": "npm --prefix client install",
