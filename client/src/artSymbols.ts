@@ -230,6 +230,8 @@ export class ArtSymbol extends ReelSymbol {
 
     // Иконка занимает почти всю плашку: мелкая графика в сетке 5x3
     // читается плохо, особенно на телефоне.
+    // Мягкая тень под иконкой отделяет её от плашки.
+    this.icon.ellipse(0, s * 0.36, s * 0.26, s * 0.05).fill({ color: 0x000000, alpha: 0.35 });
     this.drawIcon(s * 1.22, t);
 
     // Косой блик поверх всего — «стекло» ячейки.
@@ -333,10 +335,12 @@ export class ArtSymbol extends ReelSymbol {
       .fill(metal)
       .stroke({ width: s * 0.016, color: t.shade, alignment: 0.5 });
 
-    // Обод
+    // Обод: тёплый металл со светлой кромкой сверху
     g.roundRect(-w / 2, base - h * 0.16, w, h * 0.2, h * 0.06)
-      .fill({ color: t.shade })
-      .stroke({ width: s * 0.01, color: t.accent, alpha: 0.7 });
+      .fill(metal)
+      .stroke({ width: s * 0.012, color: t.shade, alpha: 0.95 });
+    g.roundRect(-w / 2 + s * 0.01, base - h * 0.15, w - s * 0.02, h * 0.06, h * 0.03)
+      .fill({ color: 0xffffff, alpha: 0.35 });
 
     // Жемчужины на зубцах
     for (const px of [-w * 0.3, 0, w * 0.3]) {
@@ -360,7 +364,11 @@ export class ArtSymbol extends ReelSymbol {
     const r = s * 0.22;
     const cy = s * 0.1;
 
-    // Обод — два круга, внутренний вырезается вторым цветом плашки
+    // Внутренность кольца — тёмное стекло с бликом, а не дыра в плашке
+    g.circle(0, cy, r * 0.78).fill({ color: 0x120c04, alpha: 0.55 });
+    g.ellipse(-r * 0.25, cy - r * 0.3, r * 0.3, r * 0.16).fill({ color: 0xffffff, alpha: 0.1 });
+
+    // Обод — два круга разной толщины: тень и металл
     g.circle(0, cy, r).stroke({ width: s * 0.075, color: t.shade });
     g.circle(0, cy, r).stroke({ width: s * 0.05, color: t.accent });
     g.circle(0, cy - r * 0.15, r * 0.98).stroke({ width: s * 0.016, color: 0xffffff, alpha: 0.45 });
