@@ -1756,3 +1756,12 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 **T-124…T-128 done:** leaderboard avatars, share, PWA offline, backup verification, ADR-024
 
 **SHIFT END** 09:00 UTC — смена H закрыта
+
+---
+
+## 2026-08-20 — arena-2026-08-20-I
+
+**SHIFT START** 09:30 UTC
+Задачи: T-129 … T-133
+Локи: `backend`
+
