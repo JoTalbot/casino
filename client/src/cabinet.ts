@@ -313,7 +313,7 @@ export function buildMarquee(layout: CabinetLayout, title: string): Container {
     const bulb = new Graphics();
     const bx = px + (plateW / (count - 1)) * i;
     bulb.circle(0, 0, plateH * 0.075).fill({ color: 0xffe9a8 });
-    bulb.position.set(bx, py + plateH + plateH * 0.14);
+    bulb.position.set(bx, py + plateH * 0.5 + (i % 2 === 0 ? -plateH * 0.62 : plateH * 0.62));
     bulb.alpha = i % 2 === 0 ? 0.9 : 0.35;
     bulbs.addChild(bulb);
   }

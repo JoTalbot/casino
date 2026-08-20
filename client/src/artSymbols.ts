@@ -36,11 +36,11 @@ export interface SymbolTheme {
 }
 
 export const SYMBOL_THEMES: Record<string, SymbolTheme> = {
-  TEN: { accent: 0x9fb6dc, shade: 0x53698f, glyph: "10", rank: "low", shape: "royal" },
-  J: { accent: 0xa8bfe4, shade: 0x5a719a, glyph: "J", rank: "low", shape: "royal" },
-  Q: { accent: 0xb6c9ea, shade: 0x63799f, glyph: "Q", rank: "low", shape: "royal" },
-  K: { accent: 0xc7d7f2, shade: 0x6d84ab, glyph: "K", rank: "low", shape: "royal" },
-  A: { accent: 0xdce8ff, shade: 0x7a92bb, glyph: "A", rank: "low", shape: "royal" },
+  TEN: { accent: 0xbfe0ff, shade: 0x2e6da8, glyph: "10", rank: "low", shape: "royal" },
+  J: { accent: 0x9ff0d8, shade: 0x1f7f68, glyph: "J", rank: "low", shape: "royal" },
+  Q: { accent: 0xffc0e0, shade: 0xa03a72, glyph: "Q", rank: "low", shape: "royal" },
+  K: { accent: 0xffd9a0, shade: 0xb06a1c, glyph: "K", rank: "low", shape: "royal" },
+  A: { accent: 0xff9f9f, shade: 0xa82a2a, glyph: "A", rank: "low", shape: "royal" },
   SWORD: { accent: 0x8fe3f5, shade: 0x2c7f96, glyph: "МЕЧ", rank: "mid", shape: "sword" },
   CHALICE: { accent: 0xb9a6ff, shade: 0x5b46a8, glyph: "КУБОК", rank: "mid", shape: "chalice" },
   RING: { accent: 0xffc978, shade: 0xa96c1c, glyph: "КОЛЬЦО", rank: "high", shape: "ring" },
@@ -53,10 +53,10 @@ const FALLBACK: SymbolTheme = { accent: 0x8899aa, shade: 0x44515f, glyph: "?", r
 
 /** Подложки по рангу: чем дороже символ, тем теплее и светлее плашка. */
 const PLATE: Record<SymbolRank, { top: string; bottom: string; rim: number }> = {
-  low: { top: "#1b2436", bottom: "#0e1420", rim: 0x2f3d59 },
-  mid: { top: "#212c46", bottom: "#111827", rim: 0x3d5580 },
-  high: { top: "#33291a", bottom: "#170f06", rim: 0x8a6a24 },
-  special: { top: "#2c1836", bottom: "#140a1c", rim: 0x7a3a8e },
+  low: { top: "#2c3b5c", bottom: "#141d32", rim: 0x53709f },
+  mid: { top: "#33436b", bottom: "#17203a", rim: 0x6a8ec4 },
+  high: { top: "#5a4318", bottom: "#251802", rim: 0xd6a234 },
+  special: { top: "#4a2456", bottom: "#1e0c2b", rim: 0xb45bd0 },
 };
 
 function hex(color: number): string {
@@ -221,9 +221,16 @@ export class ArtSymbol extends ReelSymbol {
     // Верхняя фаска — тонкая светлая дуга, даёт объём без теней-текстур.
     this.plate
       .roundRect(x + pw * 0.06, y + ph * 0.05, pw * 0.88, ph * 0.42, radius * 0.8)
-      .fill({ color: 0xffffff, alpha: 0.05 });
+      .fill({ color: 0xffffff, alpha: 0.07 });
+    // Внутреннее свечение цветом символа: дешёвая замена «дорогой» текстуре.
+    const glowAlpha = t.rank === "special" ? 0.2 : t.rank === "high" ? 0.16 : 0.09;
+    this.plate
+      .roundRect(x + pw * 0.08, y + ph * 0.1, pw * 0.84, ph * 0.8, radius * 0.9)
+      .stroke({ width: Math.max(2, s * 0.03), color: t.accent, alpha: glowAlpha, alignment: 0 });
 
-    this.drawIcon(s, t);
+    // Иконка занимает почти всю плашку: мелкая графика в сетке 5x3
+    // читается плохо, особенно на телефоне.
+    this.drawIcon(s * 1.22, t);
 
     // Косой блик поверх всего — «стекло» ячейки.
     this.gloss
