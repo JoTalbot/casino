@@ -83,6 +83,12 @@ th,td{border-bottom:1px solid #232c40;padding:6px;text-align:left}
 </div>
 
 <div class="card">
+<h2>Рефералы — график по дням</h2>
+<button id="load-ref-daily">Загрузить график рефералов</button>
+<canvas id="chart-ref"></canvas>
+</div>
+
+<div class="card">
 <h2>Чат — модерация</h2>
 <button id="load-chat">Загрузить чат 50</button>
 <div id="admin-chat-list" style="max-height:300px;overflow-y:auto;margin-top:8px"></div>
@@ -164,6 +170,21 @@ $('load-daily').onclick = async () => {
       chartRounds = new Chart(ctxRounds, { type: 'line', data: { labels, datasets: [{ label: 'Раундов', data: rounds, borderColor: '#ffd257', fill: true }] }, options: { responsive: true, plugins: { title: { display: true, text: 'Количество раундов по дням' } } } });
     } else { alert('Chart.js не загрузился. Данные: '+JSON.stringify(daily, null, 2)); }
   }catch(e){ alert('Ошибка графиков: '+e.message) }
+};
+
+let chartRef;
+$('load-ref-daily').onclick = async () => {
+  try {
+    const data = await fetchJson('/api/v1/referrals/daily?days=14');
+    const daily = data.daily;
+    const labels = daily.map(d => d.day);
+    const counts = daily.map(d => Number(d.count));
+    const ctx = document.getElementById('chart-ref');
+    if(chartRef) chartRef.destroy();
+    if(typeof Chart !== 'undefined'){
+      chartRef = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Рефералов', data: counts, backgroundColor: '#ffd257' }] }, options: { responsive: true, plugins: { title: { display: true, text: 'Рефералы по дням' } } } });
+    }
+  } catch(e){ alert(e.message); }
 };
 
 $('load-chat').onclick = async () => {

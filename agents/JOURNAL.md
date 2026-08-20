@@ -1611,3 +1611,17 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - Всё до 103 закрыто, протокол зелёный, next ID T-104.
 - План: tournament animated progress, referral graph, email with images, backup cron improved, ADR-020
 
+
+### Сделано (смена — продолжаю + — T-094…T-098)
+
+**T-094 prize email templates integration:** renderTemplate в distribute_prizes.js и bonus.ts
+
+**T-095 referral leaderboard:** GET /referrals/leaderboard top, ref.html топ
+
+**T-096 PWA install prompt improved:** beforeinstallprompt кнопка, auto remove 15s
+
+**T-097 audit search UI:** admin.html фильтры event_type и search, GET /admin/audit?event_type=&search=
+
+**T-098 ADR-018**
+
+**SHIFT END** — смена закрыта, всё до 98 done

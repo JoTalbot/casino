@@ -1,4 +1,4 @@
-/** Рефералка (T-059, T-070) */
+/** Рефералка (T-059, T-070, T-095) */
 import type { Database } from "./db.js";
 
 const REFERRAL_BONUS = 5000n;
@@ -66,4 +66,42 @@ export async function getReferralProgress(database: Database, playerId: string) 
     remaining: Math.max(target - count, 0),
     hasMaster: count >= target,
   };
+}
+
+export async function getReferralLeaderboard(database: Database, limit = 20) {
+  const lim = Math.min(Math.max(limit, 1), 100);
+  const res = await database.query<{
+    referrer_id: string;
+    username: string;
+    count: string;
+    total_bonus: string;
+  }>(
+    `SELECT r.referrer_id, p.username, COUNT(*) as count, SUM(r.bonus_amount) as total_bonus
+     FROM referrals r JOIN players p ON p.id = r.referrer_id
+     GROUP BY r.referrer_id, p.username
+     ORDER BY COUNT(*) DESC LIMIT $1`,
+    [lim],
+  );
+  return res.rows.map((r, i) => ({
+    rank: i + 1,
+    playerId: r.referrer_id,
+    username: r.username,
+    count: Number(r.count),
+    totalBonus: Number(r.total_bonus),
+  }));
+}
+
+export async function getReferralDaily(database: Database, days = 14) {
+  const d = Math.min(Math.max(days, 1), 90);
+  const res = await database.query<{
+    day: string;
+    count: string;
+  }>(
+    `SELECT date_trunc('day', created_at)::date as day, COUNT(*) as count
+     FROM referrals
+     WHERE created_at >= now() - ($1::int || ' days')::interval
+     GROUP BY 1 ORDER BY 1 ASC`,
+    [d],
+  );
+  return res.rows;
 }

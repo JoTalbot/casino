@@ -9,7 +9,7 @@
 
 ## Активные и запланированные
 
-**Весь бэклог T-001…T-103 закрыт.** Новых активных задач нет.
+**Весь бэклог T-001…T-098 закрыт.** Новых активных задач нет.
 
 ---
 
@@ -17,12 +17,11 @@
 
 | ID | Задача | Приоритет | Статус | Агент | Обновлено |
 |----|--------|-----------|--------|-------|-----------|
-| T-001 | Инициализация репозитория | P0 | done | claude-2026-08-17-A | 2026-08-17 |
-| T-099 | Referral leaderboard UI — топ рефереров в ref.html | P2 | done | arena-2026-08-20-C | 2026-08-20 |
-| T-100 | Tournament prize email HTML improved | P2 | done | arena-2026-08-20-C | 2026-08-20 |
-| T-101 | PWA offline chat — кэш /chat в sw.js | P2 | done | arena-2026-08-20-C | 2026-08-20 |
-| T-102 | Backup restore UI improved — кнопки в админке | P2 | done | arena-2026-08-20-C | 2026-08-20 |
-| T-103 | ADR-019: referral leaderboard, prize email HTML, PWA offline chat, backup restore UI | P2 | done | arena-2026-08-20-C | 2026-08-20 |
+| T-094 | Tournament prize email templates integration — использовать шаблоны при раздаче | P2 | done | arena-2026-08-20-B | 2026-08-20 |
+| T-095 | Referral leaderboard — топ рефереров по количеству приглашённых | P2 | done | arena-2026-08-20-B | 2026-08-20 |
+| T-096 | PWA install prompt improved — кнопка и UI | P2 | done | arena-2026-08-20-B | 2026-08-20 |
+| T-097 | Audit search UI в админке — фильтры event_type и search | P2 | done | arena-2026-08-20-B | 2026-08-20 |
+| T-098 | ADR-018: referral leaderboard, prize email templates, PWA install, audit search UI | P2 | done | arena-2026-08-20-B | 2026-08-20 |
 
 ---
 

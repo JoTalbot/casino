@@ -893,6 +893,17 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
 
   // T-070 referral progress
   app.get("/api/v1/referrals/progress", async (request, reply) => {
+  // T-099 referral leaderboard top referrers
+  app.get("/api/v1/referrals/leaderboard", async (request, reply) => {
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    const { limit } = request.query as { limit?: string };
+    const lim = limit ? parseInt(limit, 10) : 20;
+    try {
+      const { getReferralLeaderboard } = await import("./referrals.js");
+      const board = await getReferralLeaderboard(options.database, lim);
+      return { leaderboard: board };
+    } catch (e) { request.log.error(e); return reply.status(500).send({ code: "INTERNAL_ERROR" }); }
+  });
     try {
       await request.jwtVerify();
     } catch {
