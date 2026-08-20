@@ -15,8 +15,27 @@
  * Барабаны добавляет вызывающий код между `background` и `frame`.
  */
 
-import { Container, FillGradient, Graphics, Text, TextStyle } from "pixi.js";
-import type { Ticker } from "pixi.js";
+import { Container, FillGradient, Graphics, Sprite, Text, TextStyle } from "pixi.js";
+import type { Renderer, Ticker } from "pixi.js";
+
+/**
+ * Запекает статичный слой в один спрайт.
+ *
+ * Задник, окно и рама не меняются между кадрами, но как Graphics они каждый
+ * кадр отправляют в рендер десятки перекрывающихся полупрозрачных полигонов.
+ * На стенде это стоило 44 FPS из 60 (T-191). Одна текстура — один quad.
+ */
+function bake(renderer: Renderer, source: Container): Container {
+  const texture = renderer.generateTexture({ target: source, resolution: 1 });
+  const sprite = new Sprite(texture);
+  // generateTexture обрезает по границам содержимого — возвращаем на место.
+  const bounds = source.getLocalBounds();
+  sprite.position.set(bounds.x, bounds.y);
+  source.destroy({ children: true });
+  const holder = new Container();
+  holder.addChild(sprite);
+  return holder;
+}
 
 export interface CabinetLayout {
   /** Полный размер холста. */
@@ -38,7 +57,7 @@ const GOLD_DEEP = "#a8741a";
 const GOLD_SHADOW = "#5b3d08";
 
 /** Задник: глубокий градиент, лучи из-за автомата, виньетка. */
-export function buildBackdrop(layout: CabinetLayout): Container {
+export function buildBackdrop(renderer: Renderer, layout: CabinetLayout): Container {
   const { width: w, height: h } = layout;
   const root = new Container();
 
@@ -86,7 +105,7 @@ export function buildBackdrop(layout: CabinetLayout): Container {
   vignette.rect(w - band, 0, band, h).fill(fadeHorizontal(0, 0.5));
   root.addChild(vignette);
 
-  return root;
+  return bake(renderer, root);
 }
 
 function fadeVertical(from: number, to: number): FillGradient {
@@ -116,7 +135,7 @@ function fadeHorizontal(from: number, to: number): FillGradient {
 }
 
 /** Окно барабанов: тёмное стекло, подсветка колонок, внутренняя тень. */
-export function buildReelWindow(layout: CabinetLayout): Container {
+export function buildReelWindow(renderer: Renderer, layout: CabinetLayout): Container {
   const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh, reels, gap } = layout;
   const root = new Container();
   const radius = Math.round(Math.min(bw, bh) * 0.045);
@@ -165,11 +184,11 @@ export function buildReelWindow(layout: CabinetLayout): Container {
   }
   root.addChild(columns);
 
-  return root;
+  return bake(renderer, root);
 }
 
 /** Золотая рама с фаской, орнаментом углов и заклёпками. */
-export function buildFrame(layout: CabinetLayout): Container {
+export function buildFrame(renderer: Renderer, layout: CabinetLayout): Container {
   const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = layout;
   const root = new Container();
   const t = Math.max(10, Math.round(Math.min(bw, bh) * 0.035));
@@ -239,7 +258,7 @@ export function buildFrame(layout: CabinetLayout): Container {
   }
   root.addChild(corners);
 
-  return root;
+  return bake(renderer, root);
 }
 
 function rivet(g: Graphics, cx: number, cy: number, r: number): void {

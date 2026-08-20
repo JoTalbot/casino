@@ -15,7 +15,7 @@ import {
   winningPositions,
   winTier,
 } from "./presentation.js";
-import { ArtSymbol, SYMBOL_THEMES } from "./artSymbols.js";
+import { ArtSymbol, SYMBOL_THEMES, initSymbolTextures } from "./artSymbols.js";
 import { WinFx, animateMarquee, buildBackdrop, buildFrame, buildMarquee, buildReelWindow, type CabinetLayout } from "./cabinet.js";
 import { soundWin, soundSpin } from "./sound.js";
 
@@ -251,14 +251,18 @@ async function main(): Promise<void> {
   ui.stage.appendChild(app.canvas);
 
   // Порядок слоёв: задник → окно → барабаны → рама → вывеска → эффекты.
-  app.stage.addChild(buildBackdrop(layout));
-  app.stage.addChild(buildReelWindow(layout));
+  // Символы и статичные слои запекаются в текстуры до первого кадра:
+  // во время игры сцена не должна ничего рисовать заново (T-191).
+  initSymbolTextures(app.renderer as never, CELL);
+
+  app.stage.addChild(buildBackdrop(app.renderer as never, layout));
+  app.stage.addChild(buildReelWindow(app.renderer as never, layout));
 
   const board = new Container();
   board.position.set(layout.boardX, layout.boardY);
   app.stage.addChild(board);
 
-  const frameLayer = buildFrame(layout);
+  const frameLayer = buildFrame(app.renderer as never, layout);
   const marquee = buildMarquee(layout, game.name ?? "Crown of Fortune");
   const winFx = new WinFx(layout);
   app.stage.addChild(frameLayer, marquee, winFx.view);

@@ -17,7 +17,8 @@
  * а «дорогие» символы отличаются теплом подложки и силой свечения.
  */
 
-import { Container, FillGradient, Graphics, Text, TextStyle } from "pixi.js";
+import { Container, FillGradient, Graphics, Sprite, Text, TextStyle, Texture } from "pixi.js";
+import type { Renderer } from "pixi.js";
 import { ReelSymbol } from "pixi-reels";
 
 /** Ранг символа: определяет теплоту подложки и силу свечения. */
@@ -64,33 +65,21 @@ function hex(color: number): string {
 }
 
 /**
- * Символ, отрисованный векторной графикой.
+ * Художник символа: рисует один символ в переданный контейнер.
  *
- * Движок агрессивно переиспользует экземпляры из пула: один и тот же объект
- * по очереди играет разные символы. Поэтому вся отрисовка идёт в `onActivate`
- * и `resize`, а не в конструкторе.
+ * Вынесен из класса символа намеренно. Векторная отрисовка нужна ровно один
+ * раз — при запекании текстуры; во время игры рисовать нельзя. Замер на
+ * стенде: сцена с «живыми» Graphics давала 3.5 FPS в софтверном рендере,
+ * та же картинка спрайтами — за 60 (T-191).
  */
-export class ArtSymbol extends ReelSymbol {
-  /**
-   * Начало координат ячейки — её ЛЕВЫЙ ВЕРХНИЙ угол, так устроен `resize`
-   * в библиотеке. Рисовать от центра прямо во `view` нельзя: символы уедут
-   * на полклетки и откроют буферный ряд. Поэтому вся графика лежит в `art`,
-   * который ставится в середину ячейки, а фигуры строятся вокруг нуля.
-   * Масштаб выигрышной анимации применяется к `art`: двигать `view`
-   * запрещено, реел читает его позицию.
-   */
-  private readonly art = new Container();
+class SymbolPainter {
   private readonly plate = new Graphics();
   private readonly icon = new Graphics();
   private readonly gloss = new Graphics();
-  private readonly halo = new Graphics();
   private readonly label: Text;
-  private width_ = 128;
-  private height_ = 128;
-  private theme: SymbolTheme = FALLBACK;
+  readonly root = new Container();
 
-  constructor() {
-    super();
+  constructor(private readonly size: number) {
     this.label = new Text({
       text: "",
       style: new TextStyle({
@@ -102,107 +91,25 @@ export class ArtSymbol extends ReelSymbol {
       }),
     });
     this.label.anchor.set(0.5);
-
-    this.art.addChild(this.halo, this.plate, this.icon, this.label, this.gloss);
-    (this.view as Container).addChild(this.art);
+    this.root.addChild(this.plate, this.icon, this.label, this.gloss);
   }
 
-  protected onActivate(symbolId: string): void {
-    this.theme = SYMBOL_THEMES[symbolId] ?? FALLBACK;
-    this.redraw();
-  }
-
-  protected onDeactivate(): void {
-    // Экземпляр переиспользуется пулом: следы прошлой анимации обязаны уйти,
-    // иначе они протекут на следующий символ.
-    this.gsap.killTweensOf(this.art.scale);
-    this.gsap.killTweensOf(this.halo);
-    this.gsap.killTweensOf(this.art);
-    this.art.scale.set(1);
-    this.art.rotation = 0;
-    this.halo.alpha = 0;
-    this.plate.clear();
-    this.icon.clear();
-    this.gloss.clear();
-    this.halo.clear();
-    this.label.text = "";
-  }
-
-  /**
-   * Анимация выигрыша: подскок с лёгкой раскачкой и вспышка ореола.
-   * Промис обязан резолвиться, иначе spotlight зависнет на этой ячейке.
-   */
-  async playWin(): Promise<void> {
-    const { art, halo } = this;
-    this.gsap.to(halo, { alpha: 0.95, duration: 0.18, yoyo: true, repeat: 3, ease: "sine.inOut" });
-    this.gsap.fromTo(
-      art,
-      { rotation: -0.05 },
-      { rotation: 0.05, duration: 0.14, yoyo: true, repeat: 3, ease: "sine.inOut" },
-    );
-    await new Promise<void>((resolve) => {
-      this.gsap.fromTo(
-        art.scale,
-        { x: 1, y: 1 },
-        {
-          x: 1.18,
-          y: 1.18,
-          duration: 0.26,
-          yoyo: true,
-          repeat: 1,
-          ease: "back.out(2.4)",
-          onComplete: () => resolve(),
-        },
-      );
-    });
-    this.art.rotation = 0;
-  }
-
-  stopAnimation(): void {
-    this.gsap.killTweensOf(this.art.scale);
-    this.gsap.killTweensOf(this.art);
-    this.gsap.killTweensOf(this.halo);
-    this.art.scale.set(1);
-    this.art.rotation = 0;
-    this.halo.alpha = 0;
-  }
-
-  resize(width: number, height: number): void {
-    this.width_ = width;
-    this.height_ = height;
-    this.art.position.set(width / 2, height / 2);
-    this.redraw();
-  }
-
-  private redraw(): void {
-    const w = this.width_;
-    const h = this.height_;
-    const s = Math.min(w, h);
+  paint(theme: SymbolTheme): Container {
+    const s = this.size;
     const pad = Math.max(3, Math.round(s * 0.045));
     const radius = Math.round(s * 0.16);
-    const t = this.theme;
-    const plate = PLATE[t.rank];
+    const plate = PLATE[theme.rank];
 
     this.plate.clear();
     this.icon.clear();
     this.gloss.clear();
-    this.halo.clear();
     this.label.text = "";
 
-    const x = -w / 2 + pad;
-    const y = -h / 2 + pad;
-    const pw = w - pad * 2;
-    const ph = h - pad * 2;
+    const x = -s / 2 + pad;
+    const y = -s / 2 + pad;
+    const pw = s - pad * 2;
+    const ph = s - pad * 2;
 
-    // Ореол под плашкой — включается только на выигрыше через alpha.
-    this.halo
-      .roundRect(x - pad, y - pad, pw + pad * 2, ph + pad * 2, radius * 1.3)
-      .fill({ color: t.accent, alpha: 0.28 })
-      .roundRect(x - pad / 2, y - pad / 2, pw + pad, ph + pad, radius * 1.15)
-      .fill({ color: t.accent, alpha: 0.35 });
-    this.halo.alpha = 0;
-
-    // Подложка: вертикальный градиент + фаска сверху + тень снизу.
     const body = new FillGradient({
       type: "linear",
       start: { x: 0.5, y: 0 },
@@ -218,23 +125,18 @@ export class ArtSymbol extends ReelSymbol {
     this.plate
       .roundRect(x, y, pw, ph, radius)
       .stroke({ width: Math.max(1.5, s * 0.018), color: plate.rim, alignment: 1 });
-    // Верхняя фаска — тонкая светлая дуга, даёт объём без теней-текстур.
     this.plate
       .roundRect(x + pw * 0.06, y + ph * 0.05, pw * 0.88, ph * 0.42, radius * 0.8)
       .fill({ color: 0xffffff, alpha: 0.07 });
-    // Внутреннее свечение цветом символа: дешёвая замена «дорогой» текстуре.
-    const glowAlpha = t.rank === "special" ? 0.2 : t.rank === "high" ? 0.16 : 0.09;
+    const glowAlpha = theme.rank === "special" ? 0.2 : theme.rank === "high" ? 0.16 : 0.09;
     this.plate
       .roundRect(x + pw * 0.08, y + ph * 0.1, pw * 0.84, ph * 0.8, radius * 0.9)
-      .stroke({ width: Math.max(2, s * 0.03), color: t.accent, alpha: glowAlpha, alignment: 0 });
+      .stroke({ width: Math.max(2, s * 0.03), color: theme.accent, alpha: glowAlpha, alignment: 0 });
 
-    // Иконка занимает почти всю плашку: мелкая графика в сетке 5x3
-    // читается плохо, особенно на телефоне.
     // Мягкая тень под иконкой отделяет её от плашки.
     this.icon.ellipse(0, s * 0.36, s * 0.26, s * 0.05).fill({ color: 0x000000, alpha: 0.35 });
-    this.drawIcon(s * 1.22, t);
+    this.drawIcon(s * 1.22, theme);
 
-    // Косой блик поверх всего — «стекло» ячейки.
     this.gloss
       .moveTo(x + pw * 0.06, y + ph * 0.62)
       .lineTo(x + pw * 0.42, y + ph * 0.05)
@@ -242,6 +144,8 @@ export class ArtSymbol extends ReelSymbol {
       .lineTo(x + pw * 0.2, y + ph * 0.72)
       .closePath()
       .fill({ color: 0xffffff, alpha: 0.045 });
+
+    return this.root;
   }
 
   /** Диспетчер фигур: каждая рисуется вокруг нуля в квадрате s×s. */
@@ -285,7 +189,6 @@ export class ArtSymbol extends ReelSymbol {
         this.drawRoyal(s, t, metal);
     }
   }
-
   /** Роял: гравированная буква на щите с вензелем. */
   private drawRoyal(s: number, t: SymbolTheme, metal: FillGradient): void {
     const g = this.icon;
@@ -526,5 +429,150 @@ export class ArtSymbol extends ReelSymbol {
     this.label.style.stroke = { width: Math.max(1, s * 0.01), color: 0x06231a };
     this.label.style.dropShadow = { color: 0x000000, alpha: 0.6, blur: 2, distance: 1, angle: Math.PI / 2 };
     this.label.position.set(0, s * 0.33);
+  }
+}
+
+// --- Запекание текстур -------------------------------------------------------
+
+let textures: Map<string, Texture> | null = null;
+let haloTexture: Texture | null = null;
+let bakedSize = 0;
+
+/**
+ * Один раз рисует все символы и превращает их в текстуры.
+ *
+ * Вызывать до сборки барабанов. Повторный вызов с тем же размером — no-op,
+ * со другим размером — перезапекание (например, при смене раскладки).
+ */
+export function initSymbolTextures(renderer: Renderer, cellSize: number): void {
+  if (textures && bakedSize === cellSize) return;
+  destroySymbolTextures();
+
+  const size = Math.round(cellSize);
+  const painter = new SymbolPainter(size);
+  const baked = new Map<string, Texture>();
+  // resolution 2 — символы остаются резкими на ретине и при масштабировании
+  // канваса по ширине контейнера.
+  const resolution = 2;
+
+  for (const [id, theme] of Object.entries(SYMBOL_THEMES)) {
+    const art = painter.paint(theme);
+    const texture = renderer.generateTexture({ target: art, resolution });
+    baked.set(id, texture);
+  }
+  painter.root.destroy({ children: true });
+
+  // Ореол выигрыша — общая текстура, тонируется под символ.
+  const halo = new Graphics();
+  const pad = size * 0.12;
+  halo
+    .roundRect(pad * 0.2, pad * 0.2, size - pad * 0.4, size - pad * 0.4, size * 0.2)
+    .fill({ color: 0xffffff, alpha: 0.35 })
+    .roundRect(pad * 0.6, pad * 0.6, size - pad * 1.2, size - pad * 1.2, size * 0.18)
+    .fill({ color: 0xffffff, alpha: 0.5 });
+  haloTexture = renderer.generateTexture({ target: halo, resolution: 1 });
+  halo.destroy();
+
+  textures = baked;
+  bakedSize = size;
+}
+
+/** Освобождает запечённые текстуры (смена игры, размонтирование клиента). */
+export function destroySymbolTextures(): void {
+  textures?.forEach((t) => t.destroy(true));
+  textures = null;
+  haloTexture?.destroy(true);
+  haloTexture = null;
+  bakedSize = 0;
+}
+
+/**
+ * Символ барабана — спрайт с запечённой текстурой.
+ *
+ * Ни одной операции рисования во время игры: пул символов только меняет
+ * текстуру и размер спрайта. Анимации трогают только transform и alpha.
+ */
+export class ArtSymbol extends ReelSymbol {
+  /**
+   * Начало координат ячейки — её ЛЕВЫЙ ВЕРХНИЙ угол, так устроен `resize`
+   * в библиотеке. Рисовать от центра прямо во `view` нельзя: символы уедут
+   * на полклетки и откроют буферный ряд. Поэтому вся графика лежит в `art`,
+   * который ставится в середину ячейки. Масштаб выигрышной анимации
+   * применяется к `art`: двигать `view` запрещено, реел читает его позицию.
+   */
+  private readonly art = new Container();
+  private readonly halo = new Sprite();
+  private readonly sprite = new Sprite();
+  private width_ = 128;
+  private height_ = 128;
+
+  constructor() {
+    super();
+    this.halo.anchor.set(0.5);
+    this.sprite.anchor.set(0.5);
+    this.halo.alpha = 0;
+    this.art.addChild(this.halo, this.sprite);
+    (this.view as Container).addChild(this.art);
+  }
+
+  protected onActivate(symbolId: string): void {
+    const theme = SYMBOL_THEMES[symbolId] ?? FALLBACK;
+    this.sprite.texture = textures?.get(symbolId) ?? Texture.WHITE;
+    if (haloTexture) this.halo.texture = haloTexture;
+    this.halo.tint = theme.accent;
+    this.layout();
+  }
+
+  protected onDeactivate(): void {
+    // Экземпляр переиспользуется пулом: следы прошлой анимации обязаны уйти.
+    this.gsap.killTweensOf(this.art.scale);
+    this.gsap.killTweensOf(this.art);
+    this.gsap.killTweensOf(this.halo);
+    this.art.scale.set(1);
+    this.art.rotation = 0;
+    this.halo.alpha = 0;
+  }
+
+  /**
+   * Анимация выигрыша: подскок с раскачкой и вспышка ореола.
+   * Промис обязан резолвиться, иначе spotlight зависнет на этой ячейке.
+   */
+  async playWin(): Promise<void> {
+    const { art, halo } = this;
+    this.gsap.to(halo, { alpha: 0.9, duration: 0.18, yoyo: true, repeat: 3, ease: "sine.inOut" });
+    this.gsap.fromTo(art, { rotation: -0.05 }, { rotation: 0.05, duration: 0.14, yoyo: true, repeat: 3, ease: "sine.inOut" });
+    await new Promise<void>((resolve) => {
+      this.gsap.fromTo(
+        art.scale,
+        { x: 1, y: 1 },
+        { x: 1.18, y: 1.18, duration: 0.26, yoyo: true, repeat: 1, ease: "back.out(2.4)", onComplete: () => resolve() },
+      );
+    });
+    this.art.rotation = 0;
+  }
+
+  stopAnimation(): void {
+    this.gsap.killTweensOf(this.art.scale);
+    this.gsap.killTweensOf(this.art);
+    this.gsap.killTweensOf(this.halo);
+    this.art.scale.set(1);
+    this.art.rotation = 0;
+    this.halo.alpha = 0;
+  }
+
+  resize(width: number, height: number): void {
+    this.width_ = width;
+    this.height_ = height;
+    this.layout();
+  }
+
+  private layout(): void {
+    const w = this.width_;
+    const h = this.height_;
+    this.art.position.set(w / 2, h / 2);
+    this.sprite.width = w;
+    this.sprite.height = h;
+    this.halo.width = w * 1.18;
+    this.halo.height = h * 1.18;
   }
 }
