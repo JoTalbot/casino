@@ -423,7 +423,17 @@ async function main(): Promise<void> {
       ui.nonce.textContent = String(round.nonce + 1);
       setStatus(`Раунд #${round.nonce}: ставка ${fmt(round.totalBet)}`);
       log(`Раунд #${round.nonce}: ставка ${fmt(round.totalBet)}, спинов ${round.spins.length}`);
+      let bonusAnnounced = false;
       for (const spin of round.spins) {
+        // Вход в серию фриспинов объявляется один раз, до первого из них:
+        // иначе игрок видит просто ещё несколько спинов и не понимает,
+        // что попал в бонус.
+        if (spin.free && !bonusAnnounced) {
+          bonusAnnounced = true;
+          haptic.bigWin();
+          const freeCount = round.spins.filter((s) => s.free).length;
+          await winFx.celebrateBonus(gsap, freeCount, spin.multiplier, ui.turbo.checked ? 1200 : 2200);
+        }
         await present(spin, round);
         if (spin.index < round.spins.length - 1) await sleep(FREE_SPIN_PAUSE_MS);
       }

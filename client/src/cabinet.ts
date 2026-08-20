@@ -15,7 +15,7 @@
  * Барабаны добавляет вызывающий код между `background` и `frame`.
  */
 
-import { Container, FillGradient, Graphics, Rectangle, Sprite, Text, TextStyle, Texture } from "pixi.js";
+import { Assets, Container, FillGradient, Graphics, Rectangle, Sprite, Text, TextStyle, Texture } from "pixi.js";
 import type { Renderer, Ticker } from "pixi.js";
 
 /**
@@ -630,6 +630,108 @@ export class WinFx {
    * (сжимаем по X — получается вращающийся диск), летит по параболе с
    * гравитацией, а не по прямой, и уменьшается по мере удаления.
    */
+  /**
+   * Объявление бонуса: сундук открывается, из него бьёт фонтан монет (T-200).
+   *
+   * Показывается один раз при входе в серию фриспинов, до первого из них.
+   * Игрок должен успеть понять, что произошло, поэтому пауза фиксированная,
+   * а не «пока не кликнут»: автоспин не должен упираться в модалку.
+   */
+  async celebrateBonus(
+    gsapInstance: typeof import("gsap").default,
+    spins: number,
+    multiplier: number,
+    holdMs = 2200,
+  ): Promise<void> {
+    const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = this.layout;
+    const layer = new Container();
+
+    const scrim = new Graphics();
+    scrim.roundRect(x, y, bw, bh, Math.min(bw, bh) * 0.045).fill({ color: 0x05030c, alpha: 0.86 });
+    layer.addChild(scrim);
+
+    // Сундук. Если картинка не загрузилась — обойдёмся текстом: объявление
+    // бонуса важнее, чем его иллюстрация.
+    let chest: Sprite | undefined;
+    try {
+      const texture = await Assets.load<Texture>("bonus/chest_closed.png");
+      chest = new Sprite(texture);
+      chest.anchor.set(0.5);
+      const size = bh * 0.42;
+      chest.scale.set(size / Math.max(texture.width, texture.height));
+      chest.position.set(x + bw / 2, y + bh * 0.42);
+      chest.alpha = 0;
+      layer.addChild(chest);
+    } catch {
+      /* без картинки */
+    }
+
+    const title = new Text({
+      text: "БОНУС!",
+      style: new TextStyle({
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: Math.round(bh * 0.13),
+        fontWeight: "700",
+        letterSpacing: 3,
+        fill: 0xffd257,
+        stroke: { width: 6, color: 0x2a1600 },
+        dropShadow: { color: 0xff9f3c, alpha: 0.6, blur: 14, distance: 0, angle: 0 },
+      }),
+    });
+    title.anchor.set(0.5);
+    title.position.set(x + bw / 2, y + bh * 0.13);
+    title.alpha = 0;
+    layer.addChild(title);
+
+    const detail = new Text({
+      text: multiplier > 1 ? `${spins} фриспинов · множитель ×${multiplier}` : `${spins} фриспинов`,
+      style: new TextStyle({
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: Math.round(bh * 0.075),
+        fontWeight: "700",
+        fill: 0xfff3cf,
+        stroke: { width: 4, color: 0x2a1600 },
+      }),
+    });
+    detail.anchor.set(0.5);
+    detail.position.set(x + bw / 2, y + bh * 0.78);
+    detail.alpha = 0;
+    layer.addChild(detail);
+
+    this.view.addChild(layer);
+
+    gsapInstance.fromTo(title, { alpha: 0, y: title.y - bh * 0.06 }, { alpha: 1, y: title.y, duration: 0.35, ease: "back.out(2)" });
+    if (chest) {
+      gsapInstance.fromTo(chest.scale, { x: chest.scale.x * 0.5, y: chest.scale.y * 0.5 }, { x: chest.scale.x, y: chest.scale.y, duration: 0.4, ease: "back.out(2.2)" });
+      gsapInstance.to(chest, { alpha: 1, duration: 0.25 });
+      // Крышка «распахивается»: подменяем текстуру и добавляем встряску.
+      setTimeout(() => {
+        void Assets.load<Texture>("bonus/chest_open.png")
+          .then((open) => {
+            if (chest) chest.texture = open;
+            this.spawnSparks(gsapInstance, 34);
+          })
+          .catch(() => this.spawnSparks(gsapInstance, 34));
+        gsapInstance.fromTo(chest!, { rotation: -0.06 }, { rotation: 0.06, duration: 0.09, yoyo: true, repeat: 5 });
+      }, 520);
+    }
+    gsapInstance.to(detail, { alpha: 1, duration: 0.3, delay: 0.75 });
+
+    await new Promise((resolve) => setTimeout(resolve, holdMs));
+
+    await new Promise<void>((resolve) => {
+      gsapInstance.to(layer, {
+        alpha: 0,
+        duration: 0.32,
+        ease: "power2.in",
+        onComplete: () => {
+          layer.destroy({ children: true });
+          resolve();
+        },
+      });
+    });
+  }
+
   private spawnSparks(gsapInstance: typeof import("gsap").default, count: number): void {
     const { boardWidth: bw, boardHeight: bh, boardX: x, boardY: y } = this.layout;
     const cx = x + bw / 2;
