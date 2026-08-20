@@ -216,6 +216,9 @@
       .auto-num { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 12px; }
       .auto-num input { width: 100%; }
       .auto-left { font-variant-numeric: tabular-nums; color: var(--accent); }
+      .promo-row { display: flex; gap: 6px; margin-top: 8px; }
+      .promo-row input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: .08em; }
+      #promo-note { margin-top: 6px; }
 
       /* Нижняя панель вкладок — только внутри Telegram */
       #tabbar { display: none; }
@@ -486,6 +489,11 @@
           <h2>Бонусы</h2>
           <div class="seed-row">
             <button id="bonus-daily">Daily bonus 1000 CHIP</button>
+            <div class="promo-row">
+              <input type="text" id="promo-code" placeholder="промокод" autocomplete="off" maxlength="32" />
+              <button id="promo-apply">Активировать</button>
+            </div>
+            <p class="note" id="promo-note">Промокод начисляет виртуальные фишки. Реальных денег в игре нет.</p>
             <span id="bonus-status" class="note"></span>
           </div>
           <p class="note">1 раз в сутки, сбрасывается в 00:00 UTC.</p>

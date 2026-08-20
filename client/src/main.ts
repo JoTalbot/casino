@@ -41,6 +41,9 @@ const ui = {
   spin: document.getElementById("spin") as HTMLButtonElement,
   turbo: document.getElementById("turbo") as HTMLInputElement,
   bonusOpen: document.getElementById("bonus-open") as HTMLButtonElement,
+  promoCode: document.getElementById("promo-code") as HTMLInputElement,
+  promoApply: document.getElementById("promo-apply") as HTMLButtonElement,
+  promoNote: document.getElementById("promo-note") as HTMLElement,
   bonusModal: document.getElementById("bonus-modal") as HTMLElement,
   bonusClose: document.getElementById("bonus-close") as HTMLButtonElement,
   autoCount: document.getElementById("auto-count") as HTMLSelectElement,
@@ -911,6 +914,45 @@ async function main(): Promise<void> {
     try { return JSON.parse(txt); } catch { return txt; }
   }
   ui.bonusDaily.addEventListener("click", () => void claimBonus());
+
+  // --- Промокоды (T-213) ---
+  //
+  // Начисляют виртуальные фишки. Сообщение сервера показываем как есть:
+  // игрок должен понимать, почему код не сработал, а не видеть «ошибку».
+  async function applyPromo(): Promise<void> {
+    const code = ui.promoCode.value.trim();
+    if (!code) {
+      ui.promoNote.textContent = "Введите промокод.";
+      return;
+    }
+    ui.promoApply.disabled = true;
+    try {
+      const res = (await fetchWithAuth("/api/v1/promo/redeem", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      })) as { ok?: boolean; chips?: number; balance?: string; message?: string };
+
+      if (res?.ok) {
+        ui.promoCode.value = "";
+        ui.promoNote.textContent = `Промокод принят: +${fmt(res.chips ?? 0)} CHIP`;
+        if (res.balance) ui.balance.textContent = fmt(Number(res.balance));
+        log(`Промокод активирован: +${fmt(res.chips ?? 0)} CHIP`, "win");
+        haptic.win();
+      } else {
+        ui.promoNote.textContent = res?.message ?? "Промокод не принят.";
+        log(`Промокод: ${res?.message ?? "не принят"}`, "error");
+      }
+    } catch (error) {
+      ui.promoNote.textContent = `Ошибка: ${(error as Error).message}`;
+    } finally {
+      ui.promoApply.disabled = false;
+    }
+  }
+
+  ui.promoApply.addEventListener("click", () => void applyPromo());
+  ui.promoCode.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") void applyPromo();
+  });
 
   // Tournaments & Leaderboard (T-050, T-055, T-074 timer)
   function formatCountdown(endsAt: string): string {

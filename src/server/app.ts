@@ -39,6 +39,7 @@ import { subscribePush, unsubscribePush, getSubscriptions } from "./push.js";
 import { checkAndUnlockAchievements, listAchievements } from "./achievements.js";
 import { canChat, postMessage, listMessages, deleteMessage } from "./chat.js";
 import { TelegramAuthError, linkTelegramPlayer, replyForUpdate, sendBotReply, verifyInitData } from "./telegram.js";
+import { createPromo, listPromos, redeemPromo } from "./promo.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -71,7 +72,37 @@ export interface AppOptions {
   database?: Database;
 }
 
+/**
+ * Предохранитель денежного режима (T-214).
+ *
+ * Проект работает на виртуальных фишках. Реальные деньги требуют лицензии
+ * PlayCity, сертифицированного софта, KYC 21+ и AML (AGENTS.md §11,
+ * docs/LICENSING.md). Проверка стоит на старте приложения, чтобы «включить
+ * деньги одной переменной окружения» было нельзя: без явного номера
+ * лицензии сервер просто не поднимется в денежном режиме.
+ */
+export function assertMoneyModeAllowed(env: NodeJS.ProcessEnv = process.env): void {
+  const moneyMode = (env.MONEY_MODE ?? "").toLowerCase();
+  if (moneyMode !== "real") return;
+
+  const license = (env.GAMBLING_LICENSE_ID ?? "").trim();
+  if (!license) {
+    throw new Error(
+      "MONEY_MODE=real требует GAMBLING_LICENSE_ID — номера действующей лицензии. " +
+        "Без лицензии приём реальных ставок запрещён законом и протоколом проекта " +
+        "(AGENTS.md §11, docs/LICENSING.md).",
+    );
+  }
+  throw new Error(
+    `Денежный режим не реализован. Указана лицензия ${license}, но платёжный контур, ` +
+      "KYC и сертификация RNG отсутствуют. См. docs/LICENSING.md — там перечислено, " +
+      "что нужно закрыть до первой реальной ставки.",
+  );
+}
+
 export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
+  assertMoneyModeAllowed();
+
   const app = fastify({ logger: true });
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(cors, { origin: true, credentials: true });
@@ -935,6 +966,73 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       request.log.error(e);
       return reply.status(500).send({ code: "INTERNAL_ERROR" });
     }
+  });
+
+  // --- Промокоды (T-213) ---
+  //
+  // Начисляют ТОЛЬКО виртуальные фишки. Это не платёжный функционал:
+  // лицензии у проекта нет, режим реальных денег запрещён протоколом
+  // (AGENTS.md §11). Механика намеренно сделана «как для денег» — лимиты,
+  // идемпотентность, аудит, — чтобы при появлении лицензии её не пришлось
+  // переписывать.
+  const PROMO_MESSAGES: Record<string, { status: number; message: string }> = {
+    NOT_FOUND: { status: 404, message: "Такого промокода нет." },
+    INACTIVE: { status: 409, message: "Промокод отключён." },
+    NOT_STARTED: { status: 409, message: "Промокод ещё не начал действовать." },
+    EXPIRED: { status: 409, message: "Срок действия промокода истёк." },
+    EXHAUSTED: { status: 409, message: "Лимит активаций исчерпан." },
+    ALREADY_USED: { status: 409, message: "Этот промокод вы уже использовали." },
+    NO_WALLET: { status: 409, message: "Кошелёк не найден." },
+  };
+
+  app.post("/api/v1/promo/redeem", async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.status(401).send({ code: "UNAUTHENTICATED" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+
+    const body = (request.body ?? {}) as { code?: string };
+    if (!body.code || typeof body.code !== "string") {
+      return reply.status(400).send({ code: "VALIDATION_FAILED", message: "Нужен код." });
+    }
+
+    const playerId = (request.user as { sub: string }).sub;
+    try {
+      const result = await redeemPromo(options.database, playerId, body.code);
+      if (!result.ok) {
+        const info = PROMO_MESSAGES[result.reason ?? "NOT_FOUND"] ?? PROMO_MESSAGES.NOT_FOUND;
+        return reply.status(info.status).send({ code: result.reason, message: info.message });
+      }
+      return { ok: true, code: result.code, chips: result.chips, balance: result.balance, currency: "CHIP" };
+    } catch (error) {
+      request.log.error(error);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
+  });
+
+  app.post("/api/v1/admin/promo", async (request, reply) => {
+    const adminSecret = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET;
+    if (!adminSecret || request.headers["x-admin-token"] !== adminSecret) {
+      return reply.status(403).send({ code: "FORBIDDEN" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    try {
+      const created = await createPromo(options.database, request.body as never);
+      return reply.status(201).send(created);
+    } catch (error) {
+      return reply.status(400).send({ code: "VALIDATION_FAILED", message: (error as Error).message });
+    }
+  });
+
+  app.get("/api/v1/admin/promo", async (request, reply) => {
+    const adminSecret = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET;
+    if (!adminSecret || request.headers["x-admin-token"] !== adminSecret) {
+      return reply.status(403).send({ code: "FORBIDDEN" });
+    }
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+    return { promos: await listPromos(options.database) };
   });
 
   // --- Tournaments (T-055) ---

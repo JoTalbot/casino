@@ -1,0 +1,6 @@
+agent: arena-2026-08-20-W
+task: T-213
+scope: src/server/promo.ts, db/migrations, client
+started: 2026-08-20T09:20:00Z
+expires: 2026-08-20T15:20:00Z
+note: промокоды на виртуальные фишки, документ готовности к лицензированию
