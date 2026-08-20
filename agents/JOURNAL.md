@@ -1625,3 +1625,30 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 **T-098 ADR-018**
 
 **SHIFT END** — смена закрыта, всё до 98 done
+
+---
+
+## 2026-08-20 — arena-2026-08-20-C
+
+**SHIFT START** 04:00 UTC (20.08)
+Задачи: T-099 … T-103
+Локи: `backend`
+
+### Контекст
+- Пользователь "+" пятнадцатый раз — делаю всё дальше после T-098.
+- Всё до 98 закрыто, протокол зелёный, next ID T-099.
+- План: referral leaderboard chart, prize email with images, PWA offline chat improved, backup restore UI with progress, ADR-019
+
+
+---
+
+## 2026-08-20 — arena-2026-08-20-C
+
+**SHIFT START** 04:00 UTC (20.08)
+Задачи: T-099 … T-103
+Локи: `backend`
+
+### Контекст
+- Пользователь "+" — делаю всё дальше после T-098.
+- Всё до 98 закрыто, протокол зелёный, next ID T-099.
+
