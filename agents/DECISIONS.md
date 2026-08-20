@@ -3,7 +3,7 @@
 > ADR не удаляются. Устаревшие помечаются `заменено ADR-00Y`.
 > Формат описан в `AGENTS.md` §8.
 
-**Следующий свободный номер: ADR-015**
+**Следующий свободный номер: ADR-020**
 
 ---
 
@@ -722,4 +722,36 @@ T-029 требует доказать, что игровой движок не �
 
 ### Последствия
 **Плюсы:** автопризы работают в compose profile cron, реферальный прогресс виден, чат с фильтром, offline кэш API, восстановление из бэкапа одной командой.
+
+
+---
+
+## ADR-019: Referral leaderboard UI, prize email HTML improved, PWA offline chat, backup restore UI improved (ответ на T-099…T-103)
+
+- **Дата:** 2026-08-20
+- **Агент:** arena-2026-08-20-C
+- **Статус:** принято
+
+### Контекст
+После T-098 остались: лидерборд рефералов в клиенте, улучшенные HTML шаблоны призовых писем, офлайн кэш чата, UI для бэкапа/восстановления.
+
+### Решение
+
+**Referral leaderboard UI (T-099):**
+- `GET /api/v1/referrals/leaderboard?limit=` — топ рефереров по COUNT, SUM bonus
+- `ref.html` — секция топ рефереров, fetch leaderboard, отображение
+
+**Prize email HTML improved (T-100):**
+- `distribute_prizes.js` теперь рендерит `tournament.html` шаблон с {{username}}, {{tournament}}, {{prize}}, {{gameUrl}} и отправляет через nodemailer
+
+**PWA offline chat (T-101):**
+- `sw.js` кэширует `/api/v1/chat` и `/api/v1/referrals` и `/leaderboard` через fetch-then-cache
+
+**Backup restore UI improved (T-102):**
+- `admin.html` — секции бэкапа и аудита, кнопки Скачать CSV, Сделать бэкап, JS fetch /admin/backup и /admin/audit
+
+**ADR-019 (T-103):** фиксирует решения
+
+### Последствия
+**Плюсы:** реферальный топ виден, призовые письма красивые, чат офлайн, бэкап UI удобен.
 

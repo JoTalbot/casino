@@ -1,21 +1,29 @@
 #!/usr/bin/env node
 /**
  * Раздача призов турниров — тем кто в топ-3 получает prize_pool / 3 (T-066)
- * + email уведомление (T-090)
- * Запуск: DATABASE_URL=... node scripts/distribute_prizes.js weekly-champions
+ * + email уведомление с HTML шаблоном (T-090, T-094)
  */
 import pg from "pg";
+import { readFile } from "node:fs/promises";
 const { Pool } = pg;
 const code = process.argv[2] || "weekly-champions";
 const dbUrl = process.env.DATABASE_URL;
 if (!dbUrl) { console.error("Need DATABASE_URL"); process.exit(1); }
 const pool = new Pool({ connectionString: dbUrl });
 
-async function sendEmail(to, subject, text) {
+async function renderTemplate(name, vars) {
+  try {
+    let html = await readFile(`templates/email/${name}.html`, "utf8");
+    for (const [k,v] of Object.entries(vars)) html = html.replaceAll(`{{${k}}}`, v);
+    return html;
+  } catch { return null; }
+}
+
+async function sendEmail(to, subject, text, html) {
   try {
     const smtpHost = process.env.SMTP_HOST;
     if (!smtpHost) {
-      console.log(`[email mock] to ${to} subject ${subject}`);
+      console.log(`[email mock] to ${to} subject ${subject} text ${text.slice(0,100)}`);
       return;
     }
     const nodemailer = await import("nodemailer");
@@ -24,7 +32,7 @@ async function sendEmail(to, subject, text) {
       port: Number(process.env.SMTP_PORT || 587),
       auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
     });
-    await transporter.sendMail({ from: process.env.SMTP_FROM || "no-reply@casino.local", to, subject, text });
+    await transporter.sendMail({ from: process.env.SMTP_FROM || "no-reply@casino.local", to, subject, text, html });
     console.log(`[email] sent to ${to}`);
   } catch (e) { console.error("[email] failed", e.message); }
 }
@@ -37,7 +45,6 @@ async function main() {
     if (!tourRes.rows[0]) { console.log("Tournament not found", code); await client.query("ROLLBACK"); return; }
     const tour = tourRes.rows[0];
     if (new Date(tour.ends_at) > new Date()) { console.log("Tournament still active, ends at", tour.ends_at); await client.query("ROLLBACK"); return; }
-    if (tourRes.rows[0].status === 'finished') { console.log("Already finished"); await client.query("ROLLBACK"); return; }
     const top = await client.query(
       `SELECT p.id as player_id, p.username, p.email, ts.total_win FROM tournament_scores ts JOIN players p ON p.id = ts.player_id WHERE ts.tournament_id = $1 ORDER BY ts.total_win DESC LIMIT 3`,
       [tour.id]
@@ -56,7 +63,8 @@ async function main() {
       );
       console.log(`Granted ${prizeEach} to ${row.player_id} (${row.username}) for tournament ${code}`);
       if (row.email) {
-        await sendEmail(row.email, `Турнир ${tour.title} — ты в топ-3!`, `Поздравляем, ${row.username}! Ты выиграл ${prizeEach} CHIP в турнире ${tour.title}.`);
+        const html = await renderTemplate("tournament", { username: row.username, tournament: tour.title, prize: prizeEach.toString(), gameUrl: process.env.GAME_URL || "http://localhost:8080" });
+        await sendEmail(row.email, `Турнир ${tour.title} — ты в топ-3!`, `Поздравляем, ${row.username}! Ты выиграл ${prizeEach} CHIP в турнире ${tour.title}.`, html);
       }
     }
     await client.query(`UPDATE tournaments SET status = 'finished' WHERE id = $1`, [tour.id]);

@@ -5,11 +5,13 @@
 <title>Приглашение — Crown of Fortune</title>
 <style>
 body{font-family:system-ui,sans-serif;background:#070910;color:#dbe4f5;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px}
-.card{background:#111725;border:1px solid #232c40;border-radius:12px;padding:24px;max-width:460px;width:100%}
+.card{background:#111725;border:1px solid #232c40;border-radius:12px;padding:24px;max-width:520px;width:100%}
 button{padding:10px 20px;border:none;border-radius:6px;background:linear-gradient(180deg,#ffd257,#e0a92c);color:#241c05;font-weight:700;cursor:pointer;margin-top:8px}
 .progress{height:10px;background:#0d1220;border:1px solid #232c40;border-radius:6px;overflow:hidden;margin:12px 0}
 .bar{height:100%;width:0%;background:linear-gradient(90deg,#ffd257,#e0a92c);transition:width .4s}
 .note{font-size:11px;color:#7f8da8}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+th,td{border-bottom:1px solid #161d2c;padding:6px;text-align:left}
 </style>
 </head>
 <body>
@@ -22,7 +24,8 @@ button{padding:10px 20px;border:none;border-radius:6px;background:linear-gradien
 <button id="play">Играть и получить бонус 1000 CHIP</button>
 <button id="share" style="background:#2a3346;color:#dbe4f5;margin-left:8px">Поделиться</button>
 <div id="list" style="margin-top:12px;font-size:12px"></div>
-<p class="note">Пригласи 5 друзей — получи ачивку и 2500 CHIP. Бонус рефереру 5000 CHIP.</p>
+<h3 style="font-size:13px;margin-top:16px">Топ рефереров</h3>
+<div id="leaderboard" style="font-size:12px"></div>
 <p style="font-size:11px"><a href="/" style="color:#7f8da8">← На главную</a> · <a href="/terms.html" style="color:#7f8da8">Правила</a></p>
 </div>
 <script>
@@ -36,7 +39,6 @@ document.getElementById('share').onclick = async () => {
   try { await navigator.clipboard.writeText(link); alert('Ссылка скопирована: '+link); }
   catch { prompt('Скопируй ссылку:', link); }
 };
-// Try load progress if API available
 (async () => {
   try {
     const token = localStorage.getItem('casino_jwt')||'';
@@ -55,8 +57,17 @@ document.getElementById('share').onclick = async () => {
     const res = await fetch('/api/v1/referrals', { headers: { Authorization: `Bearer ${token}` } });
     if(!res.ok) return;
     const data = await res.json();
-    const list = document.getElementById('list');
-    list.innerHTML = '<b>Ты пригласил:</b><br>' + (data.referrals||[]).map(r=>`${r.username} +${r.bonus_amount} CHIP`).join('<br>') || 'пока никого';
+    document.getElementById('list').innerHTML = '<b>Ты пригласил:</b><br>' + (data.referrals||[]).map(r=>`${r.username} +${r.bonus_amount} CHIP`).join('<br>') || 'пока никого';
+  } catch {}
+})();
+(async () => {
+  try {
+    const res = await fetch('/api/v1/referrals/leaderboard?limit=10');
+    if(!res.ok) return;
+    const data = await res.json();
+    const board = data.leaderboard||[];
+    const el = document.getElementById('leaderboard');
+    el.innerHTML = board.map(r=>`#${r.rank} ${r.username} — ${r.count} друзей, ${r.totalBonus} CHIP`).join('<br>') || 'пока пусто';
   } catch {}
 })();
 </script>

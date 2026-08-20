@@ -1578,3 +1578,22 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 4. T-102: backup restore UI improved in admin
 5. T-103: ADR-019
 
+
+### Сделано (смена C, продолжение — делаю всё)
+
+**T-099 referral leaderboard UI:**
+- API GET /referrals/leaderboard — топ по COUNT
+- ref.html — секция топ рефереров
+
+**T-100 prize email HTML:**
+- distribute_prizes.js — рендер tournament.html шаблона
+
+**T-101 PWA offline chat:**
+- sw.js — кэш chat, referrals, leaderboard
+
+**T-102 backup restore UI:**
+- admin.html — кнопки бэкапа, аудит CSV
+
+**T-103 ADR-019**
+
+**SHIFT END** 03:30 UTC (20.08) — смена C закрыта, T-099…T-103 done
