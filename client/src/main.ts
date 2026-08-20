@@ -8,6 +8,7 @@ import { ReelSetBuilder, SpeedPresets } from "pixi-reels";
 import gsap from "gsap";
 
 import { api, apiUrl, type GameInfo, type RoundRecord, type SpinRecord } from "./api.js";
+import { haptic, inTelegram, setupMainButton, setupViewport } from "./telegram.js";
 import {
   anticipationReels,
   toColumnTargets,
@@ -124,6 +125,7 @@ function checkAgeGate(): boolean {
 }
 
 async function main(): Promise<void> {
+  setupViewport();
   if (!checkAgeGate()) {
     ui.ageYes.addEventListener("click", () => {
       try { localStorage.setItem("age_verified", "18+"); } catch {}
@@ -402,6 +404,8 @@ async function main(): Promise<void> {
     if (busy) return;
     busy = true;
     ui.spin.disabled = true;
+    mainButton?.setBusy(true);
+    haptic.spin();
     ui.win.textContent = "—";
     setStatus("Запрос раунда у сервера…");
     try {
@@ -423,6 +427,8 @@ async function main(): Promise<void> {
       setStatus(tier === "none" ? "Без выигрыша" : tier === "mega" ? `МЕГА: ${multiple.toFixed(2)}x` : tier === "big" ? `Крупный: ${multiple.toFixed(2)}x` : `Выигрыш ${multiple.toFixed(2)}x`);
       // Баннер поднимается только на крупных выигрышах: если праздновать
       // каждую мелочь, праздник перестаёт читаться (T-190).
+      if (tier === "mega" || tier === "big") haptic.bigWin();
+      else if (round.totalWin > 0) haptic.win();
       if (tier === "mega") winFx.shake(gsap, app.stage, 12);
       if (tier === "mega" || tier === "big") {
         await winFx.celebrate(
@@ -450,6 +456,7 @@ async function main(): Promise<void> {
     } finally {
       busy = false;
       ui.spin.disabled = false;
+      mainButton?.setBusy(false);
     }
   }
 
@@ -499,6 +506,7 @@ async function main(): Promise<void> {
     node.addEventListener("click", () => {
       const tier = Number(node.dataset.tier) || 1;
       applyBonusTier(tier);
+      haptic.select();
       // Крышка «открывается» на выбранном сундуке — маленькая обратная связь.
       const img = node.querySelector("img");
       if (img) {
@@ -510,7 +518,12 @@ async function main(): Promise<void> {
     });
   }
 
+  // В Telegram спин переезжает на нативную главную кнопку: она крупная,
+  // всегда внизу экрана и не уезжает при скролле.
+  const mainButton = setupMainButton(() => void playRound());
+
   ui.spin.addEventListener("click", () => void playRound());
+  if (inTelegram()) log(`Telegram Mini App · ${api ? "вход по подписи" : ""}`.trim(), "info");
   document.addEventListener("keydown", (event) => {
     if (event.code === "Space") {
       event.preventDefault();

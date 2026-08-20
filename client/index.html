@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Crown of Fortune — прототип клиента</title>
     <link rel="manifest" href="manifest.json">
+    <!-- SDK Telegram Mini App. Внешний скрипт здесь неизбежен: платформа
+         отдаёт его только со своего домена. Код клиента обязан работать и
+         без него — все обращения идут через безопасные обёртки. -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <meta name="theme-color" content="#ffd257">
     <style>
       :root {
@@ -193,6 +197,17 @@
       .chest-desc { font-size: 12px; color: var(--text); text-align: center; min-height: 32px; }
       .chest-risk { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
       .bonus-note { margin-top: 14px; }
+
+      /* Внутри Telegram убираем всё, что мешает игре на телефоне:
+         шапку-заголовок, сноски и правую колонку с отладочными панелями.
+         Спин переезжает на нативную главную кнопку. */
+      body.in-telegram header { display: none; }
+      body.in-telegram main { grid-template-columns: 1fr; padding: 8px 8px 16px; gap: 10px; }
+      body.in-telegram .side { display: none; }
+      body.in-telegram .note { display: none; }
+      body.in-telegram #spin { display: none; }
+      body.in-telegram .controls { justify-content: space-between; gap: 8px; }
+      body.in-telegram .card { padding: 10px; border-radius: 12px; }
       .side { display: flex; flex-direction: column; gap: 14px; }
       .kv { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px 10px; font-size: 12px; }
       .kv dt { color: var(--muted); }

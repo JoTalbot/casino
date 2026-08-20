@@ -38,6 +38,7 @@ import { createReferral, getReferrals, getReferralProgress, getReferralLeaderboa
 import { subscribePush, unsubscribePush, getSubscriptions } from "./push.js";
 import { checkAndUnlockAchievements, listAchievements } from "./achievements.js";
 import { canChat, postMessage, listMessages, deleteMessage } from "./chat.js";
+import { TelegramAuthError, linkTelegramPlayer, verifyInitData } from "./telegram.js";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/i, "ожидается SHA-256 в hex");
 const clientSeedSchema = z.string().min(1).max(256).refine((s) => !s.includes(":"), "двоеточие запрещено");
@@ -143,6 +144,50 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       bonusTier: body.bonusTier,
     });
     return { valid: true, configHash: cfgEntry.loaded.hash, round };
+  });
+
+  // --- Вход из Telegram Mini App (T-197) ---
+  //
+  // Клиент присылает initData как есть; сервер проверяет подпись ключом
+  // бота и только после этого выдаёт JWT. Токен бота живёт в окружении —
+  // в репозитории его нет и быть не должно.
+  app.post("/api/v1/auth/telegram", async (request, reply) => {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (!botToken) return reply.status(503).send({ code: "TELEGRAM_NOT_CONFIGURED", message: "Бот не настроен." });
+    if (!options.database) return reply.status(503).send({ code: "DATABASE_UNAVAILABLE" });
+
+    const body = (request.body ?? {}) as { initData?: string };
+    try {
+      const user = verifyInitData(body.initData ?? "", botToken);
+      const linked = await linkTelegramPlayer(options.database, user);
+      const seed = await ensureActiveSeed(options.database, linked.playerId);
+      const wallet = await options.database.query<{ balance: string }>(
+        "SELECT balance FROM wallets WHERE player_id = $1 AND currency_code = 'CHIP'",
+        [linked.playerId],
+      );
+      const token = (app as unknown as { jwt: { sign: (p: object) => string } }).jwt.sign({
+        sub: linked.playerId,
+        username: linked.username,
+      });
+      return reply.status(linked.created ? 201 : 200).send({
+        playerId: linked.playerId,
+        username: linked.username,
+        telegramId: user.id,
+        created: linked.created,
+        token,
+        wallet: { balance: wallet.rows[0]?.balance ?? "0", currency: "CHIP" },
+        serverSeedHash: seed.server_seed_hash,
+        clientSeed: seed.client_seed,
+        nonce: Number(seed.next_nonce),
+      });
+    } catch (error) {
+      if (error instanceof TelegramAuthError) {
+        request.log.info({ err: error }, "отклонён вход из Telegram");
+        return reply.status(401).send({ code: error.code, message: error.message });
+      }
+      request.log.error(error);
+      return reply.status(500).send({ code: "INTERNAL_ERROR" });
+    }
   });
 
   // --- Демо-вход: создаёт гостя, кошелёк CHIP 100k, seed pair, возвращает JWT ---

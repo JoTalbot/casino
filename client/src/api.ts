@@ -158,10 +158,35 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<{ status:
   return { status: resp.status, body: body as T, rawText: text };
 }
 
-/** Обеспечивает наличие JWT: если нет — создаёт гостя через /auth/demo */
+/**
+ * Обеспечивает наличие JWT.
+ *
+ * Внутри Telegram сначала пробуем вход по подписанному initData: так игрок
+ * возвращается в свой аккаунт с любого устройства, а не заводит нового
+ * гостя при каждом открытии. Если Telegram недоступен или подпись не
+ * принята — обычный гостевой вход.
+ */
 async function ensureAuth(): Promise<string | null> {
   const existing = getStoredToken();
   if (existing) return existing;
+
+  const tgInitData = (window as unknown as { Telegram?: { WebApp?: { initData?: string } } })
+    .Telegram?.WebApp?.initData;
+  if (tgInitData) {
+    try {
+      const { status, body } = await fetchJson<{ token: string }>("/api/v1/auth/telegram", {
+        method: "POST",
+        body: JSON.stringify({ initData: tgInitData }),
+      });
+      if ((status === 200 || status === 201) && body.token) {
+        setStoredToken(body.token);
+        return body.token;
+      }
+    } catch {
+      // падаем в гостевой вход
+    }
+  }
+
   try {
     const { status, body } = await fetchJson<{ token: string }>("/api/v1/auth/demo", { method: "POST" });
     if (status === 201 || status === 200) {
