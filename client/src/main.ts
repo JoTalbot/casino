@@ -399,7 +399,8 @@ async function main(): Promise<void> {
       if (tier === "mega" || tier === "big") {
         await winFx.celebrate(
           gsap,
-          `${tier === "mega" ? "МЕГА-ВЫИГРЫШ" : "КРУПНЫЙ ВЫИГРЫШ"}\n+${fmt(round.totalWin)}`,
+          tier === "mega" ? "МЕГА-ВЫИГРЫШ" : "КРУПНЫЙ ВЫИГРЫШ",
+          `+${fmt(round.totalWin)}`,
           tier === "mega" ? 2200 : 1500,
         );
       }

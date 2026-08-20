@@ -399,7 +399,8 @@ export class WinFx {
   private readonly flash = new Graphics();
   private readonly sparks = new Container();
   private readonly banner = new Container();
-  private readonly bannerText: Text;
+  private readonly bannerTitle: Text;
+  private readonly bannerAmount: Text;
 
   constructor(private readonly layout: CabinetLayout) {
     const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = layout;
@@ -408,30 +409,41 @@ export class WinFx {
     // Прозрачный слой всё равно растеризуется: пока он не нужен — он скрыт.
     this.flash.visible = false;
 
-    this.bannerText = new Text({
+    // Две строки — двумя объектами, а не переносом внутри одного.
+    // Многострочный Text со stroke и dropShadow в этой связке Pixi/софтверного
+    // рендера молча не отрисовывался: баннер «был», но его не было видно (T-191).
+    this.bannerTitle = new Text({
       text: "",
       style: new TextStyle({
         fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: Math.round(bh * 0.16),
+        fontSize: Math.round(bh * 0.1),
         fontWeight: "700",
+        letterSpacing: 2,
         align: "center",
-        fill: new FillGradient({
-          type: "linear",
-          start: { x: 0.5, y: 0 },
-          end: { x: 0.5, y: 1 },
-          colorStops: [
-            { offset: 0, color: "#fff6d0" },
-            { offset: 0.5, color: GOLD },
-            { offset: 1, color: "#ff9f3c" },
-          ],
-          textureSpace: "local",
-        }),
-        stroke: { width: 6, color: 0x2a1600 },
+        fill: 0xfff3cf,
+        stroke: { width: 5, color: 0x2a1600 },
         dropShadow: { color: 0x000000, alpha: 0.7, blur: 6, distance: 3, angle: Math.PI / 2 },
       }),
     });
-    this.bannerText.anchor.set(0.5);
-    this.banner.addChild(this.bannerText);
+    this.bannerTitle.anchor.set(0.5);
+    this.bannerTitle.position.set(0, -bh * 0.1);
+
+    this.bannerAmount = new Text({
+      text: "",
+      style: new TextStyle({
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: Math.round(bh * 0.17),
+        fontWeight: "700",
+        align: "center",
+        fill: 0xffd257,
+        stroke: { width: 6, color: 0x2a1600 },
+        dropShadow: { color: 0xff9f3c, alpha: 0.55, blur: 12, distance: 0, angle: 0 },
+      }),
+    });
+    this.bannerAmount.anchor.set(0.5);
+    this.bannerAmount.position.set(0, bh * 0.08);
+
+    this.banner.addChild(this.bannerTitle, this.bannerAmount);
     this.banner.position.set(x + bw / 2, y + bh / 2);
     this.banner.visible = false;
 
@@ -462,11 +474,12 @@ export class WinFx {
    */
   async celebrate(
     gsapInstance: typeof import("gsap").default,
-    text: string,
+    title: string,
+    amount: string,
     holdMs = 1500,
   ): Promise<void> {
-    const { boardWidth: bw, boardHeight: bh } = this.layout;
-    this.bannerText.text = text;
+    this.bannerTitle.text = title;
+    this.bannerAmount.text = amount;
     this.banner.visible = true;
     this.banner.scale.set(0.3);
     this.banner.alpha = 0;
@@ -492,8 +505,6 @@ export class WinFx {
         },
       });
     });
-    // Размер баннера зависит от окна: пересчитываем на случай смены раскладки.
-    this.bannerText.style.fontSize = Math.round(Math.min(bw * 0.12, bh * 0.16));
   }
 
   private spawnSparks(gsapInstance: typeof import("gsap").default, count: number): void {
