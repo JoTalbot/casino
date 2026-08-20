@@ -1551,3 +1551,10 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 - Всё до 93 закрыто, протокол зелёный, next ID T-094.
 - План: tournament prize email templates, referral leaderboard, PWA install prompt, audit search UI, ADR-018
 
+
+### Сделано (смена S и T, продолжение — делаю всё)
+
+**T-084…T-098 done:**
+- Tournament auto UI improved, email templates integration, PWA install prompt, backup restore UI, tournament prize email templates, referral leaderboard, audit search UI, ADR-016, ADR-017, ADR-018
+
+**SHIFT END** 02:30 UTC (20.08) — смена B/T закрыта, T-084…T-098 done

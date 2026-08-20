@@ -1,4 +1,4 @@
-/** Daily bonus — 1000 CHIP раз в сутки (T-049) */
+/** Daily bonus — 1000 CHIP раз в сутки (T-049) + email template integration (T-085) */
 import type { Database } from "./db.js";
 
 const DAILY_AMOUNT = 1000n;
@@ -9,7 +9,6 @@ export async function claimDailyBonus(database: Database, playerId: string): Pro
     const dayStart = new Date();
     dayStart.setUTCHours(0, 0, 0, 0);
 
-    // Проверяем был ли уже daily grant сегодня
     const existing = await client.query<{ id: string }>(
       `SELECT l.id FROM ledger_entries l
        JOIN wallets w ON w.id = l.wallet_id
@@ -39,7 +38,6 @@ export async function claimDailyBonus(database: Database, playerId: string): Pro
       [walletId, DAILY_AMOUNT.toString(), newBal.toString(), idempKey],
     );
 
-    // Проверяем была ли вставка (on conflict do nothing)
     const check = await client.query<{ balance_after: string }>(
       `SELECT balance_after FROM ledger_entries WHERE idempotency_key = $1`,
       [idempKey],
@@ -50,6 +48,19 @@ export async function claimDailyBonus(database: Database, playerId: string): Pro
       `INSERT INTO audit_log (actor_type, actor_id, event_type, subject_type, subject_id, payload) VALUES ('player',$1,'bonus.daily','wallet',$2,$3)`,
       [playerId, walletId, JSON.stringify({ amount: DAILY_AMOUNT.toString() })],
     );
+
+    // Email template integration (T-085) — best effort
+    try {
+      const playerRes = await client.query<{ username: string; email: string | null }>(`SELECT username, email FROM players WHERE id = $1`, [playerId]);
+      const email = playerRes.rows[0]?.email;
+      const username = playerRes.rows[0]?.username ?? "игрок";
+      if (email) {
+        const { renderTemplate } = await import("./emailTemplates.js");
+        const { sendEmailSmtp } = await import("./emailSmtp.js");
+        const html = await renderTemplate("daily_bonus", { username, gameUrl: process.env.GAME_URL || "http://localhost:8080" });
+        await sendEmailSmtp(email, "Daily bonus 1000 CHIP!", `Привет, ${username} — твой daily bonus готов.`, html);
+      }
+    } catch {}
 
     return { claimed: true, amount: DAILY_AMOUNT, balance: finalBal, nextClaimAt: new Date(dayStart.getTime() + DAY_MS).toISOString() };
   });
