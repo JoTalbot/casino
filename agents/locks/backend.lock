@@ -1,6 +1,0 @@
-agent: arena-2026-08-20-I
-task: T-129
-scope: client/**, src/server/**, docs/**
-started: 2026-08-20T09:30:00Z
-expires: 2026-08-20T13:30:00Z
-note: продолжаю + — referral leaderboard chart improved, tournament prize email improved, PWA offline improved, backup auto improved

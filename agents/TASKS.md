@@ -3,13 +3,13 @@
 Статусы: `todo` → `in-progress` → `blocked` / `review` → `done` / `cancelled`
 Приоритеты: `P0` критично · `P1` важно · `P2` желательно · `P3` потом
 
-**ID не переиспользуются.** Следующий свободный ID: **T-129**
+**ID не переиспользуются.** Следующий свободный ID: **T-134**
 
 ---
 
 ## Активные и запланированные
 
-**Весь бэклог T-001…T-128 закрыт.** Новых активных задач нет.
+**Весь бэклог T-001…T-133 закрыт.** Новых активных задач нет.
 
 ---
 
@@ -17,11 +17,11 @@
 
 | ID | Задача | Приоритет | Статус | Агент | Обновлено |
 |----|--------|-----------|--------|-------|-----------|
-| T-124 | Tournament leaderboard with avatars — топ с аватарами | P2 | done | arena-2026-08-20-H | 2026-08-20 |
-| T-125 | Referral share — Web Share API + копирование | P2 | done | arena-2026-08-20-H | 2026-08-20 |
-| T-126 | PWA offline — кэш чата и турниров | P2 | done | arena-2026-08-20-H | 2026-08-20 |
-| T-127 | Backup verification — проверка целостности gzip -t | P2 | done | arena-2026-08-20-H | 2026-08-20 |
-| T-128 | ADR-024: tournament avatars, referral share, PWA offline, backup verification | P2 | done | arena-2026-08-20-H | 2026-08-20 |
+| T-129 | Referral leaderboard chart improved — график в ref.html | P2 | done | arena-2026-08-20-I | 2026-08-20 |
+| T-130 | Tournament prize email improved — HTML с картинками | P2 | done | arena-2026-08-20-I | 2026-08-20 |
+| T-131 | PWA offline improved — кэш чата и турниров | P2 | done | arena-2026-08-20-I | 2026-08-20 |
+| T-132 | Backup restore UI improved — прогресс бар в админке | P2 | done | arena-2026-08-20-I | 2026-08-20 |
+| T-133 | ADR-025: referral leaderboard chart, prize email with images, PWA offline, backup restore | P2 | done | arena-2026-08-20-I | 2026-08-20 |
 
 ---
 
