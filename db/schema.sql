@@ -139,9 +139,25 @@ CREATE UNIQUE INDEX ledger_idempotency_uidx ON ledger_entries (idempotency_key);
 CREATE INDEX ledger_wallet_time_idx  ON ledger_entries (wallet_id, created_at DESC);
 CREATE INDEX ledger_round_idx        ON ledger_entries (round_id) WHERE round_id IS NOT NULL;
 
--- Запрет модификации истории
-CREATE RULE ledger_no_update AS ON UPDATE TO ledger_entries DO INSTEAD NOTHING;
-CREATE RULE ledger_no_delete AS ON DELETE TO ledger_entries DO INSTEAD NOTHING;
+-- Запрет модификации истории.
+-- Только триггеры, не RULE: правила на INSERT/UPDATE делают невозможным
+-- `INSERT ... ON CONFLICT`, на котором держится идемпотентность начислений
+-- (T-185, миграция 0005).
+CREATE OR REPLACE FUNCTION ledger_entries_immutable() RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION
+        'ledger_entries — append-only журнал: операция % запрещена', TG_OP
+        USING HINT = 'Исправление баланса оформляется новой проводкой tx_type = adjustment с указанием reason.';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER ledger_entries_no_update_trg
+    BEFORE UPDATE ON ledger_entries
+    FOR EACH ROW EXECUTE FUNCTION ledger_entries_immutable();
+
+CREATE TRIGGER ledger_entries_no_delete_trg
+    BEFORE DELETE ON ledger_entries
+    FOR EACH ROW EXECUTE FUNCTION ledger_entries_immutable();
 
 COMMENT ON TABLE ledger_entries IS
     'Append-only журнал проводок. Источник правды по балансу. UPDATE/DELETE заблокированы.';
