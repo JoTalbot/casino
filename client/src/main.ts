@@ -20,6 +20,9 @@ import { ArtSymbol, SYMBOL_THEMES, initSymbolTextures } from "./artSymbols.js";
 import { WinFx, animateMarquee, buildBackdrop, buildDrumShading, buildFrame, buildFrameSheen, buildMarquee, buildReelWindow, type CabinetLayout } from "./cabinet.js";
 import { soundWin, soundSpin } from "./sound.js";
 
+/** Имя бота для ссылок-приглашений. Меняется здесь одной строкой. */
+const BOT_USERNAME = "CasinoSlottor_bot";
+
 const REELS = 5;
 const ROWS = 3;
 const CELL = 124;
@@ -962,7 +965,10 @@ async function main(): Promise<void> {
   async function refreshReferrals(): Promise<void> {
     try {
       const data = await fetchWithAuth("/api/v1/referrals") as { referrals: { referee_id: string; username: string; bonus_amount: string; created_at: string }[]; inviteCode: string };
-      ui.refLink.textContent = `${window.location.origin}?ref=${data.inviteCode}`;
+      // Приглашать нужно в бота, а не на сайт: ссылка пересылается прямо
+      // в Telegram, а /start ref_… донесёт код до мини-аппа (T-202).
+      const inviteLink = `https://t.me/${BOT_USERNAME}?start=ref_${data.inviteCode}`;
+      ui.refLink.textContent = inviteLink;
       ui.refList.innerHTML = "";
       for (const r of data.referrals || []) {
         const div = document.createElement("div");
@@ -972,22 +978,21 @@ async function main(): Promise<void> {
       }
       if ((data.referrals || []).length === 0) ui.refList.textContent = "пока никого не пригласил";
 
-      // Ссылка-приглашение через бота: её можно переслать прямо в Telegram.
+      // Кнопка копирования рядом со списком: сама ссылка уже показана выше.
       if (data.inviteCode) {
-        const invite = document.createElement("div");
-        invite.className = "history-item";
-        const link = `https://t.me/CasinoSlottor_bot?start=ref_${data.inviteCode}`;
-        invite.innerHTML = `<span>Твоя ссылка-приглашение</span>`;
+        const row = document.createElement("div");
+        row.className = "history-item";
+        row.innerHTML = "<span>Скопировать приглашение</span>";
         const copy = document.createElement("button");
         copy.textContent = "Копировать";
         copy.addEventListener("click", () => {
-          void navigator.clipboard?.writeText(link).then(
+          void navigator.clipboard?.writeText(inviteLink).then(
             () => log("Ссылка-приглашение скопирована", "win"),
-            () => log(link, "info"),
+            () => log(inviteLink, "info"),
           );
         });
-        invite.appendChild(copy);
-        ui.refList.appendChild(invite);
+        row.appendChild(copy);
+        ui.refList.appendChild(row);
       }
 
       // Progress T-075

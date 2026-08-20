@@ -548,9 +548,9 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       try {
         const multiple = settled.record.totalBet > 0 ? settled.record.totalWin / settled.record.totalBet : 0;
         if (settled.record.totalWin > 0) {
-          await checkAndUnlockAchievements(options.database as Database, playerId, { type: "win", totalWin: Number(settled.record.totalWin), totalBet: Number(settled.record.totalBet), multiple });
+          await checkAndUnlockAchievements(options.database as Database, playerId, { type: "win", totalWin: Number(settled.record.totalWin), totalBet: Number(settled.record.totalBet), multiple }, request.log);
         }
-        await checkAndUnlockAchievements(options.database as Database, playerId, { type: "spin" });
+        await checkAndUnlockAchievements(options.database as Database, playerId, { type: "spin" }, request.log);
       } catch {
         // ignore
       }
@@ -1001,7 +1001,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         return reply.status(r.status).send({ code: r.code, message: r.message });
       }
       // Ачивка реферала
-      try { await checkAndUnlockAchievements(options.database, refId, { type: "referral" }); } catch {}
+      try { await checkAndUnlockAchievements(options.database, refId, { type: "referral" }, request.log); } catch (e) { request.log.error(e); }
       return { ok: true, referrerId: refId, refereeId: referee };
     } catch (e) {
       request.log.error(e);

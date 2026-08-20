@@ -1,7 +1,17 @@
 /** Ачивки (T-060) */
 import type { Database } from "./db.js";
 
-export async function checkAndUnlockAchievements(database: Database, playerId: string, event: { type: "win" | "spin" | "referral" | "tournament"; totalWin?: number; totalBet?: number; multiple?: number }): Promise<string[]> {
+/** Куда писать проглоченные ошибки. По умолчанию — в консоль сервера. */
+export interface AchievementLogger {
+  error(payload: unknown, message: string): void;
+}
+
+export async function checkAndUnlockAchievements(
+  database: Database,
+  playerId: string,
+  event: { type: "win" | "spin" | "referral" | "tournament"; totalWin?: number; totalBet?: number; multiple?: number },
+  logger?: AchievementLogger,
+): Promise<string[]> {
   const unlocked: string[] = [];
   try {
     // Получаем уже открытые
@@ -69,8 +79,13 @@ export async function checkAndUnlockAchievements(database: Database, playerId: s
 
       if (granted) unlocked.push(code);
     }
-  } catch {
-    // ignore
+  } catch (error) {
+    // Ачивки не должны ронять раунд: игрок уже получил выигрыш, и падение
+    // на выдаче медальки откатило бы всю транзакцию. Но и молчать нельзя —
+    // раньше здесь стоял пустой catch, и ошибки выдачи наград не попадали
+    // никуда вообще (T-205).
+    const report = logger ?? console;
+    report.error({ err: error, playerId, event }, "не удалось выдать ачивку");
   }
   return unlocked;
 }

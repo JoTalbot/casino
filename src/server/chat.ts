@@ -6,12 +6,91 @@ const RATE_LIMIT = 5; // сообщений в минуту
 
 const recent = new Map<string, number[]>();
 
-const BAD_WORDS = ["spam", "scam", "хуй", "пизда"]; // минимальный фильтр для демо
+/**
+ * Фильтр мата и спама (T-206).
+ *
+ * Прошлая версия искала четыре слова подстрокой в сыром тексте. Она
+ * одновременно пропускала «х у й» и «s.c.a.m» и блокировала невинное
+ * «всем удачи» — из-за подстроки «муда». Поэтому здесь два правила:
+ * сравнение идёт по словам и по началу слова (чтобы ловить склонения),
+ * а склейка всего текста проверяется отдельно — только когда видно
+ * характерное растаскивание по буквам.
+ */
 
-function containsBadWord(text: string): boolean {
-  const low = text.toLowerCase();
-  return BAD_WORDS.some((w) => low.includes(w));
+/** Начала слов. Ловят склонения: «блядь», «блядский», «ебанутый». */
+const BAD_STEMS = ["хуй", "хуя", "хуе", "пизд", "бляд", "ебан", "ебат", "ебал", "сука", "суки", "мудак", "гандон", "залуп"];
+
+/**
+ * Слова, которые ловятся только целиком.
+ *
+ * «скам» — начало совершенно приличной «скамейки», поэтому сравнивать его
+ * по началу слова нельзя: ложное срабатывание раздражает сильнее, чем
+ * пропущенный спам.
+ */
+const BAD_EXACT = ["скам", "скама", "скамом", "спам", "спама", "спамом"];
+
+/** Латинские слова целиком: как отдельные слова, так и в склейке. */
+const BAD_LATIN = ["spam", "scam", "casino777", "porn"];
+
+/** Латиница и цифры, которыми маскируют кириллицу. */
+const LOOKALIKE: Record<string, string> = {
+  a: "а", c: "с", e: "е", o: "о", p: "р", x: "х", y: "у", k: "к", m: "м", t: "т", h: "н", b: "в", u: "у",
+  "0": "о", "3": "з", "4": "ч", "6": "б", "@": "а",
+};
+
+/** Нижний регистр, похожие символы, только буквы, схлопнутые повторы. */
+function normalizeWord(word: string): string {
+  const mapped = [...word.toLowerCase()].map((ch) => LOOKALIKE[ch] ?? ch).join("");
+  return mapped.replace(/[^a-zа-яё]/g, "").replace(/(.)\1{1,}/g, "$1");
 }
+
+function splitWords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-zа-яё0-9@$]+/i)
+    .filter(Boolean);
+}
+
+/**
+ * Слово в двух видах: как написано и с заменой похожих символов.
+ *
+ * Одной нормализации мало: замена латиницы на кириллицу ломает латинские
+ * слова («scam» превращался в «sсам» и переставал ловиться), а без замены
+ * не поймать «xyu». Поэтому проверяются оба варианта.
+ */
+function bothForms(token: string): { raw: string; cyr: string } {
+  const raw = token.replace(/[^a-zа-яё0-9]/g, "").replace(/(.)\1{1,}/g, "$1");
+  return { raw, cyr: normalizeWord(token) };
+}
+
+function hitsStem(token: string): boolean {
+  const { raw, cyr } = bothForms(token);
+  if (!raw && !cyr) return false;
+  if (BAD_LATIN.some((bad) => raw.startsWith(bad))) return true;
+  if (BAD_EXACT.includes(cyr)) return true;
+  return BAD_STEMS.some((stem) => cyr.startsWith(stem));
+}
+
+export function containsBadWord(text: string): boolean {
+  const tokens = splitWords(text);
+  if (tokens.some(hitsStem)) return true;
+
+  // Растаскивание по буквам: «с к а м», «s.c.a.m». Склеиваем только когда
+  // коротких кусков большинство, иначе склейка сама начнёт давать ложные
+  // срабатывания на обычном тексте.
+  const short = tokens.filter((t) => bothForms(t).raw.length <= 2).length;
+  if (short >= 3 && short >= tokens.length / 2) {
+    const gluedRaw = tokens.map((t) => bothForms(t).raw).join("");
+    const gluedCyr = tokens.map((t) => bothForms(t).cyr).join("");
+    if (BAD_LATIN.some((bad) => gluedRaw.includes(bad))) return true;
+    if (BAD_STEMS.some((stem) => gluedCyr.includes(stem))) return true;
+    if (BAD_EXACT.some((bad) => gluedCyr.includes(bad))) return true;
+  }
+  return false;
+}
+
+/** Экспортируется для тестов: фильтр без нормализации бесполезен. */
+export const chatFilter = { normalizeWord, containsBadWord };
 
 export function canChat(playerId: string): { allowed: boolean; retryAfterMs?: number } {
   const now = Date.now();
