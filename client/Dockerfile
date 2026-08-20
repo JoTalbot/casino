@@ -7,7 +7,7 @@ COPY config/ ./config/
 COPY tests/fixtures/ ./tests/fixtures/
 # Клиент собирается под префиксом /casino/: под ним же он отдаётся и в
 # Telegram Mini App, и напрямую (nginx контейнера знает оба пути).
-ARG BASE_PATH=/casino/
+ARG BASE_PATH=/parts/casino/
 ENV BASE_PATH=$BASE_PATH
 RUN npm --prefix client run build
 
