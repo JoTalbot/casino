@@ -284,6 +284,15 @@ async function main(): Promise<void> {
           try { localStorage.removeItem('referral_code'); } catch {}
           // обновить баланс
           try { const w2 = await api.wallet(); ui.balance.textContent = fmt(w2.balance); } catch {}
+        } else {
+          // T-180: окончательные отказы не имеет смысла повторять при каждом заходе —
+          // код удаляется, игроку показывается человеческая причина.
+          const body = await res.json().catch(() => ({})) as { code?: string; message?: string };
+          const final = ["SELF_REFERRAL", "ALREADY_REFERRED", "REFEREE_NOT_NEW", "REFERRER_NOT_FOUND"];
+          if (body.code && final.includes(body.code)) {
+            log(`Реферальный код не применён: ${body.message ?? body.code}`, "error");
+            try { localStorage.removeItem('referral_code'); } catch {}
+          }
         }
       } catch {}
     }
