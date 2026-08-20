@@ -4,11 +4,37 @@ import type { Database } from "./db.js";
 const REFERRAL_BONUS = 5000n;
 const REFEREE_BONUS = 1000n;
 
-export async function createReferral(database: Database, referrerId: string, refereeId: string): Promise<boolean> {
-  if (referrerId === refereeId) return false;
+/** Причины отказа в привязке реферала (T-180). */
+export type ReferralRejection = "self" | "referrer-not-found" | "referee-not-found" | "referee-not-new" | "already-referred";
+
+export interface ReferralResult {
+  ok: boolean;
+  reason?: ReferralRejection;
+}
+
+export async function createReferral(database: Database, referrerId: string, refereeId: string): Promise<ReferralResult> {
+  if (referrerId === refereeId) return { ok: false, reason: "self" };
   return database.transaction(async (client) => {
+    // T-180: раньше проверялся только факт «реферал ещё не привязан».
+    // Это позволяло начислить себе 5000 CHIP, указав любой чужой UUID,
+    // в том числе давно играющего игрока. Теперь проверяем, что оба
+    // игрока существуют и что приглашённый — новичок без сыгранных раундов.
+    const players = await client.query<{ id: string }>(
+      `SELECT id FROM players WHERE id IN ($1, $2) AND deleted_at IS NULL`,
+      [referrerId, refereeId],
+    );
+    const found = new Set(players.rows.map((r) => r.id));
+    if (!found.has(referrerId)) return { ok: false, reason: "referrer-not-found" as const };
+    if (!found.has(refereeId)) return { ok: false, reason: "referee-not-found" as const };
+
+    const played = await client.query<{ c: string }>(
+      `SELECT COUNT(*) AS c FROM rounds WHERE player_id = $1 AND status = 'settled'`,
+      [refereeId],
+    );
+    if (Number(played.rows[0]?.c ?? 0) > 0) return { ok: false, reason: "referee-not-new" as const };
+
     const existing = await client.query(`SELECT id FROM referrals WHERE referee_id = $1`, [refereeId]);
-    if (existing.rows[0]) return false;
+    if (existing.rows[0]) return { ok: false, reason: "already-referred" as const };
 
     await client.query(
       `INSERT INTO referrals (referrer_id, referee_id, bonus_amount) VALUES ($1,$2,$3) ON CONFLICT (referee_id) DO NOTHING`,
@@ -35,7 +61,7 @@ export async function createReferral(database: Database, referrerId: string, ref
       [referrerId, refereeId, JSON.stringify({ referrerId, refereeId })],
     );
 
-    return true;
+    return { ok: true as const };
   });
 }
 

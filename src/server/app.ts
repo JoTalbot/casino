@@ -867,9 +867,20 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     } else {
       return reply.status(400).send({ code: "VALIDATION_FAILED", message: "need refereeId or referralCode" });
     }
+    // T-180: понятные коды ошибок вместо общего 409
+    const rejections: Record<string, { status: number; code: string; message: string }> = {
+      self: { status: 400, code: "SELF_REFERRAL", message: "Нельзя пригласить самого себя" },
+      "referrer-not-found": { status: 404, code: "REFERRER_NOT_FOUND", message: "Пригласивший игрок не найден" },
+      "referee-not-found": { status: 404, code: "REFEREE_NOT_FOUND", message: "Приглашённый игрок не найден" },
+      "referee-not-new": { status: 409, code: "REFEREE_NOT_NEW", message: "Код можно применить только до первого спина" },
+      "already-referred": { status: 409, code: "ALREADY_REFERRED", message: "Реферал уже привязан" },
+    };
     try {
-      const ok = await createReferral(options.database, refId, referee!);
-      if (!ok) return reply.status(409).send({ code: "ALREADY_REFERRED", message: "Реферал уже привязан" });
+      const result = await createReferral(options.database, refId, referee!);
+      if (!result.ok) {
+        const r = rejections[result.reason ?? "already-referred"] ?? rejections["already-referred"];
+        return reply.status(r.status).send({ code: r.code, message: r.message });
+      }
       // Ачивка реферала
       try { await checkAndUnlockAchievements(options.database, refId, { type: "referral" }); } catch {}
       return { ok: true, referrerId: refId, refereeId: referee };

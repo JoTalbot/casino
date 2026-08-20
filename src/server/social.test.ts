@@ -69,8 +69,92 @@ test("нельзя пригласить самого себя", async () => {
       headers: authHeader(app as never, "p1"),
       payload: { refereeId: "p1" },
     });
+    assert.equal(res.statusCode, 400, res.body);
+    assert.equal(res.json().code, "SELF_REFERRAL");
+  } finally {
+    await app.close();
+  }
+});
+
+test("реферал: приглашение несуществующего игрока отклоняется", async () => {
+  const database = createFakeDatabase({
+    routes: [["FROM players WHERE id IN", [{ id: "p1" }]]],
+  });
+  const app = await buildApp({ jwtSecret: JWT_SECRET, database });
+  try {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/referrals",
+      headers: authHeader(app as never, "p1"),
+      payload: { refereeId: "ghost" },
+    });
+    assert.equal(res.statusCode, 404, res.body);
+    assert.equal(res.json().code, "REFEREE_NOT_FOUND");
+    assert.equal(
+      database.calls.some((c) => c.sql.includes("INSERT INTO referrals")),
+      false,
+      "бонус не должен начисляться за несуществующего игрока",
+    );
+  } finally {
+    await app.close();
+  }
+});
+
+test("реферал: нельзя привязать игрока, который уже играл", async () => {
+  const database = createFakeDatabase({
+    routes: [
+      ["FROM players WHERE id IN", [{ id: "p1" }, { id: "p2" }]],
+      ["COUNT(*) AS c FROM rounds", [{ c: "42" }]],
+    ],
+  });
+  const app = await buildApp({ jwtSecret: JWT_SECRET, database });
+  try {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/referrals",
+      headers: authHeader(app as never, "p1"),
+      payload: { refereeId: "p2" },
+    });
     assert.equal(res.statusCode, 409, res.body);
-    assert.equal(res.json().code, "ALREADY_REFERRED");
+    assert.equal(res.json().code, "REFEREE_NOT_NEW");
+  } finally {
+    await app.close();
+  }
+});
+
+test("реферал: корректная привязка новичка начисляет оба бонуса", async () => {
+  const database = createFakeDatabase({
+    routes: [
+      ["FROM players WHERE id IN", [{ id: "p1" }, { id: "p2" }]],
+      ["COUNT(*) AS c FROM rounds", [{ c: "0" }]],
+      ["SELECT id FROM referrals WHERE referee_id", []],
+      ["INSERT INTO referrals", []],
+      ["FROM wallets WHERE player_id", (values) => [{ id: `w-${values[0]}`, balance: "1000" }]],
+      ["INSERT INTO ledger_entries", []],
+      ["INSERT INTO audit_log", []],
+      ["FROM player_achievements pa JOIN achievements a", []],
+      ["SELECT COUNT(*) as c FROM referrals WHERE referrer_id", [{ c: "1" }]],
+    ],
+  });
+  const app = await buildApp({ jwtSecret: JWT_SECRET, database });
+  try {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/referrals",
+      headers: authHeader(app as never, "p1"),
+      payload: { refereeId: "p2" },
+    });
+    assert.equal(res.statusCode, 200, res.body);
+    assert.deepEqual(res.json(), { ok: true, referrerId: "p1", refereeId: "p2" });
+
+    const ledger = database.calls.filter((c) => c.sql.includes("INSERT INTO ledger_entries"));
+    assert.equal(ledger.length, 2, "бонус пригласившему и приглашённому");
+    assert.deepEqual(
+      ledger.map((c) => c.values[1]),
+      ["5000", "1000"],
+    );
+    // Идемпотентные ключи различаются, повторный вызов не удвоит бонус
+    assert.notEqual(ledger[0].values[3], ledger[1].values[3]);
   } finally {
     await app.close();
   }
