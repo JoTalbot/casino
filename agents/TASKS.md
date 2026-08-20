@@ -3,13 +3,13 @@
 Статусы: `todo` → `in-progress` → `blocked` / `review` → `done` / `cancelled`
 Приоритеты: `P0` критично · `P1` важно · `P2` желательно · `P3` потом
 
-**ID не переиспользуются.** Следующий свободный ID: **T-119**
+**ID не переиспользуются.** Следующий свободный ID: **T-124**
 
 ---
 
 ## Активные и запланированные
 
-**Весь бэклог T-001…T-118 закрыт.** Новых активных задач нет.
+**Весь бэклог T-001…T-123 закрыт.** Новых активных задач нет.
 
 ---
 
@@ -17,11 +17,11 @@
 
 | ID | Задача | Приоритет | Статус | Агент | Обновлено |
 |----|--------|-----------|--------|-------|-----------|
-| T-114 | Tournament leaderboard UI improved — анимация и призы | P2 | done | arena-2026-08-20-F | 2026-08-20 |
-| T-115 | Referral share — кнопка шаринга с Web Share API | P2 | done | arena-2026-08-20-F | 2026-08-20 |
-| T-116 | PWA offline improved — кэш чата и рефералов | P2 | done | arena-2026-08-20-F | 2026-08-20 |
-| T-117 | Backup restore UI improved — прогресс бар | P2 | done | arena-2026-08-20-F | 2026-08-20 |
-| T-118 | ADR-022: tournament leaderboard, referral share, PWA offline, backup restore | P2 | done | arena-2026-08-20-F | 2026-08-20 |
+| T-119 | Tournament leaderboard improved — топ с аватарами | P2 | done | arena-2026-08-20-G | 2026-08-20 |
+| T-120 | Referral share improved — Web Share API + копирование | P2 | done | arena-2026-08-20-G | 2026-08-20 |
+| T-121 | PWA offline improved — кэш чата и турниров | P2 | done | arena-2026-08-20-G | 2026-08-20 |
+| T-122 | Backup auto improved — проверка целостности | P2 | done | arena-2026-08-20-G | 2026-08-20 |
+| T-123 | ADR-023: tournament leaderboard, referral share, PWA offline, backup auto | P2 | done | arena-2026-08-20-G | 2026-08-20 |
 
 ---
 

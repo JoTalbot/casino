@@ -1735,3 +1735,9 @@ Open banking (Trustly, Brite) безотзывен по своей природ�
 Задачи: T-119 … T-123
 Локи: `backend`
 
+
+### Сделано (смена G — делаю всё)
+
+**T-119…T-123 done:** tournament leaderboard top с аватарами, referral share Web Share API, PWA offline chat cache, backup auto проверка, ADR-023
+
+**SHIFT END** 08:00 UTC — смена G закрыта
