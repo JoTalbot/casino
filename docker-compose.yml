@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   db:
     image: postgres:16-alpine
@@ -70,9 +69,6 @@ services:
   #   ports:
   #     - "5050:80"
 
-volumes:
-  pgdata:
-
   # Бэкап раз в сутки (T-077)
   backup-cron:
     image: postgres:16-alpine
@@ -89,3 +85,6 @@ volumes:
     command: >
       sh -c "while true; do /usr/local/bin/backup.sh || true; sleep 86400; done"
     profiles: ["cron", "backup"]
+
+volumes:
+  pgdata:
