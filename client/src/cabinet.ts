@@ -15,7 +15,7 @@
  * Барабаны добавляет вызывающий код между `background` и `frame`.
  */
 
-import { Container, FillGradient, Graphics, Sprite, Text, TextStyle } from "pixi.js";
+import { Container, FillGradient, Graphics, Rectangle, Sprite, Text, TextStyle, Texture } from "pixi.js";
 import type { Renderer, Ticker } from "pixi.js";
 
 /**
@@ -258,7 +258,37 @@ export function buildFrame(renderer: Renderer, layout: CabinetLayout): Container
   }
   root.addChild(corners);
 
-  return bake(renderer, root);
+  // Рама занимает только кромки, но как один спрайт это прозрачный quad
+  // во весь экран — софтверный рендер честно блендит и пустую середину.
+  // Режем текстуру на четыре полосы: центр не рисуется вовсе (T-191).
+  return bakeAsBorder(renderer, root);
+}
+
+/** Запекает слой и раскладывает его четырьмя полосами по кромкам. */
+function bakeAsBorder(renderer: Renderer, source: Container): Container {
+  const bounds = source.getLocalBounds();
+  const texture = renderer.generateTexture({ target: source, resolution: 1 });
+  source.destroy({ children: true });
+
+  const holder = new Container();
+  const tw = texture.width;
+  const th = texture.height;
+  // Толщина кромки с запасом: внутрь полос попадают заклёпки и орнаменты.
+  const band = Math.ceil(Math.min(tw, th) * 0.14);
+
+  const strips: Array<[number, number, number, number]> = [
+    [0, 0, tw, band],
+    [0, th - band, tw, band],
+    [0, band, band, th - band * 2],
+    [tw - band, band, band, th - band * 2],
+  ];
+  for (const [sx, sy, sw, sh] of strips) {
+    const part = new Texture({ source: texture.source, frame: new Rectangle(sx, sy, sw, sh) });
+    const sprite = new Sprite(part);
+    sprite.position.set(bounds.x + sx, bounds.y + sy);
+    holder.addChild(sprite);
+  }
+  return holder;
 }
 
 function rivet(g: Graphics, cx: number, cy: number, r: number): void {
@@ -375,6 +405,8 @@ export class WinFx {
     const { boardX: x, boardY: y, boardWidth: bw, boardHeight: bh } = layout;
     this.flash.roundRect(x, y, bw, bh, Math.min(bw, bh) * 0.045).fill({ color: 0xffe9a8 });
     this.flash.alpha = 0;
+    // Прозрачный слой всё равно растеризуется: пока он не нужен — он скрыт.
+    this.flash.visible = false;
 
     this.bannerText = new Text({
       text: "",
@@ -411,7 +443,17 @@ export class WinFx {
   pulse(gsapInstance: typeof import("gsap").default, strength = 0.18): void {
     gsapInstance.killTweensOf(this.flash);
     this.flash.alpha = 0;
-    gsapInstance.to(this.flash, { alpha: strength, duration: 0.12, yoyo: true, repeat: 1, ease: "sine.out" });
+    this.flash.visible = true;
+    gsapInstance.to(this.flash, {
+      alpha: strength,
+      duration: 0.12,
+      yoyo: true,
+      repeat: 1,
+      ease: "sine.out",
+      onComplete: () => {
+        this.flash.visible = false;
+      },
+    });
   }
 
   /**
@@ -429,6 +471,7 @@ export class WinFx {
     this.banner.scale.set(0.3);
     this.banner.alpha = 0;
 
+    this.flash.visible = true;
     this.spawnSparks(gsapInstance, 28);
     gsapInstance.to(this.banner, { alpha: 1, duration: 0.25, ease: "power2.out" });
     gsapInstance.to(this.banner.scale, { x: 1, y: 1, duration: 0.5, ease: "back.out(2)" });
@@ -443,6 +486,8 @@ export class WinFx {
         ease: "power2.in",
         onComplete: () => {
           this.banner.visible = false;
+          this.flash.visible = false;
+          this.flash.alpha = 0;
           resolve();
         },
       });

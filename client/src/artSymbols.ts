@@ -511,6 +511,8 @@ export class ArtSymbol extends ReelSymbol {
     this.halo.anchor.set(0.5);
     this.sprite.anchor.set(0.5);
     this.halo.alpha = 0;
+    // Спрайт с alpha 0 всё равно попадает в рендер: держим его скрытым.
+    this.halo.visible = false;
     this.art.addChild(this.halo, this.sprite);
     (this.view as Container).addChild(this.art);
   }
@@ -531,6 +533,7 @@ export class ArtSymbol extends ReelSymbol {
     this.art.scale.set(1);
     this.art.rotation = 0;
     this.halo.alpha = 0;
+    this.halo.visible = false;
   }
 
   /**
@@ -539,7 +542,17 @@ export class ArtSymbol extends ReelSymbol {
    */
   async playWin(): Promise<void> {
     const { art, halo } = this;
-    this.gsap.to(halo, { alpha: 0.9, duration: 0.18, yoyo: true, repeat: 3, ease: "sine.inOut" });
+    halo.visible = true;
+    this.gsap.to(halo, {
+      alpha: 0.9,
+      duration: 0.18,
+      yoyo: true,
+      repeat: 3,
+      ease: "sine.inOut",
+      onComplete: () => {
+        halo.visible = false;
+      },
+    });
     this.gsap.fromTo(art, { rotation: -0.05 }, { rotation: 0.05, duration: 0.14, yoyo: true, repeat: 3, ease: "sine.inOut" });
     await new Promise<void>((resolve) => {
       this.gsap.fromTo(
@@ -558,6 +571,7 @@ export class ArtSymbol extends ReelSymbol {
     this.art.scale.set(1);
     this.art.rotation = 0;
     this.halo.alpha = 0;
+    this.halo.visible = false;
   }
 
   resize(width: number, height: number): void {
