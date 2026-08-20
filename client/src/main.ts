@@ -18,7 +18,7 @@ import {
 } from "./presentation.js";
 import { ArtSymbol, SYMBOL_THEMES, initSymbolTextures } from "./artSymbols.js";
 import { WinFx, animateMarquee, buildBackdrop, buildDrumShading, buildFrame, buildFrameSheen, buildMarquee, buildReelWindow, type CabinetLayout } from "./cabinet.js";
-import { soundWin, soundSpin } from "./sound.js";
+import { soundBonus, soundWin, soundSpin } from "./sound.js";
 
 /** Имя бота для ссылок-приглашений. Меняется здесь одной строкой. */
 const BOT_USERNAME = "CasinoSlottor_bot";
@@ -399,6 +399,23 @@ async function main(): Promise<void> {
   const SPIN_TIMEOUT_MS = 4000;
   const SPIN_TIMEOUT_TURBO_MS = 2000;
 
+  /** Центр ячейки в координатах сцены: барабаны смещены на позицию доски. */
+  function cellCenter(reel: number, row: number): { x: number; y: number } {
+    return {
+      x: layout.boardX + reel * (CELL + GAP) + CELL / 2,
+      y: layout.boardY + row * (CELL + GAP) + CELL / 2,
+    };
+  }
+
+  /** Рисует путь по каждой выигрышной линии спина. */
+  async function traceWinLines(spin: SpinRecord): Promise<void> {
+    const lines = spin.winDetails.filter((d) => !d.scatter && (d.positions?.length ?? 0) >= 2);
+    for (const detail of lines.slice(0, 5)) {
+      const points = (detail.positions ?? []).map(([reel, row]) => cellCenter(reel, row));
+      await winFx.traceLine(gsap, points);
+    }
+  }
+
   async function present(spin: SpinRecord, round: RoundRecord): Promise<void> {
     const targets = toColumnTargets(spin.grid);
     const anticipation = anticipationReels(spin.grid, game.scatter);
@@ -434,6 +451,10 @@ async function main(): Promise<void> {
       log(label, "win");
       if (positions.length > 0) {
         await reelSet.spotlight.show(positions, { dimAmount: 0.55 });
+        // Трассеры (T-209): по одному на каждую выигрышную линию, чтобы было
+        // видно не только ЧТО выиграло, но и КАК прошла линия. Скаттер
+        // пропускаем — он платит вне линий, и рисовать по нему путь неверно.
+        void traceWinLines(spin);
         await sleep(WIN_DISPLAY_MS);
         reelSet.spotlight.hide();
       } else {
@@ -473,6 +494,7 @@ async function main(): Promise<void> {
         if (spin.free && !bonusAnnounced) {
           bonusAnnounced = true;
           haptic.bigWin();
+          soundBonus();
           const freeCount = round.spins.filter((s) => s.free).length;
           await winFx.celebrateBonus(gsap, freeCount, spin.multiplier, ui.turbo.checked ? 1200 : 2200);
         }

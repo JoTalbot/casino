@@ -76,6 +76,23 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(cors, { origin: true, credentials: true });
   await app.register(jwt, { secret: options.jwtSecret });
+
+  /**
+   * Сроки жизни токенов (T-207).
+   *
+   * Раньше токены не протухали вообще: утёкший однажды работал вечно.
+   * Сроки разные не от вкуса, а из-за природы аккаунтов:
+   *
+   * - Вход из Telegram привязан к telegram_id. Протух токен — клиент молча
+   *   получит новый по подписи и вернётся в ТОТ ЖЕ аккаунт, поэтому здесь
+   *   можно держать срок коротким.
+   * - У гостя токен и ЕСТЬ аккаунт: других признаков у него нет. Короткий
+   *   срок означал бы потерю баланса у человека, который просто не заходил
+   *   пару недель. Поэтому у гостей срок длинный, и это осознанный
+   *   компромисс, а не недосмотр.
+   */
+  const TOKEN_TTL_TELEGRAM = "7d";
+  const TOKEN_TTL_GUEST = "90d";
   const gamesRegistry = loadGames();
   const primary = gamesRegistry.get("crown-of-fortune") ?? { code: "crown-of-fortune", loaded: loadConfig() };
   const loaded = primary.loaded;
@@ -165,10 +182,10 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         "SELECT balance FROM wallets WHERE player_id = $1 AND currency_code = 'CHIP'",
         [linked.playerId],
       );
-      const token = (app as unknown as { jwt: { sign: (p: object) => string } }).jwt.sign({
-        sub: linked.playerId,
-        username: linked.username,
-      });
+      const token = (app as unknown as { jwt: { sign: (p: object, o?: object) => string } }).jwt.sign(
+        { sub: linked.playerId, username: linked.username },
+        { expiresIn: TOKEN_TTL_TELEGRAM },
+      );
       return reply.status(linked.created ? 201 : 200).send({
         playerId: linked.playerId,
         username: linked.username,
@@ -231,7 +248,10 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     try {
       const guest = await createGuestPlayer(options.database, loaded);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const token = (app as any).jwt.sign({ sub: guest.playerId, username: guest.username });
+      const token = (app as any).jwt.sign(
+        { sub: guest.playerId, username: guest.username },
+        { expiresIn: TOKEN_TTL_GUEST },
+      );
       return reply.status(201).send({
         playerId: guest.playerId,
         username: guest.username,

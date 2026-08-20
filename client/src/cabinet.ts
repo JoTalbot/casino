@@ -732,6 +732,82 @@ export class WinFx {
     });
   }
 
+  /**
+   * Трассер выигрышной линии (T-209).
+   *
+   * Подсветка символов показывает ЧТО выиграло, но не показывает КАК линия
+   * прошла по полю. Трассер рисует путь: светящаяся кривая пробегает через
+   * центры выигрышных ячеек и гаснет. Координаты приходят снаружи — сцена
+   * не знает про геометрию барабанов и не должна.
+   */
+  async traceLine(
+    gsapInstance: typeof import("gsap").default,
+    points: Array<{ x: number; y: number }>,
+    color = 0xffd257,
+  ): Promise<void> {
+    if (points.length < 2) return;
+
+    const line = new Graphics();
+    const glow = new Graphics();
+    const layer = new Container();
+    layer.addChild(glow, line);
+    this.view.addChild(layer);
+
+    const draw = (progress: number): void => {
+      line.clear();
+      glow.clear();
+      // Сколько сегментов уже пройдено
+      const total = points.length - 1;
+      const done = Math.min(total, progress * total);
+      const full = Math.floor(done);
+      const tail = done - full;
+
+      const path: Array<{ x: number; y: number }> = points.slice(0, full + 1);
+      if (full < total) {
+        const a = points[full];
+        const b = points[full + 1];
+        path.push({ x: a.x + (b.x - a.x) * tail, y: a.y + (b.y - a.y) * tail });
+      }
+      if (path.length < 2) return;
+
+      const trace = (g: Graphics, width: number, alpha: number): void => {
+        g.moveTo(path[0].x, path[0].y);
+        for (const point of path.slice(1)) g.lineTo(point.x, point.y);
+        g.stroke({ width, color, alpha, cap: "round", join: "round" });
+      };
+      trace(glow, 14, 0.18);
+      trace(line, 4, 0.95);
+
+      // Огонёк на острие
+      const head = path[path.length - 1];
+      line.circle(head.x, head.y, 7).fill({ color: 0xffffff, alpha: 0.9 });
+      line.circle(head.x, head.y, 13).fill({ color, alpha: 0.25 });
+    };
+
+    const state = { progress: 0 };
+    await new Promise<void>((resolve) => {
+      gsapInstance.to(state, {
+        progress: 1,
+        duration: 0.5,
+        ease: "power1.inOut",
+        onUpdate: () => draw(state.progress),
+        onComplete: () => resolve(),
+      });
+    });
+
+    await new Promise<void>((resolve) => {
+      gsapInstance.to(layer, {
+        alpha: 0,
+        duration: 0.35,
+        delay: 0.25,
+        onComplete: () => {
+          layer.destroy({ children: true });
+          resolve();
+        },
+      });
+    });
+  }
+
   private spawnSparks(gsapInstance: typeof import("gsap").default, count: number): void {
     const { boardWidth: bw, boardHeight: bh, boardX: x, boardY: y } = this.layout;
     const cx = x + bw / 2;

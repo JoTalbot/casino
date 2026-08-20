@@ -164,3 +164,60 @@ test("бот отвечает на /start кнопкой запуска игры
   const junk = replyForUpdate({ message: { chat: { id: 9 }, text: "/start hello" } }, url);
   assert.equal(junk!.webAppUrl, url);
 });
+
+test("токены имеют срок жизни (T-207)", async () => {
+  process.env.TELEGRAM_BOT_TOKEN = BOT_TOKEN;
+  const database = createFakeDatabase({
+    routes: [
+      ["SELECT id, username FROM players WHERE telegram_id", [{ id: "p1", username: "tg_x_1" }]],
+      ["UPDATE players SET last_seen_at", []],
+      [
+        "FROM seed_pairs",
+        [{ id: "s1", server_seed: "a".repeat(64), server_seed_hash: "b".repeat(64), client_seed: "c", next_nonce: "0", status: "active", created_at: "2026-08-20T00:00:00Z", revealed_at: null }],
+      ],
+      ["SELECT balance FROM wallets", [{ balance: "1000" }]],
+    ],
+  });
+  const app = await buildApp({ jwtSecret: "секрет-для-тестов-telegram-достаточной-длины", database });
+  try {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/auth/telegram",
+      payload: { initData: makeInitData({ id: 777, username: "ttl" }) },
+    });
+    assert.equal(res.statusCode, 200, res.body);
+
+    const payload = JSON.parse(Buffer.from(res.json().token.split(".")[1], "base64url").toString()) as {
+      exp?: number;
+      iat?: number;
+    };
+    assert.ok(payload.exp, "у токена должен быть срок жизни");
+    const days = (payload.exp! - payload.iat!) / 86400;
+    assert.ok(days > 6 && days < 8, `ожидали около недели, получили ${days.toFixed(1)} дней`);
+  } finally {
+    await app.close();
+    delete process.env.TELEGRAM_BOT_TOKEN;
+  }
+});
+
+test("протухший токен отклоняется (T-207)", async () => {
+  const app = await buildApp({ jwtSecret: "секрет-для-тестов-telegram-достаточной-длины" });
+  try {
+    // Библиотека не принимает отрицательный expiresIn, поэтому подписываем
+    // токен, у которого срок истёк час назад, задав exp напрямую.
+    const past = Math.floor(Date.now() / 1000) - 3600;
+    const expired = (app as unknown as { jwt: { sign: (p: object) => string } }).jwt.sign({
+      sub: "p1",
+      username: "old",
+      exp: past,
+    });
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/v1/wallet",
+      headers: { authorization: `Bearer ${expired}` },
+    });
+    assert.equal(res.statusCode, 401, res.body);
+  } finally {
+    await app.close();
+  }
+});

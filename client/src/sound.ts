@@ -44,3 +44,25 @@ export function soundWin(multiple: number): void {
 export function soundSpin(): void {
   beep(180, 60, 0.1);
 }
+
+/**
+ * Фанфара входа в бонус (T-208).
+ *
+ * Восходящее арпеджио с «блеском» наверху: игрок должен услышать, что
+ * случилось что-то особенное, даже если смотрит в другое место. Длиннее
+ * обычного выигрыша, но короче анимации сундука — звук не должен
+ * перекрывать следующий спин.
+ */
+export function soundBonus(): void {
+  const notes = [392, 523, 659, 784, 1047];
+  notes.forEach((freq, i) => {
+    setTimeout(() => beep(freq, i === notes.length - 1 ? 280 : 110, 0.28), i * 110);
+  });
+  // Верхний «звоночек» поверх последней ноты
+  setTimeout(() => beep(1568, 180, 0.14), notes.length * 110);
+}
+
+/** Короткий щелчок для тапов по интерфейсу. */
+export function soundTap(): void {
+  beep(880, 35, 0.08);
+}
