@@ -384,6 +384,18 @@ async function main(): Promise<void> {
 
   let busy = false;
 
+  /**
+   * Потолок длительности спина (T-204).
+   *
+   * Движок барабанов везёт ленту с постоянной скоростью «пикселей за кадр»,
+   * поэтому на слабом устройстве спин растягивается: замер в софтверном
+   * рендере давал 12 секунд вместо полутора. Ждать «пока докрутится» нельзя —
+   * игрок решит, что игра зависла. По истечении потолка барабаны
+   * доводятся до результата принудительно штатным slamStop().
+   */
+  const SPIN_TIMEOUT_MS = 4000;
+  const SPIN_TIMEOUT_TURBO_MS = 2000;
+
   async function present(spin: SpinRecord, round: RoundRecord): Promise<void> {
     const targets = toColumnTargets(spin.grid);
     const anticipation = anticipationReels(spin.grid, game.scatter);
@@ -391,7 +403,26 @@ async function main(): Promise<void> {
     const spinPromise = reelSet.spin();
     if (anticipation.length > 0) reelSet.setAnticipation(anticipation);
     reelSet.setResult(targets);
-    await spinPromise;
+
+    const limit = ui.turbo.checked ? SPIN_TIMEOUT_TURBO_MS : SPIN_TIMEOUT_MS;
+    let landed = false;
+    void spinPromise.then(() => {
+      landed = true;
+    });
+    const guard = setTimeout(() => {
+      if (landed) return;
+      try {
+        reelSet.slamStop();
+      } catch {
+        // если версия движка не умеет slamStop — просто дождёмся спина
+      }
+    }, limit);
+
+    try {
+      await spinPromise;
+    } finally {
+      clearTimeout(guard);
+    }
     if (spin.win > 0) {
       winFx.pulse(gsap, 0.16);
       const positions = winningPositions(spin);
@@ -644,6 +675,43 @@ async function main(): Promise<void> {
     if (Number(ui.autoCount.value) > 0) ui.autoModal.classList.remove("hidden");
   });
   ui.autoSettingsClose.addEventListener("click", () => ui.autoModal.classList.add("hidden"));
+
+  // --- Вкладки внутри Telegram (T-203) ---
+  //
+  // На телефоне правая колонка не помещается рядом с барабанами, но и
+  // выбрасывать её нельзя: там история, лидерборд, рефералы и — что важнее
+  // всего — ответственная игра. Панели уезжают в выдвижной лист, вкладки
+  // фильтруют карточки по группам.
+  if (inTelegram()) {
+    const side = document.querySelector<HTMLElement>(".side");
+    const tabbar = document.getElementById("tabbar");
+    if (side && tabbar) {
+      const cards = [...side.querySelectorAll<HTMLElement>(".card")];
+
+      const showTab = (tab: string): void => {
+        for (const button of tabbar.querySelectorAll<HTMLElement>(".tab")) {
+          button.classList.toggle("active", button.dataset.tab === tab);
+        }
+        if (tab === "game") {
+          side.classList.remove("open");
+          return;
+        }
+        for (const card of cards) card.hidden = card.dataset.group !== tab;
+        side.classList.add("open");
+        side.scrollTop = 0;
+      };
+
+      tabbar.addEventListener("click", (event) => {
+        const button = (event.target as HTMLElement).closest<HTMLElement>(".tab");
+        if (!button?.dataset.tab) return;
+        haptic.select();
+        const alreadyOpen = side.classList.contains("open") && button.classList.contains("active");
+        showTab(alreadyOpen ? "game" : button.dataset.tab);
+      });
+
+      showTab("game");
+    }
+  }
   ui.autoModal.addEventListener("click", (e) => {
     if (e.target === ui.autoModal) ui.autoModal.classList.add("hidden");
   });

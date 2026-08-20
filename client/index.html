@@ -208,12 +208,62 @@
       .auto-num input { width: 100%; }
       .auto-left { font-variant-numeric: tabular-nums; color: var(--accent); }
 
+      /* Нижняя панель вкладок — только внутри Telegram */
+      #tabbar { display: none; }
+      body.in-telegram #tabbar {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        background: linear-gradient(180deg, rgba(18, 24, 40, .96), rgba(8, 11, 20, .99));
+        border-top: 1px solid rgba(255, 210, 87, .18);
+        padding-bottom: env(safe-area-inset-bottom, 0);
+      }
+      #tabbar .tab {
+        background: none;
+        border: none;
+        border-radius: 0;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1;
+        padding: 8px 2px 9px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+      }
+      #tabbar .tab span { font-size: 10px; letter-spacing: .02em; }
+      #tabbar .tab.active { color: var(--accent); }
+      /* Место под панель вкладок, иначе она накрывает кнопки ставки */
+      body.in-telegram main { padding-bottom: 72px; }
+
       /* Внутри Telegram убираем всё, что мешает игре на телефоне:
          шапку-заголовок, сноски и правую колонку с отладочными панелями.
          Спин переезжает на нативную главную кнопку. */
       body.in-telegram header { display: none; }
       body.in-telegram main { grid-template-columns: 1fr; padding: 8px 8px 16px; gap: 10px; }
-      body.in-telegram .side { display: none; }
+      /* Панели не выбрасываются, а превращаются в выдвижной лист:
+         в прошлой версии они просто скрывались, и в Telegram пропадали
+         история, лидерборд, рефералы и ответственная игра (T-203). */
+      body.in-telegram .side {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 56px;
+        top: 0;
+        z-index: 40;
+        overflow-y: auto;
+        padding: 10px 10px 20px;
+        background: linear-gradient(180deg, rgba(7, 9, 16, .97), rgba(7, 9, 16, 1));
+        transform: translateY(100%);
+        transition: transform .22s ease;
+        gap: 10px;
+      }
+      body.in-telegram .side.open { transform: translateY(0); }
+      body.in-telegram .side .card[hidden] { display: none; }
       body.in-telegram .note { display: none; }
       body.in-telegram #spin { display: none; }
       body.in-telegram .controls { justify-content: space-between; gap: 8px; }
@@ -345,7 +395,7 @@
       </div>
 
       <div class="side">
-        <div class="card">
+        <div class="card" data-group="fair">
           <h2>Provably fair</h2>
           <dl class="kv">
             <dt>Хэш сида</dt>
@@ -368,13 +418,13 @@
           </p>
         </div>
 
-        <div class="card">
+        <div class="card" data-group="fair">
           <h2>Таблица выплат</h2>
           <div id="paytable"></div>
           <p class="note">Значения — за 3 · 4 · 5 символов, в ставках на линию.</p>
         </div>
 
-        <div class="card" id="rg-card">
+        <div class="card" id="rg-card" data-group="more">
           <h2>Ответственная игра</h2>
           <div class="kv" id="rg-counters">
             <dt>Сегодня</dt><dd id="rg-today">—</dd>
@@ -408,12 +458,12 @@
           <p class="note">Лимиты: ужесточение — сразу, ослабление — через 24 часа. Самоисключение нельзя снять досрочно. RTP 95.98%, разброс на 1k спинов 74–125%.</p>
         </div>
 
-        <div class="card">
+        <div class="card" data-group="more">
           <h2>Журнал раундов</h2>
           <div id="log"></div>
         </div>
 
-        <div class="card" id="history-card">
+        <div class="card" id="history-card" data-group="more">
           <h2>История раундов</h2>
           <div class="seed-row">
             <button id="history-refresh">Обновить</button>
@@ -423,7 +473,7 @@
           <p class="note">Последние 20 раундов. Клик — детали. Provably fair проверяется офлайн.</p>
         </div>
 
-        <div class="card" id="bonus-card">
+        <div class="card" id="bonus-card" data-group="bonus">
           <h2>Бонусы</h2>
           <div class="seed-row">
             <button id="bonus-daily">Daily bonus 1000 CHIP</button>
@@ -432,7 +482,7 @@
           <p class="note">1 раз в сутки, сбрасывается в 00:00 UTC.</p>
         </div>
 
-        <div class="card" id="tournaments-card">
+        <div class="card" id="tournaments-card" data-group="top">
           <h2>Турниры</h2>
           <div class="seed-row">
             <button id="tournaments-refresh">Обновить турниры</button>
@@ -442,7 +492,7 @@
           <div id="leaderboard-list" style="margin-top:8px; max-height:200px; overflow-y:auto"></div>
         </div>
 
-        <div class="card" id="referrals-card">
+        <div class="card" id="referrals-card" data-group="bonus">
           <h2>Рефералка</h2>
           <div class="kv"><dt>Твоя ссылка</dt><dd id="ref-link">—</dd></div>
           <div style="background:#0d1220;border:1px solid #232c40;border-radius:6px;height:10px;margin:8px 0;overflow:hidden">
@@ -454,18 +504,18 @@
           <p class="note">Бонус 5000 CHIP рефереру + 1000 рефералу.</p>
         </div>
 
-        <div class="card" id="achievements-card">
+        <div class="card" id="achievements-card" data-group="bonus">
           <h2>Ачивки</h2>
           <div id="ach-list"></div>
         </div>
 
-        <div class="card" id="chat-card">
+        <div class="card" id="chat-card" data-group="top">
           <h2>Чат лобби</h2>
           <div id="chat-list" style="max-height:180px; overflow-y:auto; margin-bottom:8px; font-size:12px"></div>
           <div class="seed-row"><input type="text" id="chat-msg" placeholder="сообщение 1…500"><button id="chat-send">Отправить</button></div>
         </div>
 
-        <div class="card">
+        <div class="card" data-group="more">
           <h2>Правила и приватность</h2>
           <p class="note"><a href="/terms.html" target="_blank">Правила игры (ToS)</a> · <a href="/privacy.html" target="_blank">Конфиденциальность</a> · <a href="/admin.html" target="_blank">Админка</a> · <a href="/verifier/verify.html" target="_blank">Верификатор</a></p>
           <p class="note">Соц-казино без реальных денег. Покупки отключены (Q-006). Если появятся — нужен юр. анализ и геоблокировка Вашингтона.</p>
@@ -499,6 +549,14 @@
         </div>
       </div>
     </div>
+
+    <nav id="tabbar" aria-label="Разделы">
+      <button class="tab active" data-tab="game">🎰<span>Игра</span></button>
+      <button class="tab" data-tab="top">🏆<span>Топ</span></button>
+      <button class="tab" data-tab="bonus">🎁<span>Бонусы</span></button>
+      <button class="tab" data-tab="fair">🔐<span>Честность</span></button>
+      <button class="tab" data-tab="more">☰<span>Ещё</span></button>
+    </nav>
 
     <div id="bonus-modal" class="modal hidden">
       <div class="modal-box bonus-box">
