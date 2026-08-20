@@ -178,7 +178,18 @@ export function replyForUpdate(update: TelegramUpdate, webAppUrl: string): BotRe
   const chatId = update.message?.chat?.id;
   if (!chatId) return null;
 
-  const text = (update.message?.text ?? "").trim().toLowerCase();
+  const raw = (update.message?.text ?? "").trim();
+  const text = raw.toLowerCase();
+
+  // Диплинк приглашения: t.me/бот?start=ref_<id> приходит как «/start ref_<id>».
+  // Код пробрасывается в мини-апп параметром — там его подхватит уже
+  // существующая логика привязки реферала.
+  const startPayload = /^\/start\s+(\S+)/i.exec(raw)?.[1];
+  const referral = startPayload?.startsWith("ref_") ? startPayload.slice(4) : undefined;
+  const urlWithRef =
+    referral && webAppUrl
+      ? `${webAppUrl}${webAppUrl.includes("?") ? "&" : "?"}ref=${encodeURIComponent(referral)}`
+      : webAppUrl;
   const name = update.message?.from?.first_name;
   const greeting = name ? `${name}, добро пожаловать в Crown of Fortune!` : "Добро пожаловать в Crown of Fortune!";
 
@@ -189,12 +200,16 @@ export function replyForUpdate(update: TelegramUpdate, webAppUrl: string): BotRe
         `${greeting}\n\n` +
         "Слот на виртуальных фишках: реальных денег нет, купить или вывести ничего нельзя. " +
         "Каждый раунд считается на сервере и проверяется офлайн — честность доказуема.\n\n" +
+        (referral
+          ? "Ты пришёл по приглашению — бонус начислится после входа.\n\n"
+          : "") +
         "Жми кнопку ниже, стартовый баланс 100 000 фишек уже начислен.",
-      webAppUrl,
+      webAppUrl: urlWithRef,
     };
   }
 
   if (text.startsWith("/help") || text.startsWith("/помощь")) {
+    void urlWithRef;
     return {
       chatId,
       text:

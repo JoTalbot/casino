@@ -345,6 +345,14 @@ async function main(): Promise<void> {
   const wallet = await api.wallet();
   ui.balance.textContent = fmt(wallet.balance);
 
+  // Код приглашения приходит из бота параметром ?ref=… (T-202).
+  // Сохраняем его тем же ключом, что и лендинг, — дальше работает общая
+  // логика привязки.
+  try {
+    const fromUrl = new URLSearchParams(window.location.search).get("ref");
+    if (fromUrl) localStorage.setItem("referral_code", fromUrl);
+  } catch {}
+
   // Авто-применение реферального кода с лендинга (T-067)
   try {
     const refCode = (() => { try { return localStorage.getItem('referral_code'); } catch { return null; } })();
@@ -895,6 +903,24 @@ async function main(): Promise<void> {
         ui.refList.appendChild(div);
       }
       if ((data.referrals || []).length === 0) ui.refList.textContent = "пока никого не пригласил";
+
+      // Ссылка-приглашение через бота: её можно переслать прямо в Telegram.
+      if (data.inviteCode) {
+        const invite = document.createElement("div");
+        invite.className = "history-item";
+        const link = `https://t.me/CasinoSlottor_bot?start=ref_${data.inviteCode}`;
+        invite.innerHTML = `<span>Твоя ссылка-приглашение</span>`;
+        const copy = document.createElement("button");
+        copy.textContent = "Копировать";
+        copy.addEventListener("click", () => {
+          void navigator.clipboard?.writeText(link).then(
+            () => log("Ссылка-приглашение скопирована", "win"),
+            () => log(link, "info"),
+          );
+        });
+        invite.appendChild(copy);
+        ui.refList.appendChild(invite);
+      }
 
       // Progress T-075
       try {

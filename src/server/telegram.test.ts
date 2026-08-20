@@ -154,4 +154,13 @@ test("бот отвечает на /start кнопкой запуска игры
 
   // Обновление без чата игнорируется, а не роняет обработчик
   assert.equal(replyForUpdate({}, url), null);
+
+  // Диплинк приглашения пробрасывает код в адрес мини-аппа
+  const invited = replyForUpdate({ message: { chat: { id: 9 }, text: "/start ref_abc123" } }, url);
+  assert.equal(invited!.webAppUrl, `${url}?ref=abc123`);
+  assert.match(invited!.text, /по приглашению/);
+
+  // Мусор в payload не превращается в реферальный код
+  const junk = replyForUpdate({ message: { chat: { id: 9 }, text: "/start hello" } }, url);
+  assert.equal(junk!.webAppUrl, url);
 });
